@@ -62,29 +62,41 @@ class InferenceSettings:
         }
 
 
-def load_settings(env_file: str | Path = ".env") -> InferenceSettings:
-    """Read SEANCE_* settings from the environment, falling back to `env_file`."""
+def load_settings(
+    env_file: str | Path = ".env", prefix: str = "SEANCE_", fallback_prefix: str | None = None
+) -> InferenceSettings:
+    """Read `<prefix>*` settings from the environment, then `env_file`.
+
+    With `fallback_prefix`, any setting missing under `prefix` is read under
+    the fallback instead (the monitor uses SEANCE_MONITOR_*, falling back to
+    SEANCE_*)."""
     file_values = dotenv_values(env_file) if Path(env_file).exists() else {}
 
-    def get(key: str, default: str | None = None) -> str | None:
-        return os.environ.get(key) or file_values.get(key) or default
+    def lookup(key: str) -> str | None:
+        return os.environ.get(key) or file_values.get(key) or None
 
-    missing = [k for k in ("SEANCE_BASE_URL", "SEANCE_API_KEY", "SEANCE_MODEL") if not get(k)]
+    def get(name: str, default: str | None = None) -> str | None:
+        value = lookup(prefix + name)
+        if value is None and fallback_prefix is not None:
+            value = lookup(fallback_prefix + name)
+        return value if value is not None else default
+
+    missing = [prefix + k for k in ("BASE_URL", "API_KEY", "MODEL") if not get(k)]
     if missing:
         raise RuntimeError(f"missing {', '.join(missing)}: copy .env.example to .env and fill it in")
-    json_mode = get("SEANCE_JSON_MODE", "json_schema")
+    json_mode = get("JSON_MODE", "json_schema")
     if json_mode not in JSON_MODES:
-        raise RuntimeError(f"SEANCE_JSON_MODE must be one of {JSON_MODES}")
+        raise RuntimeError(f"{prefix}JSON_MODE must be one of {JSON_MODES}")
     return InferenceSettings(
-        base_url=get("SEANCE_BASE_URL"),
-        api_key=get("SEANCE_API_KEY"),
-        model=get("SEANCE_MODEL"),
-        temperature=float(get("SEANCE_TEMPERATURE", "0.7")),
-        max_tokens=int(get("SEANCE_MAX_TOKENS", "1024")),
+        base_url=get("BASE_URL"),
+        api_key=get("API_KEY"),
+        model=get("MODEL"),
+        temperature=float(get("TEMPERATURE", "0.7")),
+        max_tokens=int(get("MAX_TOKENS", "1024")),
         json_mode=json_mode,
-        extra_body=json.loads(get("SEANCE_EXTRA_BODY", "{}")),
-        timeout_s=float(get("SEANCE_TIMEOUT_S", "120")),
-        http_retries=int(get("SEANCE_HTTP_RETRIES", "4")),
+        extra_body=json.loads(get("EXTRA_BODY", "{}")),
+        timeout_s=float(get("TIMEOUT_S", "120")),
+        http_retries=int(get("HTTP_RETRIES", "4")),
     )
 
 

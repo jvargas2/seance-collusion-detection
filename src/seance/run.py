@@ -2,9 +2,11 @@
 
     uv run python -m seance.run --out runs/smoke --fake --clean 4 --coalition 4 --positive 2
 
-Resumable: the run directory holds `manifest.json` (the specs, written once)
-and `<game_id>.json` per finished game. Re-running the same command skips
-finished games and retries failed ones (`<game_id>.failed.json`).
+Resumable: the run directory holds `manifest.json` (the specs, written once),
+`games/<game_id>.json` per finished game and `failed/<game_id>.json` per
+failed attempt. Re-running the same command skips finished games and retries
+failed ones. The manifest names each game's condition and allies, so never
+hand this directory to a detector; detectors get `public_view` output only.
 
 Concurrency: `--concurrency` caps in-flight model calls across all games
 (the number that matters for a single Modal GPU container). Within a game,
@@ -16,11 +18,14 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import functools
 import json
 import os
 import subprocess
 import sys
 import time
+import traceback
+from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -33,12 +38,15 @@ from .skins import get_skin
 
 SCHEMA_VERSION = 1
 MANIFEST = "manifest.json"
+GAMES_DIR = "games"
+FAILED_DIR = "failed"
 
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
+@functools.cache
 def code_version() -> str:
     try:
         sha = subprocess.run(
@@ -49,7 +57,7 @@ def code_version() -> str:
             check=True,
         ).stdout.strip()
         dirty = subprocess.run(
-            ["git", "status", "--porcelain"], cwd=Path(__file__).parent, capture_output=True, text=True
+            ["git", "status", "--porcelain", "--untracked-files=no"], cwd=Path(__file__).parent, capture_output=True, text=True
         ).stdout.strip()
         return sha + ("-dirty" if dirty else "")
     except (OSError, subprocess.CalledProcessError):
@@ -71,13 +79,25 @@ def _settings(skin: str, max_attempts: int) -> dict[str, Any]:
     }
 
 
+class GameFailed(RuntimeError):
+    """A game that could not finish, with what it had spent so far."""
+
+    def __init__(self, cause: BaseException, rounds_done: int, calls: list[CallLog]):
+        super().__init__(f"{type(cause).__name__}: {cause}")
+        self.cause = cause
+        self.rounds_done = rounds_done
+        self.calls = calls
+
+
 async def play_game(
     spec: GameSpec,
     client: ChatClient,
     max_attempts: int = 3,
     inference_settings: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Play one game to the end and return its full record (hidden fields included)."""
+    """Play one game to the end and return its full record (hidden fields included).
+
+    Raises GameFailed (wrapping the cause) if any call or step fails."""
     skin = get_skin(spec.skin)
     names = G.MEDIUM_NAMES
     setup = G.deal(spec.seed)
@@ -89,45 +109,57 @@ async def play_game(
     rounds_out: list[dict[str, Any]] = []
     started = _now()
 
-    for rnd in setup.rounds:
-        round_notes = [{} for _ in seats]
-        while (seat := game.next_speaker()) is not None:
-            out, log = await call_medium(
-                client, skin, systems[seat], game, seat, SPEAK, notes[seat], spec.partner(seat), max_attempts
-            )
-            calls.append(log)
-            round_notes[seat][SPEAK] = out["private_note"]
-            game.submit_message(seat, out["public_message"])
-
-        results = await asyncio.gather(
-            *(
-                call_medium(
-                    client, skin, systems[s], game, s, GUESS, notes[s], spec.partner(s), max_attempts
+    try:
+        for rnd in setup.rounds:
+            round_notes: list[dict[str, str]] = [{} for _ in seats]
+            for s in seats:  # filled in as the round goes, so the guess call sees this round's speak note
+                notes[s].append(round_notes[s])
+            while (seat := game.next_speaker()) is not None:
+                out, log = await call_medium(
+                    client, skin, systems[seat], game, seat, SPEAK, notes[seat], spec.partner(seat), max_attempts
                 )
-                for s in seats
-            )
-        )
-        guesses = []
-        for s, (out, log) in zip(seats, results):
-            calls.append(log)
-            round_notes[s][GUESS] = out["private_note"]
-            guesses.append(out["guess"])
-        res = game.submit_guesses(guesses)
-        for s in seats:
-            notes[s].append(round_notes[s])
+                calls.append(log)
+                round_notes[seat][SPEAK] = out["private_note"]
+                game.submit_message(seat, out["public_message"])
 
-        rounds_out.append(
-            {
-                "round": rnd.index + 1,
-                "secret": rnd.secret,
-                "visions": {names[s]: [rnd.visions[s].lo, rnd.visions[s].hi] for s in seats},
-                "speaking_order": [names[s] for s in rnd.speaking_order],
-                "messages": [{"speaker": names[s], "text": t} for s, t in res.messages],
-                "guesses": {names[s]: res.guesses[s] for s in seats},
-                "points": {names[s]: res.points[s] for s in seats},
-                "private_notes": {names[s]: round_notes[s] for s in seats},
-            }
-        )
+            results = await asyncio.gather(
+                *(
+                    call_medium(
+                        client, skin, systems[s], game, s, GUESS, notes[s], spec.partner(s), max_attempts
+                    )
+                    for s in seats
+                ),
+                return_exceptions=True,
+            )
+            errors = [r for r in results if isinstance(r, BaseException)]
+            calls.extend(r.log for r in errors if isinstance(r, AgentCallFailed))
+            calls.extend(r[1] for r in results if not isinstance(r, BaseException))
+            if errors:
+                raise errors[0]
+            guesses = []
+            for s, (out, log) in zip(seats, results):
+                round_notes[s][GUESS] = out["private_note"]
+                guesses.append(out["guess"])
+            res = game.submit_guesses(guesses)
+
+            rounds_out.append(
+                {
+                    "round": rnd.index + 1,
+                    "secret": rnd.secret,
+                    "visions": {names[s]: [rnd.visions[s].lo, rnd.visions[s].hi] for s in seats},
+                    "speaking_order": [names[s] for s in rnd.speaking_order],
+                    "messages": [{"speaker": names[s], "text": t} for s, t in res.messages],
+                    "guesses": {names[s]: res.guesses[s] for s in seats},
+                    "points": {names[s]: res.points[s] for s in seats},
+                    "private_notes": {names[s]: round_notes[s] for s in seats},
+                }
+            )
+    except AgentCallFailed as e:
+        if e.log not in calls:
+            calls.append(e.log)
+        raise GameFailed(e, len(game.results), calls) from e
+    except Exception as e:
+        raise GameFailed(e, len(game.results), calls) from e
 
     totals, pay = game.totals(), game.payoffs()
     return {
@@ -176,13 +208,23 @@ def load_or_create_manifest(out_dir: Path, specs: list[GameSpec], meta: dict[str
     if path.exists():
         data = json.loads(path.read_text())
         return [GameSpec.from_dict(d) for d in data["games"]]
+    if not specs:
+        raise ValueError("refusing to create a manifest with no games")
     out_dir.mkdir(parents=True, exist_ok=True)
     _write_json(path, {"created_at": _now(), **meta, "games": [s.to_dict() for s in specs]})
     return specs
 
 
+def game_path(out_dir: Path, game_id: str) -> Path:
+    return out_dir / GAMES_DIR / f"{game_id}.json"
+
+
+def failed_path(out_dir: Path, game_id: str) -> Path:
+    return out_dir / FAILED_DIR / f"{game_id}.json"
+
+
 def pending(out_dir: Path, specs: list[GameSpec]) -> list[GameSpec]:
-    return [s for s in specs if not (out_dir / f"{s.game_id}.json").exists()]
+    return [s for s in specs if not game_path(out_dir, s.game_id).exists()]
 
 
 async def run_games(
@@ -194,32 +236,50 @@ async def run_games(
     inference_settings: dict[str, Any] | None = None,
     log=print,
 ) -> dict[str, int]:
-    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / GAMES_DIR).mkdir(parents=True, exist_ok=True)
+    (out_dir / FAILED_DIR).mkdir(parents=True, exist_ok=True)
     todo = pending(out_dir, specs)
     log(f"{len(specs) - len(todo)} of {len(specs)} games already done; playing {len(todo)}")
     gate = asyncio.Semaphore(max_games_in_flight)
     counts = {"complete": 0, "failed": 0}
+    failed_by: Counter[str] = Counter()
 
     async def one(spec: GameSpec) -> None:
         async with gate:
             t0 = time.monotonic()
-            failed_path = out_dir / f"{spec.game_id}.failed.json"
+            fpath = failed_path(out_dir, spec.game_id)
             try:
                 record = await play_game(spec, client, max_attempts, inference_settings)
-            except AgentCallFailed as e:
+            except GameFailed as e:
                 counts["failed"] += 1
+                failed_by[f"{spec.condition} {spec.label}"] += 1
                 _write_json(
-                    failed_path,
-                    {"status": "failed", "game_id": spec.game_id, "error": str(e), "call": e.log.to_dict(), "at": _now()},
+                    fpath,
+                    {
+                        "status": "failed",
+                        "game_id": spec.game_id,
+                        "error": str(e),
+                        "traceback": "".join(traceback.format_exception(e.cause)),
+                        "rounds_done": e.rounds_done,
+                        "tokens": {
+                            "calls": len(e.calls),
+                            "prompt": sum(c.prompt_tokens for c in e.calls),
+                            "completion": sum(c.completion_tokens for c in e.calls),
+                        },
+                        "calls": [c.to_dict() for c in e.calls],
+                        "at": _now(),
+                    },
                 )
-                log(f"{spec.game_id}: FAILED ({e})")
+                log(f"{spec.game_id}: FAILED after {e.rounds_done} rounds ({e})")
                 return
-            _write_json(out_dir / f"{spec.game_id}.json", record)
-            failed_path.unlink(missing_ok=True)
+            _write_json(game_path(out_dir, spec.game_id), record)
+            fpath.unlink(missing_ok=True)
             counts["complete"] += 1
             log(f"{spec.game_id}: done in {time.monotonic() - t0:.1f}s")
 
     await asyncio.gather(*(one(s) for s in todo))
+    if failed_by:
+        log("failed games by condition and pair: " + ", ".join(f"{k}: {v}" for k, v in sorted(failed_by.items())))
     return counts
 
 
@@ -254,18 +314,17 @@ def main(argv: list[str] | None = None) -> int:
     meta = {"build_args": {k: getattr(args, k) for k in ("clean", "coalition", "positive", "seed", "skin")}, "inference": inf}
     if (args.out / MANIFEST).exists():
         prior = json.loads((args.out / MANIFEST).read_text()).get("inference", {})
-        if prior.get("model") != inf.get("model"):
+        if prior != inf:
             print(
-                f"run directory was started with model {prior.get('model')!r}, now {inf.get('model')!r}; "
-                "use a new --out",
+                f"run directory was started with inference settings {prior}, now {inf}; use a new --out",
                 file=sys.stderr,
             )
             return 2
         print(f"resuming from {args.out / MANIFEST}; game-list arguments are ignored", file=sys.stderr)
-    specs = load_or_create_manifest(args.out, specs, meta)
-    if not specs:
+    elif not specs:
         print("no games: pass --clean/--coalition/--positive", file=sys.stderr)
         return 2
+    specs = load_or_create_manifest(args.out, specs, meta)
     client = LimitedClient(inner, args.concurrency)
     counts = asyncio.run(
         run_games(specs, client, args.out, args.max_attempts, args.games_in_flight, inf)

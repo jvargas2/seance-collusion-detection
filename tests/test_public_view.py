@@ -79,6 +79,9 @@ async def test_no_private_notes_visions_roles_or_seed_in_view():
                 for note in notes.values():
                     assert note not in text
         assert str(rec["seed"]) not in text
+        gid = view["game_id"].lower()
+        assert re.fullmatch(r"g\d+", gid)
+        assert not any(x in gid for x in ("clean", "coalition", "positive", "none", "ada", "bram", "cora", "dov"))
         for word in ("vision", "private", "role", "ally", "allies", "solo", "condition", "label",
                      "payoff", "pooled", "coalition", "positive", "clean", "seed", "prompt", "raw"):
             assert not re.search(rf"\b{word}", json.dumps(view).lower()), word

@@ -18,7 +18,7 @@ from seance.conditions import (
 )
 from seance.fake import ScriptedModel
 from seance.inference import Completion, LimitedClient
-from seance.run import MANIFEST, main, play_game, run_games
+from seance.run import MANIFEST, GameFailed, failed_path, game_path, load_or_create_manifest, main, play_game, run_games
 
 
 def _strip_times(rec):
@@ -130,17 +130,58 @@ async def test_run_is_resumable_and_retries_failed_games(tmp_path):
 
     counts = await run_games(specs, Broken(), tmp_path, log=quiet)
     assert counts == {"complete": 0, "failed": 4}
-    assert len(list(tmp_path.glob("*.failed.json"))) == 4
+    failed = json.loads(failed_path(tmp_path, specs[0].game_id).read_text())
+    assert failed["rounds_done"] == 0 and failed["tokens"]["calls"] == 1
+    assert [a["raw"] for a in failed["calls"][0]["attempts"]] == ["no", "no", "no"]
 
     counts = await run_games(specs, ScriptedModel(seed=8), tmp_path, log=quiet)
     assert counts == {"complete": 4, "failed": 0}
-    assert not list(tmp_path.glob("*.failed.json"))
+    assert not list((tmp_path / "failed").iterdir())
 
-    first = (tmp_path / f"{specs[0].game_id}.json").read_text()
-    (tmp_path / f"{specs[1].game_id}.json").unlink()
+    first = game_path(tmp_path, specs[0].game_id).read_text()
+    game_path(tmp_path, specs[1].game_id).unlink()
     counts = await run_games(specs, ScriptedModel(seed=8), tmp_path, log=quiet)
     assert counts == {"complete": 1, "failed": 0}
-    assert (tmp_path / f"{specs[0].game_id}.json").read_text() == first  # untouched
+    assert game_path(tmp_path, specs[0].game_id).read_text() == first  # untouched
+
+
+async def test_any_exception_fails_one_game_not_the_run(tmp_path):
+    specs = build_specs(3, 0, 0, seed=12)
+
+    class Flaky(ScriptedModel):
+        async def complete(self, messages, schema_name, schema):
+            if "You are Cora" in messages[0]["content"] and "Round 3 of 10 (now)" in messages[1]["content"]:
+                raise ConnectionError("endpoint went away")
+            return await super().complete(messages, schema_name, schema)
+
+    counts = await run_games(specs[:1], Flaky(seed=12), tmp_path, log=lambda *_: None)
+    assert counts == {"complete": 0, "failed": 1}
+    failed = json.loads(failed_path(tmp_path, specs[0].game_id).read_text())
+    assert failed["rounds_done"] == 2 and "ConnectionError" in failed["error"]
+    assert failed["tokens"]["calls"] >= 16
+
+
+async def test_guess_call_sees_own_speak_note_from_this_round_only():
+    spec = build_specs(0, 1, 0, seed=13)[0]
+    rec = await play_game(spec, ScriptedModel(seed=13))
+    guess_calls = [c for c in rec["calls"] if c["phase"] == "guess" and c["round"] == 4]
+    for c in guess_calls:
+        own = rec["rounds"][3]["private_notes"][c["medium"]]["speak"]
+        assert json.dumps(own, ensure_ascii=False) in c["user_prompt"]
+        for other, notes in rec["rounds"][3]["private_notes"].items():
+            if other != c["medium"] and notes["speak"] != own:
+                assert json.dumps(notes["speak"], ensure_ascii=False) not in c["user_prompt"]
+    speak_calls = [c for c in rec["calls"] if c["phase"] == "speak" and c["round"] == 4]
+    assert all("when you spoke this round" not in c["user_prompt"] for c in speak_calls)
+
+
+def test_empty_manifest_is_never_written(tmp_path, capsys):
+    import pytest
+
+    with pytest.raises(ValueError):
+        load_or_create_manifest(tmp_path / "x", [], {})
+    assert main(["--out", str(tmp_path / "y"), "--fake"]) == 2
+    assert not (tmp_path / "y" / MANIFEST).exists()
 
 
 def test_cli_fake_run_and_resume(tmp_path, capsys):
@@ -148,8 +189,8 @@ def test_cli_fake_run_and_resume(tmp_path, capsys):
     assert main(["--out", str(out), "--fake", "--clean", "2", "--coalition", "2", "--positive", "1", "--seed", "3"]) == 0
     manifest = json.loads((out / MANIFEST).read_text())
     assert len(manifest["games"]) == 5
-    assert len(list(out.glob("g*.json"))) == 5
+    assert len(list((out / "games").glob("g*.json"))) == 5
     # Resuming ignores new game-list arguments and plays nothing new.
     assert main(["--out", str(out), "--fake", "--clean", "9", "--seed", "3"]) == 0
-    assert len(list(out.glob("g*.json"))) == 5
+    assert len(list((out / "games").glob("g*.json"))) == 5
     assert "5 of 5 games already done" in capsys.readouterr().out

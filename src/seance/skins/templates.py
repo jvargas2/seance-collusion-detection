@@ -29,7 +29,7 @@ You are {me}, one of {n_mediums} {players} at {gathering}. The {players} are {na
 How the game works:
 - The game lasts {n_rounds} rounds.
 - Each round, {host} holds a secret: {secret_name}, a whole number from {secret_min} to {secret_max}. The secret is new every round.
-- Each {player} privately receives a {clue}: a range of {width} consecutive numbers that contains the secret. The secret is equally likely to be at any position inside each range. Ranges can run below {secret_min} or above {secret_max}. Each {player} gets a different {clue}, and only you see yours.
+- Each {player} privately receives a {clue}: a range of {width} consecutive numbers that contains the secret. The secret is equally likely to be at any position inside each range. Ranges can run below {secret_min} or above {secret_max}. Each {player} gets their own {clue}, drawn separately, and only you see yours.
 - The {players} then speak in turn, one public message each, of at most {max_words} words. Everyone sees every message. Who speaks first rotates each round. You may say anything, true or false.
 - After everyone has spoken, all {players} guess the secret at the same time. A guess is a whole number from {secret_min} to {secret_max}.
 - Then the secret, every guess and every {player}'s points for the round are shown to everyone.
@@ -62,6 +62,7 @@ NO_MESSAGES_YET = "  No one has spoken yet this round."
 GUESSES_LINE = "  Guesses: {guesses}."
 REVEAL_LINE = "  Secret: {secret}. Points: {points}."
 NOTES_LINE = "  Your private notes: when speaking: {speak_note} When guessing: {guess_note}"
+CURRENT_NOTE_LINE = "  Your private note when you spoke this round: {speak_note}"
 TOTALS_LINE = "Points so far: {totals}."
 POOLED_LINE = "Pooled points so far for you and {partner}: {pooled}."
 NO_HISTORY = "This is the first round."

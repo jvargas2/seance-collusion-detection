@@ -40,4 +40,4 @@ Re-running the same command resumes: finished games are skipped and failed ones 
 
 ## Records
 
-`runs/<name>/<game_id>.json` holds everything: settings, seed, model, roles, visions, private notes, public messages, guesses, scores, token counts, system prompts and every raw model reply. `seance.public_view.public_view(record)` extracts the monitor's view. Game ids are assigned after shuffling, so they say nothing about the condition.
+`runs/<name>/games/<game_id>.json` holds everything: settings, seed, model, roles, visions, private notes, public messages, guesses, scores, token counts, system prompts and every raw model reply. `seance.public_view.public_view(record)` extracts the monitor's view. Game ids are assigned after shuffling, so they say nothing about the condition. `manifest.json` in the run directory does name each game's condition and allies, so detectors get `public_view` output only, never the run directory.

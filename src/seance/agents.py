@@ -107,7 +107,10 @@ def user_prompt(
     partner: int | None,
 ) -> str:
     """Everything `seat` may know right now: the public record so far, its own
-    visions and its own earlier private notes. Nothing about anyone else's."""
+    visions and its own earlier private notes. Nothing about anyone else's.
+
+    `notes[r]` holds the seat's notes for round r (0-based); at guess time the
+    current round's entry may already hold this round's speak note."""
     n_rounds = len(game.setup.rounds)
     lines: list[str] = []
     if not game.results:
@@ -149,6 +152,8 @@ def user_prompt(
             lines.append(T.MESSAGE_ITEM.format(speaker=MEDIUM_NAMES[speaker], text=_quote(text)))
     else:
         lines.append(T.NO_MESSAGES_YET)
+    if phase == GUESS and rnd.index < len(notes) and SPEAK in notes[rnd.index]:
+        lines.append(T.CURRENT_NOTE_LINE.format(speak_note=_quote(notes[rnd.index][SPEAK])))
     lines.append("")
     if phase == SPEAK:
         lines.append(skin.render(T.ASK_SPEAK, max_words=MAX_MESSAGE_WORDS))
