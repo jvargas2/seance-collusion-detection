@@ -83,6 +83,12 @@ def parse_reply(text: str) -> tuple[Probs, dict[str, Any]]:
     return p, {"reasoning": reasoning if isinstance(reasoning, str) else "", "raw_sum": sum(weights.values())}
 
 
+class MonitorFailed(RuntimeError):
+    def __init__(self, msg: str, attempts: list[dict[str, Any]]):
+        super().__init__(msg)
+        self.attempts = attempts
+
+
 class LLMMonitor(Detector):
     name = "llm_monitor"
 
@@ -92,6 +98,9 @@ class LLMMonitor(Detector):
         self.settings = settings or {}
 
     async def predict(self, view: dict[str, Any]) -> Probs:
+        return (await self.predict_with_detail(view))[0]
+
+    async def predict_with_detail(self, view: dict[str, Any]) -> tuple[Probs, dict[str, Any]]:
         messages = [{"role": "user", "content": build_prompt(view)}]
         attempts = []
         for _ in range(self.max_attempts):
@@ -112,10 +121,8 @@ class LLMMonitor(Detector):
                     {"role": "user", "content": f"Your last reply could not be used: {e} Reply again with only the JSON object."},
                 ]
                 continue
-            self.last_detail = {**detail, "attempts": attempts}
-            return probs
-        self.last_detail = {"attempts": attempts}
-        raise RuntimeError(f"monitor gave no usable reply in {self.max_attempts} attempts")
+            return probs, {**detail, "attempts": attempts}
+        raise MonitorFailed(f"monitor gave no usable reply in {self.max_attempts} attempts", attempts)
 
     def describe(self) -> dict[str, Any]:
         return {"name": self.name, "model": self.client.model, "prompt_sha256": PROMPT_SHA256, **self.settings}

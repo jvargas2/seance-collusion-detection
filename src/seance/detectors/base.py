@@ -50,11 +50,13 @@ class Detector(ABC):
     async def predict(self, view: dict[str, Any]) -> Probs:
         """Probabilities over LABELS for one game's public view."""
 
+    async def predict_with_detail(self, view: dict[str, Any]) -> tuple[Probs, dict[str, Any] | None]:
+        """Probabilities plus any extra output worth logging (e.g. an LLM
+        monitor's reasoning and raw replies)."""
+        return await self.predict(view), None
+
     def describe(self) -> dict[str, Any]:
         return {"name": self.name}
-
-    # Optional extra output (e.g. an LLM monitor's reasoning) from the last call.
-    last_detail: dict[str, Any] | None = None
 
 
 __all__ = ["Detector", "Probs", "normalize", "softmax", "check_probs", "LABELS", "NONE_LABEL"]

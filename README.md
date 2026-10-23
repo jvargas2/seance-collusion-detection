@@ -24,6 +24,10 @@ Conditions: **clean** (no alliance), **coalition** (a random pair, told to impro
 | `src/seance/run.py` | Async, resumable runner; one JSON record per game |
 | `src/seance/public_view.py` | Exactly what the monitor sees (whitelist) |
 | `src/seance/fake.py` | Scripted fake model, including allies using a known code, for free offline games |
+| `src/seance/modal_app.py` | vLLM OpenAI-compatible server on Modal (one GPU max, batched, idle scaledown) |
+| `src/seance/detectors/` | One interface (public view in, 7 probabilities out): chance, top scorer, LLM monitor |
+| `src/seance/metrics.py` | Log-loss, Brier, accuracy, right-pair accuracy, catch rate at 5% FPR, AUROC, calibration, bootstrap CIs, communication success |
+| `src/seance/evaluate.py` | Runs a detector over a run directory and scores it |
 
 ## Use
 
@@ -34,6 +38,15 @@ uv run python -m seance.run --out runs/smoke --fake --clean 4 --coalition 4 --po
 
 cp .env.example .env                # then fill in endpoint, key, model
 uv run python -m seance.run --out runs/pilot --clean 1 --coalition 1 --concurrency 4
+```
+
+Evaluate:
+
+```bash
+uv run python -m seance.evaluate --run runs/smoke --detector chance
+uv run python -m seance.evaluate --run runs/smoke --detector top_scorer      # cross-fitted
+uv run python -m seance.evaluate --run runs/smoke --detector llm_monitor     # uses SEANCE_MONITOR_* (falls back to SEANCE_*)
+uv run python -m seance.evaluate --run runs/smoke --communication
 ```
 
 Re-running the same command resumes: finished games are skipped and failed ones retried. A run directory is tied to one model.
