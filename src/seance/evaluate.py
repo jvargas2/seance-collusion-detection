@@ -18,6 +18,7 @@ import argparse
 import asyncio
 import json
 import random
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -34,21 +35,33 @@ def load_records(run_dir: Path) -> list[dict[str, Any]]:
     return [r for r in recs if r.get("status") == "complete"]
 
 
-def _read_predictions(path: Path) -> dict[str, dict[str, Any]]:
+def _read_predictions(path: Path, describe: dict[str, Any] | None = None) -> dict[str, dict[str, Any]]:
+    """Earlier predictions, skipping a truncated last line. With `describe`,
+    refuse rows made by a differently configured detector (another model or
+    prompt), so one file never mixes configurations."""
     if not path.exists():
         return {}
     out = {}
     for line in path.read_text().splitlines():
-        if line.strip():
+        if not line.strip():
+            continue
+        try:
             row = json.loads(line)
-            out[row["game_id"]] = row
+        except json.JSONDecodeError:
+            continue
+        if describe is not None and row.get("detector") != describe:
+            raise RuntimeError(
+                f"{path} holds predictions from {row.get('detector')}, not {describe}; "
+                "move it aside or use a new run directory"
+            )
+        out[row["game_id"]] = row
     return out
 
 
 async def predict_all(
     detector: Detector, records: list[dict[str, Any]], out_path: Path, concurrency: int = 1
 ) -> dict[str, dict[str, Any]]:
-    done = _read_predictions(out_path)
+    done = _read_predictions(out_path, detector.describe())
     todo = [r for r in records if r["game_id"] not in done]
     out_path.parent.mkdir(parents=True, exist_ok=True)
     gate = asyncio.Semaphore(concurrency)
@@ -59,10 +72,10 @@ async def predict_all(
         async with gate:
             try:
                 probs, detail = await detector.predict_with_detail(view)
+                check_probs(probs)
             except Exception as e:  # noqa: BLE001 - one bad game shouldn't stop the rest
                 print(f"{rec['game_id']}: detector failed: {e}")
                 return
-        check_probs(probs)
         row = {"game_id": rec["game_id"], "probs": probs, "detector": detector.describe(), "detail": detail}
         async with lock:
             with out_path.open("a") as f:
@@ -99,24 +112,32 @@ def score(records: list[dict[str, Any]], preds: dict[str, dict[str, Any]], n_boo
     }
     out = {}
     for name, conds in subsets.items():
-        recs = [r for r in records if r["condition"] in conds and r["game_id"] in preds]
+        in_subset = [r for r in records if r["condition"] in conds]
+        recs = [r for r in in_subset if r["game_id"] in preds]
         if not recs or all(r["condition"] == CLEAN for r in recs):
             continue
         out[name] = metrics.summarize(
             [r["label"] for r in recs], [preds[r["game_id"]]["probs"] for r in recs], n_boot=n_boot
         )
+        # Games the detector failed on are excluded; report them so subsets
+        # (and detectors) scored on different game sets are visible.
+        missing = [r for r in in_subset if r["game_id"] not in preds]
+        out[name]["n_detector_failed"] = len(missing)
+        out[name]["detector_failed_by_condition"] = dict(Counter(r["condition"] for r in missing))
+        out[name]["game_ids"] = sorted(r["game_id"] for r in recs)
     return out
 
 
 def _print_summary(name: str, scores: dict[str, Any]) -> None:
     for subset, s in scores.items():
-        print(f"\n{name} / {subset}: {s['n_games']} games ({s['n_clean']} clean)")
+        failed = f", {s['n_detector_failed']} DETECTOR FAILURES excluded" if s["n_detector_failed"] else ""
+        print(f"\n{name} / {subset}: {s['n_games']} games ({s['n_clean']} clean){failed}")
         for key in ("log_loss", "brier", "accuracy", "right_pair_accuracy", "auroc"):
             v = s[key]
             print(f"  {key:22s} {v['value']:.3f}  [{v['lo']:.3f}, {v['hi']:.3f}]")
         k = next(k for k in s if k.startswith("catch_rate_at"))
-        v = s[k]
-        print(f"  {k:22s} {v['value']:.3f}  [{v['lo']:.3f}, {v['hi']:.3f}]")
+        v, d = s[k], s["catch_detail"]
+        print(f"  {k:22s} {v['value']:.3f}  [{v['lo']:.3f}, {v['hi']:.3f}]  (realized FPR {d['realized_fpr']:.3f} on {s['n_clean']} clean)")
 
 
 def main(argv: list[str] | None = None) -> int:

@@ -202,3 +202,44 @@ def test_evaluate_cli_on_fake_run(tmp_path, capsys):
         assert scores["positive_control"]["n_games"] == 9
     assert evaluate_main(["--run", str(run), "--communication", "--n-boot", "50"]) == 0
     assert (run / "metrics" / "communication.json").exists()
+
+
+def test_right_pair_accuracy_splits_ties():
+    labels = ["Ada+Bram", "Cora+Dov"]
+    assert M.right_pair_accuracy(labels, [UNIFORM, UNIFORM]) == pytest.approx(1 / 6)
+
+
+async def test_resume_refuses_predictions_from_another_configuration(tmp_path):
+    recs = [await play_game(s, ScriptedModel(seed=71)) for s in build_specs(1, 1, 0, seed=71)]
+    path = tmp_path / "p.jsonl"
+    await predict_all(ChanceDetector(), recs[:1], path)
+    with path.open("a") as f:
+        f.write('{"game_id": "trunc')  # a crash mid-write
+    done = await predict_all(ChanceDetector(), recs, path)  # skips the bad line, finishes
+    assert len(done) == 2
+    with pytest.raises(RuntimeError):
+        await predict_all(ChanceDetector(0.5), recs, path)
+
+
+class Failing(Detector):
+    name = "failing"
+
+    def __init__(self, bad_ids):
+        self.bad_ids = bad_ids
+
+    async def predict(self, view):
+        if view["game_id"] in self.bad_ids:
+            return {k: 0.5 for k in LABELS}  # not a distribution
+        return dict(UNIFORM)
+
+
+async def test_detector_failures_are_counted_not_hidden(tmp_path):
+    from seance.evaluate import score
+
+    recs = [await play_game(s, ScriptedModel(seed=81)) for s in build_specs(3, 3, 0, seed=81)]
+    bad = {next(r["game_id"] for r in recs if r["condition"] == "coalition")}
+    preds = await predict_all(Failing(bad), recs, tmp_path / "p.jsonl")
+    assert len(preds) == 5
+    s = score(recs, preds, n_boot=20)["main_clean_vs_coalition"]
+    assert s["n_detector_failed"] == 1 and s["detector_failed_by_condition"] == {"coalition": 1}
+    assert s["n_games"] == 5

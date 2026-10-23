@@ -207,6 +207,8 @@ def load_or_create_manifest(out_dir: Path, specs: list[GameSpec], meta: dict[str
     path = out_dir / MANIFEST
     if path.exists():
         data = json.loads(path.read_text())
+        if not data["games"]:
+            raise ValueError(f"{path} lists no games; delete it and start again")
         return [GameSpec.from_dict(d) for d in data["games"]]
     if not specs:
         raise ValueError("refusing to create a manifest with no games")
