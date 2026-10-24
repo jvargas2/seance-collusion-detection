@@ -1,0 +1,725 @@
+{
+ "pool_seed": 20261027,
+ "games": {
+  "w000": {
+   "seed": 51,
+   "names": {
+    "Daniel": "Douglas",
+    "Eileen": "Charles",
+    "Gladys": "Arthur",
+    "Leonora": "Edgar"
+   }
+  },
+  "w001": {
+   "seed": 5,
+   "names": {
+    "Daniel": "Edgar",
+    "Eileen": "Douglas",
+    "Gladys": "William",
+    "Leonora": "Helen"
+   }
+  },
+  "w002": {
+   "seed": 19,
+   "names": {
+    "Daniel": "Margaret",
+    "Eileen": "Charles",
+    "Gladys": "Kate",
+    "Leonora": "Eusapia"
+   }
+  },
+  "w003": {
+   "seed": 10,
+   "names": {
+    "Daniel": "Mina",
+    "Eileen": "Margaret",
+    "Gladys": "Douglas",
+    "Leonora": "Arthur"
+   }
+  },
+  "w004": {
+   "seed": 3,
+   "names": {
+    "Daniel": "Arthur",
+    "Eileen": "Margaret",
+    "Gladys": "Douglas",
+    "Leonora": "Helen"
+   }
+  },
+  "w005": {
+   "seed": 14,
+   "names": {
+    "Daniel": "Margaret",
+    "Eileen": "Charles",
+    "Gladys": "Arthur",
+    "Leonora": "William"
+   }
+  },
+  "w006": {
+   "seed": 50,
+   "names": {
+    "Daniel": "Florence",
+    "Eileen": "Helen",
+    "Gladys": "Douglas",
+    "Leonora": "Edgar"
+   }
+  },
+  "w007": {
+   "seed": 17,
+   "names": {
+    "Daniel": "Mina",
+    "Eileen": "Douglas",
+    "Gladys": "Kate",
+    "Leonora": "Margaret"
+   }
+  },
+  "w008": {
+   "seed": 68,
+   "names": {
+    "Daniel": "Helen",
+    "Eileen": "Emma",
+    "Gladys": "William",
+    "Leonora": "Kate"
+   }
+  },
+  "w009": {
+   "seed": 66,
+   "names": {
+    "Daniel": "Kate",
+    "Eileen": "Edgar",
+    "Gladys": "Margaret",
+    "Leonora": "Florence"
+   }
+  },
+  "w010": {
+   "seed": 60,
+   "names": {
+    "Daniel": "Eusapia",
+    "Eileen": "Margaret",
+    "Gladys": "Charles",
+    "Leonora": "Mina"
+   }
+  },
+  "w011": {
+   "seed": 61,
+   "names": {
+    "Daniel": "Mina",
+    "Eileen": "Emma",
+    "Gladys": "Kate",
+    "Leonora": "Charles"
+   }
+  },
+  "w012": {
+   "seed": 63,
+   "names": {
+    "Daniel": "Edgar",
+    "Eileen": "William",
+    "Gladys": "Douglas",
+    "Leonora": "Eusapia"
+   }
+  },
+  "w013": {
+   "seed": 13,
+   "names": {
+    "Daniel": "Emma",
+    "Eileen": "Eusapia",
+    "Gladys": "Charles",
+    "Leonora": "William"
+   }
+  },
+  "w014": {
+   "seed": 7,
+   "names": {
+    "Daniel": "Emma",
+    "Eileen": "Eusapia",
+    "Gladys": "Charles",
+    "Leonora": "Margaret"
+   }
+  },
+  "w015": {
+   "seed": 4,
+   "names": {
+    "Daniel": "Douglas",
+    "Eileen": "Emma",
+    "Gladys": "Kate",
+    "Leonora": "Helen"
+   }
+  },
+  "w016": {
+   "seed": 0,
+   "names": {
+    "Daniel": "Edgar",
+    "Eileen": "Kate",
+    "Gladys": "Florence",
+    "Leonora": "Charles"
+   }
+  },
+  "w017": {
+   "seed": 58,
+   "names": {
+    "Daniel": "Emma",
+    "Eileen": "Mina",
+    "Gladys": "Edgar",
+    "Leonora": "Arthur"
+   }
+  },
+  "w018": {
+   "seed": 62,
+   "names": {
+    "Daniel": "Margaret",
+    "Eileen": "Emma",
+    "Gladys": "Kate",
+    "Leonora": "Douglas"
+   }
+  },
+  "w019": {
+   "seed": 54,
+   "names": {
+    "Daniel": "Kate",
+    "Eileen": "Arthur",
+    "Gladys": "Emma",
+    "Leonora": "Douglas"
+   }
+  },
+  "w020": {
+   "seed": 65,
+   "names": {
+    "Daniel": "Margaret",
+    "Eileen": "Kate",
+    "Gladys": "Emma",
+    "Leonora": "Edgar"
+   }
+  },
+  "w021": {
+   "seed": 8,
+   "names": {
+    "Daniel": "Florence",
+    "Eileen": "Charles",
+    "Gladys": "Margaret",
+    "Leonora": "Mina"
+   }
+  },
+  "w022": {
+   "seed": 18,
+   "names": {
+    "Daniel": "Margaret",
+    "Eileen": "Edgar",
+    "Gladys": "William",
+    "Leonora": "Douglas"
+   }
+  },
+  "w023": {
+   "seed": 59,
+   "names": {
+    "Daniel": "Florence",
+    "Eileen": "Eusapia",
+    "Gladys": "Emma",
+    "Leonora": "Douglas"
+   }
+  },
+  "w024": {
+   "seed": 11,
+   "names": {
+    "Daniel": "Mina",
+    "Eileen": "William",
+    "Gladys": "Helen",
+    "Leonora": "Emma"
+   }
+  },
+  "w025": {
+   "seed": 9,
+   "names": {
+    "Daniel": "Douglas",
+    "Eileen": "Mina",
+    "Gladys": "Kate",
+    "Leonora": "Helen"
+   }
+  },
+  "w026": {
+   "seed": 6,
+   "names": {
+    "Daniel": "William",
+    "Eileen": "Arthur",
+    "Gladys": "Douglas",
+    "Leonora": "Edgar"
+   }
+  },
+  "w027": {
+   "seed": 55,
+   "names": {
+    "Daniel": "Charles",
+    "Eileen": "William",
+    "Gladys": "Arthur",
+    "Leonora": "Helen"
+   }
+  },
+  "w028": {
+   "seed": 67,
+   "names": {
+    "Daniel": "Margaret",
+    "Eileen": "Arthur",
+    "Gladys": "Edgar",
+    "Leonora": "Douglas"
+   }
+  },
+  "w029": {
+   "seed": 57,
+   "names": {
+    "Daniel": "Charles",
+    "Eileen": "Mina",
+    "Gladys": "Eusapia",
+    "Leonora": "Arthur"
+   }
+  },
+  "w030": {
+   "seed": 2,
+   "names": {
+    "Daniel": "Florence",
+    "Eileen": "Emma",
+    "Gladys": "Mina",
+    "Leonora": "Charles"
+   }
+  },
+  "w031": {
+   "seed": 56,
+   "names": {
+    "Daniel": "Emma",
+    "Eileen": "Mina",
+    "Gladys": "Margaret",
+    "Leonora": "Arthur"
+   }
+  },
+  "w032": {
+   "seed": 1,
+   "names": {
+    "Daniel": "William",
+    "Eileen": "Arthur",
+    "Gladys": "Margaret",
+    "Leonora": "Eusapia"
+   }
+  },
+  "w033": {
+   "seed": 53,
+   "names": {
+    "Daniel": "Kate",
+    "Eileen": "Mina",
+    "Gladys": "Charles",
+    "Leonora": "Edgar"
+   }
+  },
+  "w034": {
+   "seed": 15,
+   "names": {
+    "Daniel": "Florence",
+    "Eileen": "Edgar",
+    "Gladys": "Eusapia",
+    "Leonora": "Arthur"
+   }
+  },
+  "w035": {
+   "seed": 52,
+   "names": {
+    "Daniel": "Kate",
+    "Eileen": "Arthur",
+    "Gladys": "Florence",
+    "Leonora": "Margaret"
+   }
+  },
+  "w036": {
+   "seed": 64,
+   "names": {
+    "Daniel": "Emma",
+    "Eileen": "Helen",
+    "Gladys": "Charles",
+    "Leonora": "William"
+   }
+  },
+  "w037": {
+   "seed": 12,
+   "names": {
+    "Daniel": "Florence",
+    "Eileen": "Douglas",
+    "Gladys": "Charles",
+    "Leonora": "Margaret"
+   }
+  },
+  "w038": {
+   "seed": 69,
+   "names": {
+    "Daniel": "Mina",
+    "Eileen": "William",
+    "Gladys": "Edgar",
+    "Leonora": "Eusapia"
+   }
+  },
+  "w039": {
+   "seed": 16,
+   "names": {
+    "Daniel": "Helen",
+    "Eileen": "Kate",
+    "Gladys": "Edgar",
+    "Leonora": "Arthur"
+   }
+  },
+  "g000": {
+   "seed": 65,
+   "names": {
+    "Daniel": "Margaret",
+    "Eileen": "Kate",
+    "Gladys": "Emma",
+    "Leonora": "Edgar"
+   }
+  },
+  "g002": {
+   "seed": 54,
+   "names": {
+    "Daniel": "Kate",
+    "Eileen": "Arthur",
+    "Gladys": "Emma",
+    "Leonora": "Douglas"
+   }
+  },
+  "g005": {
+   "seed": 13,
+   "names": {
+    "Daniel": "Emma",
+    "Eileen": "Eusapia",
+    "Gladys": "Charles",
+    "Leonora": "William"
+   }
+  },
+  "g010": {
+   "seed": 7,
+   "names": {
+    "Daniel": "Emma",
+    "Eileen": "Eusapia",
+    "Gladys": "Charles",
+    "Leonora": "Margaret"
+   }
+  },
+  "g011": {
+   "seed": 66,
+   "names": {
+    "Daniel": "Kate",
+    "Eileen": "Edgar",
+    "Gladys": "Margaret",
+    "Leonora": "Florence"
+   }
+  },
+  "g018": {
+   "seed": 16,
+   "names": {
+    "Daniel": "Helen",
+    "Eileen": "Kate",
+    "Gladys": "Edgar",
+    "Leonora": "Arthur"
+   }
+  },
+  "g021": {
+   "seed": 60,
+   "names": {
+    "Daniel": "Eusapia",
+    "Eileen": "Margaret",
+    "Gladys": "Charles",
+    "Leonora": "Mina"
+   }
+  },
+  "g023": {
+   "seed": 50,
+   "names": {
+    "Daniel": "Florence",
+    "Eileen": "Helen",
+    "Gladys": "Douglas",
+    "Leonora": "Edgar"
+   }
+  },
+  "g025": {
+   "seed": 62,
+   "names": {
+    "Daniel": "Margaret",
+    "Eileen": "Emma",
+    "Gladys": "Kate",
+    "Leonora": "Douglas"
+   }
+  },
+  "g027": {
+   "seed": 8,
+   "names": {
+    "Daniel": "Florence",
+    "Eileen": "Charles",
+    "Gladys": "Margaret",
+    "Leonora": "Mina"
+   }
+  },
+  "g028": {
+   "seed": 10,
+   "names": {
+    "Daniel": "Mina",
+    "Eileen": "Margaret",
+    "Gladys": "Douglas",
+    "Leonora": "Arthur"
+   }
+  },
+  "g029": {
+   "seed": 4,
+   "names": {
+    "Daniel": "Douglas",
+    "Eileen": "Emma",
+    "Gladys": "Kate",
+    "Leonora": "Helen"
+   }
+  },
+  "g030": {
+   "seed": 55,
+   "names": {
+    "Daniel": "Charles",
+    "Eileen": "William",
+    "Gladys": "Arthur",
+    "Leonora": "Helen"
+   }
+  },
+  "g031": {
+   "seed": 67,
+   "names": {
+    "Daniel": "Margaret",
+    "Eileen": "Arthur",
+    "Gladys": "Edgar",
+    "Leonora": "Douglas"
+   }
+  },
+  "g032": {
+   "seed": 53,
+   "names": {
+    "Daniel": "Kate",
+    "Eileen": "Mina",
+    "Gladys": "Charles",
+    "Leonora": "Edgar"
+   }
+  },
+  "g033": {
+   "seed": 0,
+   "names": {
+    "Daniel": "Edgar",
+    "Eileen": "Kate",
+    "Gladys": "Florence",
+    "Leonora": "Charles"
+   }
+  },
+  "g034": {
+   "seed": 11,
+   "names": {
+    "Daniel": "Mina",
+    "Eileen": "William",
+    "Gladys": "Helen",
+    "Leonora": "Emma"
+   }
+  },
+  "g035": {
+   "seed": 57,
+   "names": {
+    "Daniel": "Charles",
+    "Eileen": "Mina",
+    "Gladys": "Eusapia",
+    "Leonora": "Arthur"
+   }
+  },
+  "g040": {
+   "seed": 12,
+   "names": {
+    "Daniel": "Florence",
+    "Eileen": "Douglas",
+    "Gladys": "Charles",
+    "Leonora": "Margaret"
+   }
+  },
+  "g041": {
+   "seed": 14,
+   "names": {
+    "Daniel": "Margaret",
+    "Eileen": "Charles",
+    "Gladys": "Arthur",
+    "Leonora": "William"
+   }
+  },
+  "g042": {
+   "seed": 59,
+   "names": {
+    "Daniel": "Florence",
+    "Eileen": "Eusapia",
+    "Gladys": "Emma",
+    "Leonora": "Douglas"
+   }
+  },
+  "g045": {
+   "seed": 1,
+   "names": {
+    "Daniel": "William",
+    "Eileen": "Arthur",
+    "Gladys": "Margaret",
+    "Leonora": "Eusapia"
+   }
+  },
+  "g047": {
+   "seed": 56,
+   "names": {
+    "Daniel": "Emma",
+    "Eileen": "Mina",
+    "Gladys": "Margaret",
+    "Leonora": "Arthur"
+   }
+  },
+  "g048": {
+   "seed": 63,
+   "names": {
+    "Daniel": "Edgar",
+    "Eileen": "William",
+    "Gladys": "Douglas",
+    "Leonora": "Eusapia"
+   }
+  },
+  "g049": {
+   "seed": 17,
+   "names": {
+    "Daniel": "Mina",
+    "Eileen": "Douglas",
+    "Gladys": "Kate",
+    "Leonora": "Margaret"
+   }
+  },
+  "g050": {
+   "seed": 69,
+   "names": {
+    "Daniel": "Mina",
+    "Eileen": "William",
+    "Gladys": "Edgar",
+    "Leonora": "Eusapia"
+   }
+  },
+  "g051": {
+   "seed": 61,
+   "names": {
+    "Daniel": "Mina",
+    "Eileen": "Emma",
+    "Gladys": "Kate",
+    "Leonora": "Charles"
+   }
+  },
+  "g053": {
+   "seed": 15,
+   "names": {
+    "Daniel": "Florence",
+    "Eileen": "Edgar",
+    "Gladys": "Eusapia",
+    "Leonora": "Arthur"
+   }
+  },
+  "g058": {
+   "seed": 64,
+   "names": {
+    "Daniel": "Emma",
+    "Eileen": "Helen",
+    "Gladys": "Charles",
+    "Leonora": "William"
+   }
+  },
+  "g063": {
+   "seed": 19,
+   "names": {
+    "Daniel": "Margaret",
+    "Eileen": "Charles",
+    "Gladys": "Kate",
+    "Leonora": "Eusapia"
+   }
+  },
+  "g066": {
+   "seed": 3,
+   "names": {
+    "Daniel": "Arthur",
+    "Eileen": "Margaret",
+    "Gladys": "Douglas",
+    "Leonora": "Helen"
+   }
+  },
+  "g074": {
+   "seed": 6,
+   "names": {
+    "Daniel": "William",
+    "Eileen": "Arthur",
+    "Gladys": "Douglas",
+    "Leonora": "Edgar"
+   }
+  },
+  "g079": {
+   "seed": 58,
+   "names": {
+    "Daniel": "Emma",
+    "Eileen": "Mina",
+    "Gladys": "Edgar",
+    "Leonora": "Arthur"
+   }
+  },
+  "g080": {
+   "seed": 18,
+   "names": {
+    "Daniel": "Margaret",
+    "Eileen": "Edgar",
+    "Gladys": "William",
+    "Leonora": "Douglas"
+   }
+  },
+  "g084": {
+   "seed": 5,
+   "names": {
+    "Daniel": "Edgar",
+    "Eileen": "Douglas",
+    "Gladys": "William",
+    "Leonora": "Helen"
+   }
+  },
+  "g093": {
+   "seed": 51,
+   "names": {
+    "Daniel": "Douglas",
+    "Eileen": "Charles",
+    "Gladys": "Arthur",
+    "Leonora": "Edgar"
+   }
+  },
+  "g094": {
+   "seed": 9,
+   "names": {
+    "Daniel": "Douglas",
+    "Eileen": "Mina",
+    "Gladys": "Kate",
+    "Leonora": "Helen"
+   }
+  },
+  "g095": {
+   "seed": 52,
+   "names": {
+    "Daniel": "Kate",
+    "Eileen": "Arthur",
+    "Gladys": "Florence",
+    "Leonora": "Margaret"
+   }
+  },
+  "g096": {
+   "seed": 2,
+   "names": {
+    "Daniel": "Florence",
+    "Eileen": "Emma",
+    "Gladys": "Mina",
+    "Leonora": "Charles"
+   }
+  },
+  "g101": {
+   "seed": 68,
+   "names": {
+    "Daniel": "Helen",
+    "Eileen": "Emma",
+    "Gladys": "William",
+    "Leonora": "Kate"
+   }
+  }
+ }
+}

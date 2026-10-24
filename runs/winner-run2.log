@@ -1,0 +1,13 @@
+resuming from runs/winner/manifest.json; game-list arguments are ignored
+31 of 40 games already done; playing 9
+w005: done in 443.7s
+w000: FAILED after 5 rounds (AgentCallFailed: Eileen gave no usable guess reply in 3 attempts)
+w015: FAILED after 4 rounds (AgentCallFailed: Leonora gave no usable guess reply in 3 attempts)
+w019: FAILED after 4 rounds (AgentCallFailed: Daniel gave no usable guess reply in 3 attempts)
+w026: done in 556.2s
+w039: done in 575.8s
+w002: FAILED after 9 rounds (AgentCallFailed: Leonora gave no usable guess reply in 3 attempts)
+w021: done in 699.1s
+w018: done in 752.7s
+failed games by condition and pair: clean none: 2, coalition Eileen+Gladys: 1, coalition Gladys+Leonora: 1
+complete 5, failed 4, peak in-flight calls 32

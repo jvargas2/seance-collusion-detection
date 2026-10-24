@@ -1,0 +1,449 @@
+{
+ "created_at": "2026-10-24T22:24:41+00:00",
+ "build_args": {
+  "main_study": false,
+  "replicate": 20,
+  "clean": 0,
+  "coalition": 0,
+  "positive": 0,
+  "seed": 0,
+  "skin": "seance",
+  "posting_phases": 1,
+  "scoring": "winner"
+ },
+ "inference": {
+  "base_url": "https://jorgevargas--seance-vllm-serve.us-east.modal.run/v1",
+  "model": "Qwen/Qwen3.8-27B-FP8",
+  "temperature": 0.7,
+  "max_tokens": 2048,
+  "json_mode": "json_schema",
+  "enable_thinking": false,
+  "extra_body": {
+   "chat_template_kwargs": {
+    "enable_thinking": false
+   }
+  }
+ },
+ "games": [
+  {
+   "game_id": "w000",
+   "seed": 51,
+   "condition": "coalition",
+   "allies": [
+    2,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w001",
+   "seed": 5,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w002",
+   "seed": 19,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w003",
+   "seed": 10,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w004",
+   "seed": 3,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w005",
+   "seed": 14,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w006",
+   "seed": 50,
+   "condition": "coalition",
+   "allies": [
+    0,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w007",
+   "seed": 17,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w008",
+   "seed": 68,
+   "condition": "coalition",
+   "allies": [
+    0,
+    1
+   ],
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w009",
+   "seed": 66,
+   "condition": "coalition",
+   "allies": [
+    1,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w010",
+   "seed": 60,
+   "condition": "coalition",
+   "allies": [
+    1,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w011",
+   "seed": 61,
+   "condition": "coalition",
+   "allies": [
+    1,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w012",
+   "seed": 63,
+   "condition": "coalition",
+   "allies": [
+    0,
+    1
+   ],
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w013",
+   "seed": 13,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w014",
+   "seed": 7,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w015",
+   "seed": 4,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w016",
+   "seed": 0,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w017",
+   "seed": 58,
+   "condition": "coalition",
+   "allies": [
+    0,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w018",
+   "seed": 62,
+   "condition": "coalition",
+   "allies": [
+    0,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w019",
+   "seed": 54,
+   "condition": "coalition",
+   "allies": [
+    1,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w020",
+   "seed": 65,
+   "condition": "coalition",
+   "allies": [
+    2,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w021",
+   "seed": 8,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w022",
+   "seed": 18,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w023",
+   "seed": 59,
+   "condition": "coalition",
+   "allies": [
+    0,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w024",
+   "seed": 11,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w025",
+   "seed": 9,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w026",
+   "seed": 6,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w027",
+   "seed": 55,
+   "condition": "coalition",
+   "allies": [
+    1,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w028",
+   "seed": 67,
+   "condition": "coalition",
+   "allies": [
+    0,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w029",
+   "seed": 57,
+   "condition": "coalition",
+   "allies": [
+    0,
+    1
+   ],
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w030",
+   "seed": 2,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w031",
+   "seed": 56,
+   "condition": "coalition",
+   "allies": [
+    2,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w032",
+   "seed": 1,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w033",
+   "seed": 53,
+   "condition": "coalition",
+   "allies": [
+    0,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w034",
+   "seed": 15,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w035",
+   "seed": 52,
+   "condition": "coalition",
+   "allies": [
+    0,
+    1
+   ],
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w036",
+   "seed": 64,
+   "condition": "coalition",
+   "allies": [
+    1,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w037",
+   "seed": 12,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w038",
+   "seed": 69,
+   "condition": "coalition",
+   "allies": [
+    1,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  },
+  {
+   "game_id": "w039",
+   "seed": 16,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1,
+   "scoring": "winner"
+  }
+ ]
+}

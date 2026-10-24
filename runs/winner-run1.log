@@ -1,0 +1,43 @@
+0 of 40 games already done; playing 40
+w015: FAILED after 2 rounds (AgentCallFailed: Leonora gave no usable guess reply in 3 attempts)
+w006: done in 604.7s
+w011: done in 650.2s
+w009: done in 661.4s
+w005: FAILED after 3 rounds (AgentCallFailed: Daniel gave no usable guess reply in 3 attempts)
+w013: done in 715.3s
+w010: done in 781.1s
+w008: done in 848.1s
+w003: done in 956.3s
+w000: FAILED after 5 rounds (AgentCallFailed: Eileen gave no usable guess reply in 3 attempts)
+w002: FAILED after 6 rounds (AgentCallFailed: Daniel gave no usable guess reply in 3 attempts)
+w004: done in 982.2s
+w017: done in 447.0s
+w007: done in 1061.5s
+w016: done in 516.6s
+w012: done in 1091.9s
+w018: FAILED after 4 rounds (AgentCallFailed: Daniel gave no usable guess reply in 3 attempts)
+w023: done in 347.7s
+w020: done in 528.9s
+w001: done in 1247.1s
+w014: done in 1297.9s
+w019: FAILED after 6 rounds (AgentCallFailed: Eileen gave no usable guess reply in 3 attempts)
+w027: done in 386.2s
+w024: done in 574.1s
+w028: done in 484.3s
+w021: FAILED after 8 rounds (AgentCallFailed: Daniel gave no usable guess reply in 3 attempts)
+w033: done in 379.7s
+w030: done in 490.8s
+w026: FAILED after 5 rounds (AgentCallFailed: Gladys gave no usable guess reply in 3 attempts)
+w038: done in 323.7s
+w025: done in 739.0s
+w029: done in 651.1s
+w031: done in 642.4s
+w035: done in 502.7s
+w034: done in 557.9s
+w022: done in 1060.9s
+w036: done in 544.8s
+w037: done in 552.0s
+w032: done in 751.4s
+w039: FAILED after 7 rounds (AgentCallFailed: Leonora gave no usable guess reply in 3 attempts)
+failed games by condition and pair: clean none: 6, coalition Daniel+Gladys: 1, coalition Eileen+Gladys: 1, coalition Gladys+Leonora: 1
+complete 31, failed 9, peak in-flight calls 32
