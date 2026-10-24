@@ -155,6 +155,18 @@ def build_main_study(skin: str = "seance", posting_phases: int = DEFAULT_POSTING
     return _assign_ids(plan, random.Random(MAIN_ID_SHUFFLE_SEED), skin, posting_phases, "g")
 
 
+def build_replication(n_per_condition: int, skin: str, posting_phases: int = DEFAULT_POSTING_PHASES) -> list[GameSpec]:
+    """The first n clean and n coalition games of the main study, same seeds
+    and allied pairs (so the same deals), for a replication in another wording
+    pack. Ids start with "n" so they never collide with main-study ids."""
+    plan = []
+    pairs = main_pairs()
+    for cond in (CLEAN, COALITION):
+        for seed in list(MAIN_SEEDS[cond])[:n_per_condition]:
+            plan.append((cond, None if cond == CLEAN else pairs[seed], seed))
+    return _assign_ids(plan, random.Random(MAIN_ID_SHUFFLE_SEED), skin, posting_phases, "n")
+
+
 def build_specs(
     n_clean: int,
     n_coalition: int,

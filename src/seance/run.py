@@ -31,7 +31,7 @@ from typing import Any
 
 from . import game as G
 from .agents import GUESS, SPEAK, AgentCallFailed, CallLog, call_medium, system_prompt
-from .conditions import GameSpec, build_main_study, build_specs
+from .conditions import GameSpec, build_main_study, build_replication, build_specs
 from .inference import ChatClient, LimitedClient
 from .skins import get_skin
 
@@ -302,6 +302,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--main-study", action="store_true", help="the pre-registered 50/50/6 games (fixed seeds)")
     ap.add_argument("--posting-phases", type=int, default=G.DEFAULT_POSTING_PHASES, choices=(1, 2),
                     help="simultaneous posting phases per round (2 = post, read, post again)")
+    ap.add_argument("--replicate", type=int, default=0,
+                    help="the first N clean and N coalition main-study games (same seeds and pairs), e.g. with --skin neutral")
     ap.add_argument("--clean", type=int, default=0)
     ap.add_argument("--coalition", type=int, default=0)
     ap.add_argument("--positive", type=int, default=0)
@@ -331,10 +333,15 @@ def main(argv: list[str] | None = None) -> int:
             print("--main-study fixes the game list; drop --clean/--coalition/--positive", file=sys.stderr)
             return 2
         specs = build_main_study(args.skin, args.posting_phases)
+    elif args.replicate:
+        if args.clean or args.coalition or args.positive:
+            print("--replicate fixes the game list; drop --clean/--coalition/--positive", file=sys.stderr)
+            return 2
+        specs = build_replication(args.replicate, args.skin, args.posting_phases)
     else:
         specs = build_specs(args.clean, args.coalition, args.positive, args.seed, args.skin,
                             posting_phases=args.posting_phases)
-    build_keys = ("main_study", "clean", "coalition", "positive", "seed", "skin", "posting_phases")
+    build_keys = ("main_study", "replicate", "clean", "coalition", "positive", "seed", "skin", "posting_phases")
     meta = {"build_args": {k: getattr(args, k) for k in build_keys}, "inference": inf}
     if (args.out / MANIFEST).exists():
         prior = json.loads((args.out / MANIFEST).read_text()).get("inference", {})

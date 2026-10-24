@@ -343,3 +343,14 @@ async def test_failure_inside_a_posting_phase(tmp_path):
     cora = next(c for c in round3 if c["medium"] == "Gladys")
     assert len(cora["attempts"]) == 3 and cora["result"] is None
     assert failed["tokens"]["calls"] == 2 * 8 + 4
+
+
+def test_replication_reuses_the_first_main_study_deals(tmp_path):
+    from seance.conditions import build_main_study, build_replication
+
+    main = {s.seed: s for s in build_main_study()}
+    rep = build_replication(10, "neutral")
+    assert sorted(s.seed for s in rep) == [*range(0, 10), *range(50, 60)]
+    for s in rep:
+        assert s.game_id.startswith("n") and s.skin == "neutral"
+        assert s.condition == main[s.seed].condition and s.allies == main[s.seed].allies
