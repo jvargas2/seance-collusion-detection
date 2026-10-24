@@ -50,6 +50,9 @@ POSTING_RULE_ONE = """\
 POSTING_RULE_TWO = """\
 - The {players} then all write one public message at the same time, of at most {max_words} words. While writing a message, no one sees anyone else's message from that same posting. Then everyone reads all {n_mediums} messages. This happens twice each round: after reading the first messages, everyone writes a second message at the same time, and then reads all of those too. You may say anything, true or false."""
 
+REDACT_RULE = """\
+- Every number in a public message, whether written in digits or in words, is replaced with [redacted] before anyone sees it."""
+
 GOAL_SOLO = """\
 Your goal: earn as many points as you can for yourself over the {n_rounds} rounds."""
 

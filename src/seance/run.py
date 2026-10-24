@@ -33,6 +33,7 @@ from . import game as G
 from .agents import GUESS, SPEAK, AgentCallFailed, CallLog, call_medium, system_prompt
 from .conditions import GameSpec, build_main_study, build_replication, build_specs
 from .inference import ChatClient, LimitedClient
+from .redact import redact
 from .skins import get_skin
 
 SCHEMA_VERSION = 2  # 2: simultaneous posting (messages carry a phase), split-point ties
@@ -63,7 +64,9 @@ def code_version() -> str:
         return "unknown"
 
 
-def _settings(skin: str, max_attempts: int, posting_phases: int, scoring: str = G.DEFAULT_SCORING) -> dict[str, Any]:
+def _settings(
+    skin: str, max_attempts: int, posting_phases: int, scoring: str = G.DEFAULT_SCORING, redacted: bool = False
+) -> dict[str, Any]:
     # Only a non-default scoring rule is recorded, so default records are unchanged.
     rule = {} if scoring == G.DEFAULT_SCORING else {"scoring": scoring, "winner_points": G.WINNER_POINTS}
     return {
@@ -79,6 +82,8 @@ def _settings(skin: str, max_attempts: int, posting_phases: int, scoring: str = 
         "message_word_cap": G.MAX_MESSAGE_WORDS,
         "skin": skin,
         "max_attempts_per_call": max_attempts,
+        # only on redacted games, so other records are unchanged
+        **({"redact_numbers": True} if redacted else {}),
     }
 
 
@@ -106,7 +111,10 @@ async def play_game(
     setup = G.deal(spec.seed)
     game = G.Game(setup, allies=spec.allies, posting_phases=spec.posting_phases, scoring=spec.scoring)
     seats = range(setup.n_mediums)
-    systems = [system_prompt(skin, s, spec.role(s), spec.partner(s), spec.posting_phases, spec.scoring) for s in seats]
+    systems = [
+        system_prompt(skin, s, spec.role(s), spec.partner(s), spec.posting_phases, spec.scoring, spec.redact)
+        for s in seats
+    ]
     notes: list[list[dict[str, Any]]] = [[] for _ in seats]  # per seat, per round
     calls: list[CallLog] = []
     rounds_out: list[dict[str, Any]] = []
@@ -115,6 +123,7 @@ async def play_game(
     try:
         for rnd in setup.rounds:
             round_notes: list[dict[str, Any]] = [{SPEAK: []} for _ in seats]
+            originals: list[list[str]] = []  # by phase, as written (before redaction)
             for s in seats:  # filled in as the round goes; each seat sees only its own
                 notes[s].append(round_notes[s])
 
@@ -141,7 +150,9 @@ async def play_game(
                 outs = await all_at_once(SPEAK)
                 for s, out in zip(seats, outs):
                     round_notes[s][SPEAK].append(out["private_note"])
-                game.submit_posts([out["public_message"] for out in outs])
+                written = [out["public_message"] for out in outs]
+                originals.append(written)
+                game.submit_posts([redact(t) for t in written] if spec.redact else written)
 
             outs = await all_at_once(GUESS)
             for s, out in zip(seats, outs):
@@ -155,6 +166,8 @@ async def play_game(
                     "visions": {names[s]: [rnd.visions[s].lo, rnd.visions[s].hi] for s in seats},
                     "messages": [
                         {"phase": k + 1, "speaker": names[s], "text": t}
+                        # the text as written, kept private (public_view never copies it)
+                        | ({"original_text": originals[k][s]} if spec.redact else {})
                         for k, texts in enumerate(res.posts)
                         for s, t in enumerate(texts)
                     ],
@@ -183,7 +196,7 @@ async def play_game(
         "model": client.model,
         "inference": inference_settings or {},
         "enable_thinking": (inference_settings or {}).get("enable_thinking"),
-        "settings": _settings(spec.skin, max_attempts, spec.posting_phases, spec.scoring),
+        "settings": _settings(spec.skin, max_attempts, spec.posting_phases, spec.scoring, spec.redact),
         "names": list(names),
         "roles": {names[s]: spec.role(s) for s in seats},
         "system_prompts": {names[s]: systems[s] for s in seats},
@@ -312,6 +325,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--positive", type=int, default=0)
     ap.add_argument("--seed", type=int, default=0, help="seed for building the game list")
     ap.add_argument("--skin", default="seance")
+    ap.add_argument("--redact", action="store_true",
+                    help="exploratory: replace every number in public messages with [redacted]; players are told")
     ap.add_argument("--scoring", default=G.DEFAULT_SCORING, choices=G.SCORING_RULES,
                     help='scoring rule; "winner" (exploratory): only the closest guess scores 3, ties split it')
     ap.add_argument("--fake", action="store_true", help="use the scripted fake model (offline)")
@@ -333,6 +348,9 @@ def main(argv: list[str] | None = None) -> int:
         inner = OpenAICompatClient(settings)
         inf = settings.describe()
 
+    if args.redact and not args.replicate:
+        print("--redact is only offered with --replicate", file=sys.stderr)
+        return 2
     if args.main_study:
         if args.clean or args.coalition or args.positive:
             print("--main-study fixes the game list; drop --clean/--coalition/--positive", file=sys.stderr)
@@ -345,7 +363,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.clean or args.coalition or args.positive:
             print("--replicate fixes the game list; drop --clean/--coalition/--positive", file=sys.stderr)
             return 2
-        specs = build_replication(args.replicate, args.skin, args.posting_phases, args.scoring)
+        specs = build_replication(args.replicate, args.skin, args.posting_phases, args.scoring, args.redact)
     else:
         if args.scoring != G.DEFAULT_SCORING:
             print("--scoring is only wired to --replicate", file=sys.stderr)
@@ -355,6 +373,8 @@ def main(argv: list[str] | None = None) -> int:
     build_keys = ("main_study", "replicate", "clean", "coalition", "positive", "seed", "skin", "posting_phases")
     if args.scoring != G.DEFAULT_SCORING:
         build_keys += ("scoring",)
+    if args.redact:  # only on redacted runs, so other manifests are unchanged
+        build_keys += ("redact",)
     meta = {"build_args": {k: getattr(args, k) for k in build_keys}, "inference": inf}
     if (args.out / MANIFEST).exists():
         prior = json.loads((args.out / MANIFEST).read_text()).get("inference", {})

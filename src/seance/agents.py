@@ -73,6 +73,7 @@ def system_prompt(
     partner: int | None,
     posting_phases: int = DEFAULT_POSTING_PHASES,
     scoring: str = DEFAULT_SCORING,
+    redact: bool = False,
 ) -> str:
     common = dict(
         n_mediums=len(MEDIUM_NAMES),
@@ -84,6 +85,8 @@ def system_prompt(
     )
     posting = {1: T.POSTING_RULE_ONE, 2: T.POSTING_RULE_TWO}[posting_phases]
     posting_rule = skin.render(posting, n_mediums=common["n_mediums"], max_words=common["max_words"])
+    if redact:  # exploratory: numbers are removed from public messages
+        posting_rule += "\n" + skin.render(T.REDACT_RULE)
     scoring_rule = {SCORING_SPLIT: T.SCORING_RULE_SPLIT, SCORING_WINNER: T.SCORING_RULE_WINNER}[scoring]
     parts = [
         skin.render(

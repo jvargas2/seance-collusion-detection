@@ -72,12 +72,15 @@ class GameSpec:
     skin: str = "seance"
     posting_phases: int = DEFAULT_POSTING_PHASES
     scoring: str = DEFAULT_SCORING
+    redact: bool = False  # exploratory: numbers removed from public messages (seance.redact)
 
     def __post_init__(self) -> None:
         if not 1 <= self.posting_phases <= MAX_POSTING_PHASES:
             raise ValueError(f"posting_phases must be 1..{MAX_POSTING_PHASES}")
         if self.scoring not in SCORING_RULES:
             raise ValueError(f"unknown scoring {self.scoring!r}")
+        if self.redact and self.condition == POSITIVE_CONTROL:
+            raise ValueError("the positive control's code is a number, which redaction would remove")
         if self.condition not in CONDITIONS:
             raise ValueError(f"unknown condition {self.condition!r}")
         if (self.condition == CLEAN) != (self.allies is None):
@@ -103,6 +106,8 @@ class GameSpec:
         d["allies"] = list(self.allies) if self.allies else None
         if self.scoring == DEFAULT_SCORING:
             del d["scoring"]  # records made before the option existed stay byte-identical
+        if not self.redact:  # likewise for unredacted specs
+            del d["redact"]
         return d
 
     @classmethod
@@ -116,6 +121,7 @@ class GameSpec:
             d.get("skin", "seance"),
             int(d.get("posting_phases", DEFAULT_POSTING_PHASES)),
             d.get("scoring", DEFAULT_SCORING),
+            bool(d.get("redact", False)),
         )
 
 
@@ -141,12 +147,13 @@ def main_pairs() -> dict[int, tuple[int, int]]:
 
 
 def _assign_ids(plan: list[tuple[str, tuple[int, int] | None, int]], rng: random.Random, skin: str,
-                posting_phases: int, id_prefix: str, scoring: str = DEFAULT_SCORING) -> list[GameSpec]:
+                posting_phases: int, id_prefix: str, scoring: str = DEFAULT_SCORING,
+                redact: bool = False) -> list[GameSpec]:
     plan = list(plan)
     rng.shuffle(plan)
     width = max(3, len(str(len(plan))))
     return [
-        GameSpec(f"{id_prefix}{i:0{width}d}", seed, cond, allies, skin, posting_phases, scoring)
+        GameSpec(f"{id_prefix}{i:0{width}d}", seed, cond, allies, skin, posting_phases, scoring, redact)
         for i, (cond, allies, seed) in enumerate(plan)
     ]
 
@@ -162,18 +169,19 @@ def build_main_study(skin: str = "seance", posting_phases: int = DEFAULT_POSTING
 
 
 def build_replication(n_per_condition: int, skin: str, posting_phases: int = DEFAULT_POSTING_PHASES,
-                      scoring: str = DEFAULT_SCORING) -> list[GameSpec]:
+                      scoring: str = DEFAULT_SCORING, redact: bool = False) -> list[GameSpec]:
     """The first n clean and n coalition games of the main study, same seeds
     and allied pairs (so the same deals), for a replication in another wording
-    pack or under another scoring rule. Ids start with "n" ("w" under winner
-    scoring) so they never collide with main-study ids."""
+    pack, under another scoring rule or with numbers redacted. Ids start with
+    "n" ("w" under winner scoring, "r" when redacted) so they never collide
+    with main-study ids."""
     plan = []
     pairs = main_pairs()
     for cond in (CLEAN, COALITION):
         for seed in list(MAIN_SEEDS[cond])[:n_per_condition]:
             plan.append((cond, None if cond == CLEAN else pairs[seed], seed))
-    prefix = "n" if scoring == DEFAULT_SCORING else scoring[0]
-    return _assign_ids(plan, random.Random(MAIN_ID_SHUFFLE_SEED), skin, posting_phases, prefix, scoring)
+    prefix = "r" if redact else "n" if scoring == DEFAULT_SCORING else scoring[0]
+    return _assign_ids(plan, random.Random(MAIN_ID_SHUFFLE_SEED), skin, posting_phases, prefix, scoring, redact)
 
 
 def build_specs(

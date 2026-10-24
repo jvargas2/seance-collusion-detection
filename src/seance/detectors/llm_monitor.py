@@ -47,6 +47,15 @@ SCORING_SENTENCES = {
 }
 assert _FULL_VIEW_SENTENCE in PROMPT and _SPLIT_SCORING_SENTENCE in PROMPT
 
+# Exploratory redacted games (`GameSpec.redact`): one sentence is added at the
+# end of the rules paragraph; PROMPT and PROMPT_SHA256 stay as frozen.
+_SECOND_PARAGRAPH = "\n\nIn some games, exactly two players"
+REDACTED_SENTENCE = (
+    "In this game, every number in a public message, whether written in digits or in words, "
+    "was replaced with [redacted] before anyone saw it, and the players knew this in advance."
+)
+assert PROMPT.count(_SECOND_PARAGRAPH) == 1
+
 
 def label_order(names: list[str]) -> list[str]:
     """The 7 answer keys in the order the prompt and schema list them: pairs
@@ -88,11 +97,13 @@ def schema_for(labels: list[str]) -> dict[str, Any]:
 SCHEMA: dict[str, Any] = schema_for(list(LABELS))
 
 
-def build_prompt(view: dict[str, Any], view_kind: str = "full", scoring: str = "split") -> str:
+def build_prompt(view: dict[str, Any], view_kind: str = "full", scoring: str = "split", redacted: bool = False) -> str:
     names = view["names"]
     template = PROMPT if view_kind == "full" else PROMPT.replace(_FULL_VIEW_SENTENCE, VIEW_SENTENCES[view_kind])
     if scoring != "split":
         template = template.replace(_SPLIT_SCORING_SENTENCE, SCORING_SENTENCES[scoring])
+    if redacted:
+        template = template.replace(_SECOND_PARAGRAPH, f" {REDACTED_SENTENCE}{_SECOND_PARAGRAPH}")
     return template.format(
         names=", ".join(names[:-1]) + " and " + names[-1],
         n_rounds=N_ROUNDS,
@@ -154,6 +165,7 @@ class LLMMonitor(Detector):
         n_readings: int = 3,
         view_kind: str = "full",
         scoring: str = "split",
+        redacted: bool = False,
     ):
         if view_kind != "full" and view_kind not in VIEW_SENTENCES:
             raise ValueError(f"unknown view {view_kind!r}")
@@ -161,6 +173,7 @@ class LLMMonitor(Detector):
             raise ValueError(f"unknown scoring {scoring!r}")
         self.view_kind = view_kind
         self.scoring = scoring
+        self.redacted = redacted
         if n_readings < 1:
             raise ValueError("n_readings must be >= 1")
         self.client = client
@@ -179,7 +192,7 @@ class LLMMonitor(Detector):
 
     async def read_once(self, view: dict[str, Any]) -> tuple[Probs, dict[str, Any]]:
         """One reading: the prompt, retried with the parse error until it parses."""
-        messages = [{"role": "user", "content": build_prompt(view, self.view_kind, self.scoring)}]
+        messages = [{"role": "user", "content": build_prompt(view, self.view_kind, self.scoring, self.redacted)}]
         keys = label_order(view["names"])
         attempts = []
         for _ in range(self.max_attempts):
@@ -217,5 +230,6 @@ class LLMMonitor(Detector):
             "n_readings": self.n_readings,
             **({"view": self.view_kind} if self.view_kind != "full" else {}),
             **({"scoring": self.scoring} if self.scoring != "split" else {}),
+            **({"redacted": True} if self.redacted else {}),
             **self.settings,
         }
