@@ -30,8 +30,8 @@ baked into the image, so the container serves exactly what was deployed:
 
 from __future__ import annotations
 
+import json
 import os
-import shlex
 import subprocess
 
 import modal
@@ -46,9 +46,10 @@ IDLE_MINUTES = int(os.environ.get("SEANCE_MODAL_IDLE_MINUTES", "5"))
 # its own URL, so the players' server is untouched.
 APP_NAME = os.environ.get("SEANCE_MODAL_APP", "seance-vllm")
 # The Qwen3 parser for the players' model; another family needs its own parser
-# ("" for none). Extra vLLM flags go in SEANCE_MODAL_EXTRA_ARGS.
+# ("" for none). Extra vLLM flags go in SEANCE_MODAL_EXTRA_ARGS as a JSON list
+# of strings (the image build can't hold shell quoting).
 REASONING_PARSER = os.environ.get("SEANCE_MODAL_REASONING_PARSER", "qwen3")
-EXTRA_ARGS = os.environ.get("SEANCE_MODAL_EXTRA_ARGS", "")
+EXTRA_ARGS = os.environ.get("SEANCE_MODAL_EXTRA_ARGS", "[]")
 PORT = 8000
 
 # A CUDA *devel* base, not debian_slim: FlashInfer (used by vLLM) compiles
@@ -116,7 +117,7 @@ def serve() -> None:
     # the parser passes the answer through unchanged.
     if REASONING_PARSER:
         cmd += ["--reasoning-parser", REASONING_PARSER]
-    cmd += shlex.split(EXTRA_ARGS)
+    cmd += json.loads(EXTRA_ARGS)
     subprocess.Popen(cmd)
 
 
