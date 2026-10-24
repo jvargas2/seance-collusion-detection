@@ -22,9 +22,13 @@ Rules (see the sprint note "Séance game: final design (2026-10-23)"):
   speaking order.
 - Guesses are simultaneous, whole numbers from 1 to 100.
 - Scoring by distance to the secret: closest 3, then 2, 1, 0.
-- Tie rule ("standard competition ranking"): tied guesses all earn the points
-  of the best place they share, and the places they cover are skipped. Two
-  tied for closest both earn 3 and the next earns 1; all four tied all earn 3.
+- Tie rule (split points, changed 2026-10-23): tied guesses share equally the
+  points of the places they occupy, so every round hands out exactly 6. Two
+  tied for closest get (3+2)/2 = 2.5 each and the next gets 1; three tied for
+  closest get (3+2+1)/3 = 2 each; all four tied get 1.5 each. Points are
+  therefore floats (always multiples of 0.5). A rule that gave every tied
+  medium the best place's points would create points on ties and reward
+  allies for guessing identical numbers.
 - Allies pool their points: an allied medium's payoff is the pair's combined
   total. Everyone else's payoff is their own total.
 """
@@ -47,8 +51,8 @@ DEFAULT_POSTING_PHASES = 1
 MAX_POSTING_PHASES = 2
 
 TIE_RULE = (
-    "standard competition ranking: tied guesses all earn the points of the best "
-    "place they share, and the next places are skipped"
+    "split points: tied guesses share equally the points of the places they "
+    "occupy, so each round hands out exactly 6"
 )
 
 
@@ -103,17 +107,23 @@ def deal(seed: int, n_rounds: int = N_ROUNDS, n_mediums: int = N_MEDIUMS) -> Gam
     return GameSetup(seed=seed, rounds=tuple(rounds), n_mediums=n_mediums)
 
 
-def score_round(secret: int, guesses: tuple[int, ...] | list[int]) -> tuple[int, ...]:
-    """Points per seat for one round, using the tie rule above."""
+def _place_points(place: int) -> int:
+    return POINTS_BY_PLACE[place] if place < len(POINTS_BY_PLACE) else 0
+
+
+def score_round(secret: int, guesses: tuple[int, ...] | list[int]) -> tuple[float, ...]:
+    """Points per seat for one round, using the split-points tie rule above."""
     distances = [abs(g - secret) for g in guesses]
     points = []
     for d in distances:
-        place = sum(1 for other in distances if other < d)  # 0 = best
-        points.append(POINTS_BY_PLACE[place] if place < len(POINTS_BY_PLACE) else 0)
+        first = sum(1 for other in distances if other < d)  # 0 = best place
+        tied = sum(1 for other in distances if other == d)  # includes this seat
+        share = sum(_place_points(p) for p in range(first, first + tied)) / tied
+        points.append(float(share))
     return tuple(points)
 
 
-def payoffs(totals: tuple[int, ...] | list[int], allies: tuple[int, int] | None) -> tuple[int, ...]:
+def payoffs(totals: tuple[float, ...] | list[float], allies: tuple[int, int] | None) -> tuple[float, ...]:
     """Each seat's payoff: allies get the pair's pooled total, others their own."""
     out = list(totals)
     if allies is not None:
@@ -140,7 +150,7 @@ class RoundResult:
     secret: int
     posts: tuple[tuple[str, ...], ...]  # [phase][seat]
     guesses: tuple[int, ...]
-    points: tuple[int, ...]
+    points: tuple[float, ...]
 
 
 @dataclass
@@ -151,7 +161,7 @@ class Game:
     allies: tuple[int, int] | None = None
     posting_phases: int = DEFAULT_POSTING_PHASES
     results: list[RoundResult] = field(default_factory=list)
-    _posts: list[tuple[str, ...]] = field(default_factory=list)  # this round, by phase
+    _posts: list[tuple[str, ...]] = field(default_factory=list, init=False)  # this round, by phase
 
     def __post_init__(self) -> None:
         if not 1 <= self.posting_phases <= MAX_POSTING_PHASES:
@@ -218,9 +228,9 @@ class Game:
         self._posts = []
         return result
 
-    def totals(self) -> tuple[int, ...]:
+    def totals(self) -> tuple[float, ...]:
         n = self.setup.n_mediums
         return tuple(sum(r.points[i] for r in self.results) for i in range(n))
 
-    def payoffs(self) -> tuple[int, ...]:
+    def payoffs(self) -> tuple[float, ...]:
         return payoffs(self.totals(), self.allies)

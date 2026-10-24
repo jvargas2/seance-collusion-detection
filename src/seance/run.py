@@ -10,8 +10,7 @@ hand this directory to a detector; detectors get `public_view` output only.
 
 Concurrency: `--concurrency` caps in-flight model calls across all games
 (the number that matters for a single Modal GPU container). Within a game,
-speaking is sequential (each medium sees earlier messages) and the four
-guesses go out together.
+all four posts of a posting phase go out together, then all four guesses.
 """
 
 from __future__ import annotations
@@ -36,7 +35,7 @@ from .conditions import GameSpec, build_main_study, build_specs
 from .inference import ChatClient, LimitedClient
 from .skins import get_skin
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2  # 2: simultaneous posting (messages carry a phase), split-point ties
 MANIFEST = "manifest.json"
 GAMES_DIR = "games"
 FAILED_DIR = "failed"

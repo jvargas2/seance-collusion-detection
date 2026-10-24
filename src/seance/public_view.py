@@ -34,7 +34,7 @@ def public_view(record: dict[str, Any]) -> dict[str, Any]:
                 ],
                 "guesses": {n: int(r["guesses"][n]) for n in names},
                 "secret": int(r["secret"]),
-                "points": {n: int(r["points"][n]) for n in names},
+                "points": {n: float(r["points"][n]) for n in names},
             }
         )
     totals = {n: sum(r["points"][n] for r in rounds) for n in names}
@@ -63,9 +63,9 @@ def render_text(view: dict[str, Any]) -> str:
         lines.append("  Guesses: " + ", ".join(f"{n} {g}" for n, g in r["guesses"].items()) + ".")
         lines.append(
             f"  Secret: {r['secret']}. Points: "
-            + ", ".join(f"{n} {p}" for n, p in r["points"].items())
+            + ", ".join(f"{n} {p:g}" for n, p in r["points"].items())
             + "."
         )
     lines.append("")
-    lines.append("Totals: " + ", ".join(f"{n} {t}" for n, t in view["totals"].items()) + ".")
+    lines.append("Totals: " + ", ".join(f"{n} {t:g}" for n, t in view["totals"].items()) + ".")
     return "\n".join(lines)

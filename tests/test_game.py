@@ -39,33 +39,42 @@ def test_deal_is_deterministic_per_seed():
     assert G.deal(7) != G.deal(8)
 
 
-def test_deal_has_no_speaking_order():
-    rnd = G.deal(1).rounds[0]
-    assert not hasattr(rnd, "speaking_order")
-    assert not hasattr(G, "speaking_order")
-
-
 @pytest.mark.parametrize(
     "secret,guesses,expected",
     [
         (50, (50, 45, 30, 90), (3, 2, 1, 0)),
         (50, (90, 30, 45, 50), (0, 1, 2, 3)),
-        (50, (45, 55, 30, 90), (3, 3, 1, 0)),  # tie for closest, equal distance either side
-        (50, (50, 40, 60, 99), (3, 2, 2, 0)),  # tie for second
-        (50, (50, 40, 20, 80), (3, 2, 1, 1)),  # tie for last
-        (50, (50, 40, 60, 40), (3, 2, 2, 2)),  # three tied for second
-        (50, (40, 60, 40, 60), (3, 3, 3, 3)),  # all tied
-        (50, (51, 51, 51, 10), (3, 3, 3, 0)),
+        (50, (45, 55, 30, 90), (2.5, 2.5, 1, 0)),  # two tied for closest, equal distance either side
+        (50, (51, 51, 51, 10), (2, 2, 2, 0)),  # three tied for closest
+        (50, (50, 40, 60, 99), (3, 1.5, 1.5, 0)),  # tie for second
+        (50, (50, 40, 20, 80), (3, 2, 0.5, 0.5)),  # tie for last
+        (50, (50, 40, 60, 40), (3, 1, 1, 1)),  # three tied for second
+        (50, (40, 60, 40, 60), (1.5, 1.5, 1.5, 1.5)),  # all four tied
+        (50, (49, 49, 70, 70), (2.5, 2.5, 0.5, 0.5)),  # two ties
         (1, (100, 1, 2, 3), (0, 3, 2, 1)),
     ],
 )
-def test_scoring_and_ties(secret, guesses, expected):
-    assert G.score_round(secret, guesses) == expected
+def test_scoring_and_split_point_ties(secret, guesses, expected):
+    got = G.score_round(secret, guesses)
+    assert got == pytest.approx(expected)
+    assert all(isinstance(p, float) for p in got)
 
 
-def test_points_per_round_never_exceed_six_unless_tied():
-    # Without ties the round hands out exactly 3+2+1+0.
-    assert sum(G.score_round(50, (50, 48, 40, 1))) == 6
+def test_every_round_hands_out_exactly_six_points():
+    import itertools
+
+    for guesses in itertools.product((40, 45, 50, 55, 60), repeat=4):
+        pts = G.score_round(50, guesses)
+        assert sum(pts) == pytest.approx(6)
+        assert all((2 * p) == int(2 * p) for p in pts)  # multiples of 0.5
+
+
+def test_ties_never_reward_identical_guesses():
+    # Two allies guessing the same number earn no more together than guessing
+    # adjacent numbers on the same side would.
+    same = G.score_round(50, (48, 48, 60, 70))
+    apart = G.score_round(50, (48, 47, 60, 70))
+    assert same[0] + same[1] == apart[0] + apart[1] == 5
 
 
 def test_allies_pool_points():
@@ -100,7 +109,7 @@ def test_game_enforces_simultaneous_posting_then_guessing():
     with pytest.raises(TypeError):
         game.submit_guesses((50.5, 50, 50, 50))
     res = game.submit_guesses((50, 50, 50, 50))
-    assert res.points == (3, 3, 3, 3)
+    assert res.points == (1.5, 1.5, 1.5, 1.5)
     assert res.posts == (("a", "b", "c", "d"),)
     assert game.posting_phase == 0 and game.posts_so_far() == []  # round 2 starts fresh
 

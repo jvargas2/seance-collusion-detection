@@ -254,3 +254,78 @@ def test_cli_fake_run_and_resume(tmp_path, capsys):
     assert main(["--out", str(out), "--fake", "--clean", "9", "--seed", "3"]) == 0
     assert len(list((out / "games").glob("p*.json"))) == 5
     assert "5 of 5 games already done" in capsys.readouterr().out
+
+
+class OutOfOrder(ScriptedModel):
+    """Replies arrive in reverse seat order (Dov first); logs starts and ends."""
+
+    def __init__(self, *a, **kw):
+        super().__init__(*a, **kw)
+        self.events = []
+
+    async def complete(self, messages, schema_name, schema):
+        me = messages[0]["content"].split("You are ", 1)[1].split(",", 1)[0]
+        seat = G.MEDIUM_NAMES.index(me)
+        self.events.append(("start", seat))
+        await asyncio.sleep(0.001 * (4 - seat))
+        out = await super().complete(messages, schema_name, schema)
+        self.events.append(("end", seat))
+        return out
+
+
+async def test_phase_calls_overlap_and_reply_order_changes_nothing():
+    spec = build_specs(0, 1, 0, seed=15)[0]
+    model = OutOfOrder(seed=15)
+    rec = await play_game(spec, model)
+    # Calls come in batches of four: all four start before any of them ends.
+    for i in range(0, len(model.events), 8):
+        batch = model.events[i : i + 8]
+        assert [e for e, _ in batch[:4]] == ["start"] * 4
+        assert [e for e, _ in batch[4:]] == ["end"] * 4
+        assert [s for _, s in batch[4:]] == [3, 2, 1, 0]  # replies out of seat order
+    plain = await play_game(spec, ScriptedModel(seed=15))
+    assert _strip_times(rec)["rounds"] == _strip_times(plain)["rounds"]
+    assert [c["user_prompt"] for c in rec["calls"]] != [] and sorted(
+        c["user_prompt"] for c in rec["calls"]
+    ) == sorted(c["user_prompt"] for c in plain["calls"])
+
+
+class FirstTryJunkFor(ScriptedModel):
+    def __init__(self, name, *a, **kw):
+        super().__init__(*a, **kw)
+        self.name = name
+
+    async def complete(self, messages, schema_name, schema):
+        if f"You are {self.name}," in messages[0]["content"] and len(messages) == 2:
+            return Completion(text="junk", model=self.model)
+        return await super().complete(messages, schema_name, schema)
+
+
+async def test_one_mediums_retries_leave_other_prompts_unchanged():
+    spec = build_specs(1, 0, 0, seed=16)[0]
+    retried = await play_game(spec, FirstTryJunkFor("Bram", seed=16))
+    plain = await play_game(spec, ScriptedModel(seed=16))
+    assert _strip_times(retried)["rounds"] == _strip_times(plain)["rounds"]
+    for a, b in zip(retried["calls"], plain["calls"]):
+        assert a["user_prompt"] == b["user_prompt"]
+        assert (len(a["attempts"]) == 2) == (a["medium"] == "Bram")
+
+
+async def test_failure_inside_a_posting_phase(tmp_path):
+    spec = build_specs(1, 0, 0, seed=17)[0]
+
+    class CoraBreaksRound3(ScriptedModel):
+        async def complete(self, messages, schema_name, schema):
+            if "You are Cora," in messages[0]["content"] and "Round 3 of 10 (now)" in messages[1]["content"]:
+                return Completion(text="junk", model=self.model)
+            return await super().complete(messages, schema_name, schema)
+
+    counts = await run_games([spec], CoraBreaksRound3(seed=17), tmp_path, log=lambda *_: None)
+    assert counts == {"complete": 0, "failed": 1}
+    failed = json.loads(failed_path(tmp_path, spec.game_id).read_text())
+    assert failed["rounds_done"] == 2
+    round3 = [c for c in failed["calls"] if c["round"] == 3]
+    assert sorted(c["medium"] for c in round3) == list(G.MEDIUM_NAMES)  # the other three are logged too
+    cora = next(c for c in round3 if c["medium"] == "Cora")
+    assert len(cora["attempts"]) == 3 and cora["result"] is None
+    assert failed["tokens"]["calls"] == 2 * 8 + 4

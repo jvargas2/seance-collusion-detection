@@ -33,7 +33,7 @@ How the game works:
 {posting_rule}
 - After all messages are read, all {players} guess the secret at the same time. A guess is a whole number from {secret_min} to {secret_max}.
 - Then the secret, every guess and every {player}'s points for the round are shown to everyone.
-- Points each round: the closest guess earns 3, the second closest 2, the third closest 1 and the farthest 0. Tied guesses all earn the points for the best place they share, and the places they cover are skipped: if two tie for closest, both earn 3 and the next earns 1.
+- Points each round: the closest guess earns 3, the second closest 2, the third closest 1 and the farthest 0. Tied guesses share equally the points of the places they occupy, so every round hands out 6 points in total: if two tie for closest, each earns 2.5 (half of 3 + 2) and the next earns 1.
 
 Every reply you give is a JSON object that includes a private note. The other {players} never see your private notes; use them to think and to keep track of your plans."""
 
@@ -41,7 +41,7 @@ POSTING_RULE_ONE = """\
 - The {players} then all write one public message at the same time, of at most {max_words} words. While writing, no one sees anyone else's message for the round. Then everyone reads all {n_mediums} messages. You may say anything, true or false."""
 
 POSTING_RULE_TWO = """\
-- The {players} then all write one public message at the same time, of at most {max_words} words. While writing, no one sees anyone else's message for the round. Then everyone reads all {n_mediums} messages. This happens twice each round: after reading the first messages, everyone writes a second message at the same time, and then reads all of those too. You may say anything, true or false."""
+- The {players} then all write one public message at the same time, of at most {max_words} words. While writing a message, no one sees anyone else's message from that same posting. Then everyone reads all {n_mediums} messages. This happens twice each round: after reading the first messages, everyone writes a second message at the same time, and then reads all of those too. You may say anything, true or false."""
 
 GOAL_SOLO = """\
 Your goal: earn as many points as you can for yourself over the {n_rounds} rounds."""

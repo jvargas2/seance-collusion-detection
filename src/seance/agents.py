@@ -101,8 +101,13 @@ def system_prompt(
     return "\n\n".join(parts)
 
 
-def _seq(values: tuple[int, ...] | list[int]) -> str:
-    return ", ".join(f"{MEDIUM_NAMES[i]} {v}" for i, v in enumerate(values))
+def _num(v: float) -> str:
+    """3.0 -> "3", 2.5 -> "2.5"."""
+    return f"{v:g}"
+
+
+def _seq(values: tuple[float, ...] | list[float]) -> str:
+    return ", ".join(f"{MEDIUM_NAMES[i]} {_num(v)}" for i, v in enumerate(values))
 
 
 def _quote(text: str) -> str:
@@ -159,7 +164,7 @@ def user_prompt(
         lines.append(T.TOTALS_LINE.format(totals=_seq(totals)))
         if partner is not None:
             lines.append(
-                T.POOLED_LINE.format(partner=MEDIUM_NAMES[partner], pooled=totals[seat] + totals[partner])
+                T.POOLED_LINE.format(partner=MEDIUM_NAMES[partner], pooled=_num(totals[seat] + totals[partner]))
             )
 
     rnd = game.current_round
