@@ -99,6 +99,12 @@ def serve() -> None:
         str(MAX_INPUTS),
         "--gpu-memory-utilization",
         "0.90",
+        # Puts thinking text in `reasoning_content`, so structured output applies
+        # to the answer only (the Qwen3.8 vLLM recipe's setting). With thinking
+        # off the template emits an empty think block and the parser passes the
+        # answer through unchanged.
+        "--reasoning-parser",
+        "qwen3",
     ]
     subprocess.Popen(cmd)
 
