@@ -25,6 +25,9 @@ dev = [
 modal = [
     "modal>=1.6",
 ]
+report = [
+    "matplotlib>=3.11.2",
+]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
