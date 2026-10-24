@@ -1,0 +1,245 @@
+{
+ "seed": 20261027,
+ "by_deal_seed": {
+  "0": {
+   "Daniel": "Florence",
+   "Eileen": "Arthur",
+   "Gladys": "Emma",
+   "Leonora": "Mina"
+  },
+  "1": {
+   "Daniel": "Emma",
+   "Eileen": "Douglas",
+   "Gladys": "Edgar",
+   "Leonora": "Eusapia"
+  },
+  "2": {
+   "Daniel": "Douglas",
+   "Eileen": "Margaret",
+   "Gladys": "Kate",
+   "Leonora": "Mina"
+  },
+  "3": {
+   "Daniel": "William",
+   "Eileen": "Arthur",
+   "Gladys": "Emma",
+   "Leonora": "Edgar"
+  },
+  "4": {
+   "Daniel": "Charles",
+   "Eileen": "Arthur",
+   "Gladys": "Florence",
+   "Leonora": "Margaret"
+  },
+  "5": {
+   "Daniel": "Kate",
+   "Eileen": "Eusapia",
+   "Gladys": "Helen",
+   "Leonora": "Emma"
+  },
+  "6": {
+   "Daniel": "Charles",
+   "Eileen": "Mina",
+   "Gladys": "Helen",
+   "Leonora": "Edgar"
+  },
+  "7": {
+   "Daniel": "Edgar",
+   "Eileen": "Margaret",
+   "Gladys": "Emma",
+   "Leonora": "Kate"
+  },
+  "8": {
+   "Daniel": "Charles",
+   "Eileen": "Emma",
+   "Gladys": "Eusapia",
+   "Leonora": "Mina"
+  },
+  "9": {
+   "Daniel": "Douglas",
+   "Eileen": "Florence",
+   "Gladys": "Helen",
+   "Leonora": "Kate"
+  },
+  "10": {
+   "Daniel": "Emma",
+   "Eileen": "Eusapia",
+   "Gladys": "Helen",
+   "Leonora": "Arthur"
+  },
+  "11": {
+   "Daniel": "Douglas",
+   "Eileen": "Helen",
+   "Gladys": "William",
+   "Leonora": "Edgar"
+  },
+  "12": {
+   "Daniel": "Mina",
+   "Eileen": "Eusapia",
+   "Gladys": "Charles",
+   "Leonora": "Florence"
+  },
+  "13": {
+   "Daniel": "Mina",
+   "Eileen": "Arthur",
+   "Gladys": "Edgar",
+   "Leonora": "Charles"
+  },
+  "14": {
+   "Daniel": "Douglas",
+   "Eileen": "Eusapia",
+   "Gladys": "William",
+   "Leonora": "Kate"
+  },
+  "15": {
+   "Daniel": "William",
+   "Eileen": "Florence",
+   "Gladys": "Kate",
+   "Leonora": "Mina"
+  },
+  "16": {
+   "Daniel": "Helen",
+   "Eileen": "William",
+   "Gladys": "Eusapia",
+   "Leonora": "Edgar"
+  },
+  "17": {
+   "Daniel": "William",
+   "Eileen": "Margaret",
+   "Gladys": "Kate",
+   "Leonora": "Charles"
+  },
+  "18": {
+   "Daniel": "Emma",
+   "Eileen": "Helen",
+   "Gladys": "Charles",
+   "Leonora": "Arthur"
+  },
+  "19": {
+   "Daniel": "Emma",
+   "Eileen": "Florence",
+   "Gladys": "Margaret",
+   "Leonora": "Mina"
+  },
+  "50": {
+   "Daniel": "Arthur",
+   "Eileen": "Mina",
+   "Gladys": "Edgar",
+   "Leonora": "Kate"
+  },
+  "51": {
+   "Daniel": "Mina",
+   "Eileen": "Eusapia",
+   "Gladys": "Douglas",
+   "Leonora": "Margaret"
+  },
+  "52": {
+   "Daniel": "Florence",
+   "Eileen": "Eusapia",
+   "Gladys": "Arthur",
+   "Leonora": "Helen"
+  },
+  "53": {
+   "Daniel": "Kate",
+   "Eileen": "Florence",
+   "Gladys": "Arthur",
+   "Leonora": "Emma"
+  },
+  "54": {
+   "Daniel": "Helen",
+   "Eileen": "Charles",
+   "Gladys": "Emma",
+   "Leonora": "Eusapia"
+  },
+  "55": {
+   "Daniel": "Douglas",
+   "Eileen": "Charles",
+   "Gladys": "Edgar",
+   "Leonora": "Kate"
+  },
+  "56": {
+   "Daniel": "Douglas",
+   "Eileen": "Arthur",
+   "Gladys": "Edgar",
+   "Leonora": "William"
+  },
+  "57": {
+   "Daniel": "Helen",
+   "Eileen": "Edgar",
+   "Gladys": "William",
+   "Leonora": "Arthur"
+  },
+  "58": {
+   "Daniel": "Charles",
+   "Eileen": "Douglas",
+   "Gladys": "Helen",
+   "Leonora": "Mina"
+  },
+  "59": {
+   "Daniel": "Eusapia",
+   "Eileen": "Margaret",
+   "Gladys": "Helen",
+   "Leonora": "Mina"
+  },
+  "60": {
+   "Daniel": "Florence",
+   "Eileen": "Mina",
+   "Gladys": "Helen",
+   "Leonora": "Kate"
+  },
+  "61": {
+   "Daniel": "Charles",
+   "Eileen": "Kate",
+   "Gladys": "Florence",
+   "Leonora": "Edgar"
+  },
+  "62": {
+   "Daniel": "Kate",
+   "Eileen": "Florence",
+   "Gladys": "Helen",
+   "Leonora": "Emma"
+  },
+  "63": {
+   "Daniel": "Emma",
+   "Eileen": "Mina",
+   "Gladys": "William",
+   "Leonora": "Helen"
+  },
+  "64": {
+   "Daniel": "Helen",
+   "Eileen": "Margaret",
+   "Gladys": "Charles",
+   "Leonora": "Emma"
+  },
+  "65": {
+   "Daniel": "Emma",
+   "Eileen": "Edgar",
+   "Gladys": "Eusapia",
+   "Leonora": "Helen"
+  },
+  "66": {
+   "Daniel": "Charles",
+   "Eileen": "Margaret",
+   "Gladys": "Kate",
+   "Leonora": "Emma"
+  },
+  "67": {
+   "Daniel": "Charles",
+   "Eileen": "Mina",
+   "Gladys": "Margaret",
+   "Leonora": "William"
+  },
+  "68": {
+   "Daniel": "Mina",
+   "Eileen": "Kate",
+   "Gladys": "William",
+   "Leonora": "Helen"
+  },
+  "69": {
+   "Daniel": "Margaret",
+   "Eileen": "Edgar",
+   "Gladys": "Kate",
+   "Leonora": "Eusapia"
+  }
+ }
+}

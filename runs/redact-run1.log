@@ -1,0 +1,43 @@
+0 of 40 games already done; playing 40
+r002: done in 247.4s
+r009: done in 380.9s
+r004: done in 390.1s
+r007: done in 394.1s
+r013: done in 400.5s
+r015: done in 402.5s
+r010: done in 414.5s
+r001: done in 428.8s
+r003: done in 432.4s
+r006: done in 436.1s
+r008: done in 441.1s
+r005: done in 471.3s
+r011: done in 476.3s
+r000: done in 492.6s
+r012: done in 574.1s
+r016: done in 336.5s
+r019: done in 306.0s
+r025: done in 273.8s
+r024: done in 285.8s
+r022: done in 342.2s
+r014: done in 784.2s
+r020: done in 387.3s
+r026: done in 348.0s
+r018: done in 425.3s
+r029: done in 335.8s
+r017: done in 475.9s
+r021: done in 458.9s
+r027: done in 402.3s
+r030: done in 313.7s
+r031: done in 317.6s
+r028: done in 455.9s
+r034: done in 232.7s
+r037: done in 180.3s
+r033: FAILED after 2 rounds (AgentCallFailed: Daniel gave no usable speak reply in 3 attempts)
+r032: done in 271.0s
+r023: done in 543.5s
+r036: done in 195.8s
+r038: done in 241.5s
+r039: done in 238.4s
+r035: done in 303.0s
+failed games by condition and pair: coalition Daniel+Leonora: 1
+complete 39, failed 1, peak in-flight calls 32
