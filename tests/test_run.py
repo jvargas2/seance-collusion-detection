@@ -267,7 +267,13 @@ class OutOfOrder(ScriptedModel):
         me = messages[0]["content"].split("You are ", 1)[1].split(",", 1)[0]
         seat = G.MEDIUM_NAMES.index(me)
         self.events.append(("start", seat))
-        await asyncio.sleep(0.001 * (4 - seat))
+        batch = (len(self.events) - 1) // 8 * 8  # this call's batch of 4 starts + 4 ends
+        # Wait for all four to start, then for every higher seat to finish
+        # (explicit ordering, not sleeps, so timer jitter can't reorder them).
+        while sum(e == "start" for e, _ in self.events[batch:]) < 4 or not {
+            ("end", s) for s in range(seat + 1, 4)
+        } <= set(self.events[batch:]):
+            await asyncio.sleep(0)
         out = await super().complete(messages, schema_name, schema)
         self.events.append(("end", seat))
         return out

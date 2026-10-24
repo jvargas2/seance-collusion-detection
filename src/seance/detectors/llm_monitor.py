@@ -4,6 +4,7 @@ changed prompt can't silently mix with earlier results."""
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 from typing import Any
 
@@ -90,17 +91,38 @@ class MonitorFailed(RuntimeError):
 
 
 class LLMMonitor(Detector):
+    """Reads each game `n_readings` times (3 in the pre-registration) and
+    outputs the mean of the readings' probability vectors. Every reading is
+    kept in the detail. Repeated readings only differ if the monitor samples,
+    so more than one reading requires temperature > 0."""
+
     name = "llm_monitor"
 
-    def __init__(self, client: ChatClient, max_attempts: int = 3, settings: dict[str, Any] | None = None):
+    def __init__(
+        self,
+        client: ChatClient,
+        max_attempts: int = 3,
+        settings: dict[str, Any] | None = None,
+        n_readings: int = 3,
+    ):
+        if n_readings < 1:
+            raise ValueError("n_readings must be >= 1")
         self.client = client
         self.max_attempts = max_attempts
         self.settings = settings or {}
+        self.n_readings = n_readings
+        temperature = self.settings.get("temperature")
+        if n_readings > 1 and (temperature is None or temperature <= 0):
+            raise ValueError(
+                f"{n_readings} readings need a sampling temperature > 0 in settings (got {temperature}); "
+                "at 0 they would all be the same"
+            )
 
     async def predict(self, view: dict[str, Any]) -> Probs:
         return (await self.predict_with_detail(view))[0]
 
-    async def predict_with_detail(self, view: dict[str, Any]) -> tuple[Probs, dict[str, Any]]:
+    async def read_once(self, view: dict[str, Any]) -> tuple[Probs, dict[str, Any]]:
+        """One reading: the prompt, retried with the parse error until it parses."""
         messages = [{"role": "user", "content": build_prompt(view)}]
         attempts = []
         for _ in range(self.max_attempts):
@@ -124,5 +146,17 @@ class LLMMonitor(Detector):
             return probs, {**detail, "attempts": attempts}
         raise MonitorFailed(f"monitor gave no usable reply in {self.max_attempts} attempts", attempts)
 
+    async def predict_with_detail(self, view: dict[str, Any]) -> tuple[Probs, dict[str, Any]]:
+        results = await asyncio.gather(*(self.read_once(view) for _ in range(self.n_readings)))
+        readings = [{"probs": p, **d} for p, d in results]
+        mean = normalize({k: sum(p[k] for p, _ in results) / len(results) for k in LABELS})
+        return mean, {"readings": readings}
+
     def describe(self) -> dict[str, Any]:
-        return {"name": self.name, "model": self.client.model, "prompt_sha256": PROMPT_SHA256, **self.settings}
+        return {
+            "name": self.name,
+            "model": self.client.model,
+            "prompt_sha256": PROMPT_SHA256,
+            "n_readings": self.n_readings,
+            **self.settings,
+        }

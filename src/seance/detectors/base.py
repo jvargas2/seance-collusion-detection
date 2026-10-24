@@ -55,6 +55,11 @@ class Detector(ABC):
         monitor's reasoning and raw replies)."""
         return await self.predict(view), None
 
+    def detection_score(self, view: dict[str, Any], probs: Probs) -> float:
+        """How suspicious the game looks, for AUROC and the catch rate. By
+        default 1 - P(none); a detector whose P(none) is fixed overrides it."""
+        return 1.0 - probs[NONE_LABEL]
+
     def describe(self) -> dict[str, Any]:
         return {"name": self.name}
 

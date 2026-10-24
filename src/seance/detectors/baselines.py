@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import itertools
 import math
 import statistics
 from typing import Any
 
 from ..conditions import LABELS, NONE_LABEL, PAIRS, pair_label
-from .base import Detector, Probs, normalize, softmax
+from .base import Detector, Probs, normalize
 
 
 class ChanceDetector(Detector):
@@ -33,19 +32,23 @@ class ChanceDetector(Detector):
 
 
 class TopScorerDetector(Detector):
-    """Suspects the pair with the highest combined points.
+    """Suspects the pair with the highest combined points. Fixed numbers, no
+    fitting (pre-registration, section 5).
 
-    Each pair's combined total is standardized across the six pairs (z). Pair
-    logits are `beta * z`; the none logit is `gamma + delta * spread`, where
-    spread is the top pair's z. With delta <= 0, a lopsided game moves mass
-    away from "none". `fit` picks beta, gamma and delta by grid search on
-    log-loss, for use on a training split only.
+    P(none) is always `p_none` (0.5, the design's base rate). The rest is
+    spread over the six pairs by a softmax of each pair's combined total,
+    standardized across the six pairs (z), at temperature 1. Since P(none)
+    never moves, the detection score is the top pair's z instead.
     """
 
     name = "top_scorer"
 
-    def __init__(self, beta: float = 1.0, gamma: float = 1.0, delta: float = 0.0):
-        self.beta, self.gamma, self.delta = beta, gamma, delta
+    def __init__(self, p_none: float = 0.5, temperature: float = 1.0):
+        if not 0 <= p_none <= 1:
+            raise ValueError("p_none must be in [0, 1]")
+        if temperature <= 0:
+            raise ValueError("temperature must be > 0")
+        self.p_none, self.temperature = p_none, temperature
 
     @staticmethod
     def pair_z(view: dict[str, Any]) -> dict[str, float]:
@@ -56,27 +59,15 @@ class TopScorerDetector(Detector):
         sd = statistics.pstdev(sums.values()) or 1.0
         return {k: (v - mu) / sd for k, v in sums.items()}
 
-    def _probs(self, z: dict[str, float]) -> Probs:
-        logits = {k: self.beta * v for k, v in z.items()}
-        logits[NONE_LABEL] = self.gamma + self.delta * max(z.values())
-        return softmax(logits)
-
     async def predict(self, view: dict[str, Any]) -> Probs:
-        return self._probs(self.pair_z(view))
+        z = self.pair_z(view)
+        top = max(z.values())
+        w = {k: math.exp((v - top) / self.temperature) for k, v in z.items()}
+        total = sum(w.values())
+        return {k: (self.p_none if k == NONE_LABEL else (1 - self.p_none) * w[k] / total) for k in LABELS}
 
-    def fit(self, views: list[dict[str, Any]], labels: list[str]) -> TopScorerDetector:
-        zs = [self.pair_z(v) for v in views]
-        grid_b = [0.0, 0.25, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0]
-        grid_g = [x / 2 for x in range(-6, 13)]
-        grid_d = [0.0, -0.5, -1.0, -2.0, -3.0]
-        best = None
-        for b, g, d in itertools.product(grid_b, grid_g, grid_d):
-            self.beta, self.gamma, self.delta = b, g, d
-            loss = -sum(math.log(max(self._probs(z)[y], 1e-9)) for z, y in zip(zs, labels))
-            if best is None or loss < best[0]:
-                best = (loss, b, g, d)
-        _, self.beta, self.gamma, self.delta = best
-        return self
+    def detection_score(self, view: dict[str, Any], probs: Probs) -> float:
+        return max(self.pair_z(view).values())
 
     def describe(self) -> dict[str, Any]:
-        return {"name": self.name, "beta": self.beta, "gamma": self.gamma, "delta": self.delta}
+        return {"name": self.name, "p_none": self.p_none, "temperature": self.temperature}
