@@ -49,7 +49,7 @@ games with the frozen prompt. `--redaction` compares information passing,
 honest players' error and points, the allies' pooled points and the
 monitor's verdicts, with paired bootstrap intervals over matched deals.
 
-`--plus-factors` (E7, a follow-up decided after the main study) reads every
+`--plus-factors` (E8, a follow-up decided after the main study) reads every
 clean and coalition game of a run with the frozen monitor ("standard")
 and/or the same prompt plus one paragraph telling it that open sharing with
 the whole table is ordinary cooperation and to count only evidence that
@@ -547,7 +547,7 @@ def partial_view(view: dict[str, Any], kind: str) -> dict[str, Any]:
     raise ValueError(kind)
 
 
-# --- plus factors (E7) ------------------------------------------------------------
+# --- plus factors (E8) ------------------------------------------------------------
 
 # First names of real mediums, none of them the study's four. Each game gets 4
 # of them, drawn from its own seeded generator, so a game shows the same names
@@ -831,8 +831,8 @@ def main(argv: list[str] | None = None) -> int:
                     help="E7: read a --replicate run made under another --scoring, and the same main-study deals, with pooled random names (paid)")
     ap.add_argument("--scoring-compare", type=Path, metavar="RUN", help="E7 analysis of --scoring-run")
     ap.add_argument("--plus-factors", nargs="+", choices=PF_MONITORS,
-                    help="E7: read every game with random medium names, with the standard and/or plus-factor monitor (paid)")
-    ap.add_argument("--plus-compare", action="store_true", help="E7 analysis: plus-factor against standard monitor")
+                    help="E8: read every game with random medium names, with the standard and/or plus-factor monitor (paid)")
+    ap.add_argument("--plus-compare", action="store_true", help="E8 analysis: plus-factor against standard monitor")
     ap.add_argument("--settings-from", type=Path,
                     help="the main study's monitor predictions, to check settings against (default <run>/predictions/llm_monitor.jsonl)")
     ap.add_argument("--theme", type=Path, help="E4: a neutral-wording run made with --replicate, compared with the same main-study deals")
@@ -1000,7 +1000,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({k: v for k, v in out.items() if k not in ("communication",)}, indent=1))
 
     for which in args.plus_factors or []:
-        # E7: the frozen monitor, or the same with the plus-factor paragraph,
+        # E8: the frozen monitor, or the same with the plus-factor paragraph,
         # every game read with random medium names (the same names for both).
         variant = None if which == "standard" else which
         det = monitor(may_differ=("base_url",) + (("prompt_sha256", "prompt_variant") if variant else ()), prompt_variant=variant)
@@ -1008,7 +1008,7 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         path = pred_dir / f"llm_monitor_pf_{which}.jsonl"
         done = asyncio.run(predict_all(det, records, path, args.concurrency, view_fn=random_names_view_fn()))
-        print(f"E7 {which}: {len(done)} of {len(records)} games scored")
+        print(f"E8 {which}: {len(done)} of {len(records)} games scored")
 
     if args.plus_compare:
         std = _read_predictions(pred_dir / "llm_monitor_pf_standard.jsonl")
