@@ -12,6 +12,7 @@ which pair each reading put on top. Game data goes out as small script files
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import shutil
 from pathlib import Path
@@ -133,6 +134,12 @@ def build(run: Path, out: Path) -> int:
     if out.exists():
         shutil.rmtree(out)
     shutil.copytree(STATIC, out)
+    # Stamp asset names with their content hash so browsers never serve a stale copy.
+    page = (out / "index.html").read_text()
+    for asset in ("app.js", "style.css"):
+        stamp = hashlib.sha256((out / asset).read_bytes()).hexdigest()[:10]
+        page = page.replace(f'"{asset}"', f'"{asset}?v={stamp}"')
+    (out / "index.html").write_text(page)
     (out / "data").mkdir()
     rows = []
     for rec in sorted(records, key=lambda r: r["game_id"]):

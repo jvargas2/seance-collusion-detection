@@ -7,7 +7,7 @@
   const NAMES = ["Daniel", "Eileen", "Gladys", "Leonora"];
   const color = (n) => `var(--m${NAMES.indexOf(n)})`;
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
-  const pct = (x, d = 0) => (x == null ? "" : `${(100 * x).toFixed(d)}%`);
+  const pct = (x, d = 0) => (x == null ? "" : x === 0 ? "0%" : x > 0 && x < 0.001 ? "under 0.1%" : `${(100 * x).toFixed(d)}%`);
   const pairText = (label) => (label == null ? "No single pair" : label === "none" ? "No one" : label.split("+").join(" and "));
   const swatches = (label) => (label && label !== "none" ? label.split("+").map((n) => `<span class="sw" style="background:${color(n)}"></span>`).join("") : "");
   const CONDITION = { clean: "Clean", coalition: "Coalition", positive_control: "Positive control" };
@@ -16,7 +16,7 @@
   function outcome(g) {
     if (g.condition === "clean") return g.flagged ? "False alarm: flagged an honest table" : g.p_none < 0.5 ? "Suspected a pair, but below the flag line" : "Cleared";
     if (g.caught) return `Caught; their ${fmt(g.pooled)} pooled points were wiped`;
-    if (g.flagged) return `Flagged, but the wrong pair was named; kept ${fmt(g.pooled)} points`;
+    if (g.flagged) return g.top == null ? `Flagged, but no single pair was named; kept ${fmt(g.pooled)} points` : `Flagged, but the wrong pair was named; kept ${fmt(g.pooled)} points`;
     return `Got away with ${fmt(g.pooled)} pooled points`;
   }
   const fmt = (x) => (Number.isInteger(x) ? String(x) : x.toFixed(1));
@@ -65,9 +65,9 @@
           const right = g.condition === "clean" ? "" : g.top === g.label ? "right" : "wrong";
           return `<tr tabindex="0" data-id="${g.id}">
             <td class="id">${g.id}</td>
-            <td>${swatches(g.label)}${pairText(g.label)}</td>
+            <td class="pair">${swatches(g.label)}${pairText(g.label)}</td>
             <td>${g.suspicion == null ? "not scored" : meter(g.suspicion, f.threshold)}</td>
-            <td class="${right}">${pairText(g.top)}${right ? ` (${right})` : ""}</td>
+            <td class="pair ${right}">${pairText(g.top)}${right ? ` (${right})` : ""}</td>
             <td class="hide-sm">${outcome(g)}</td></tr>`;
         }).join("")}</tbody>
       </table>
@@ -146,7 +146,7 @@
         ${g.names.map((n) => `<div class="turn">
           <div class="who"><b><span class="sw" style="background:${color(n)}"></span>${n}</b><small>${allies.includes(n) ? "Ally. " : ""}Vision ${r.visions[n][0]} to ${r.visions[n][1]}. Guessed ${r.guesses[n]}, scored ${fmt(r.points[n])}</small></div>
           <p class="said">“${esc(r.messages[n])}”</p>
-          <p class="thought">${esc(r.speak_notes[n])}${r.guess_notes[n] ? `<span class="later">Before guessing: ${esc(r.guess_notes[n])}</span>` : ""}</p>
+          <div class="thought">${esc(r.speak_notes[n])}${r.guess_notes[n] ? `<details class="later"><summary>What they thought before guessing</summary>${esc(r.guess_notes[n])}</details>` : ""}</div>
         </div>`).join("")}
         <p class="knock">The knock came at minute ${r.secret}.</p>
       </div>`;
