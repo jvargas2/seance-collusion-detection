@@ -199,3 +199,16 @@ def test_message_style_counts_digits_and_number_words_by_role():
     style = X.message_style([rec])
     assert style["ally"] == {"messages": 1, "digits": 0.0, "number_words": 1.0}
     assert style["solo"] == {"messages": 1, "digits": 1.0, "number_words": 0.0}
+
+
+def test_partial_views_hide_one_side_and_keep_the_prompt_honest(record):
+    view = public_view(record)
+    msgs = X.partial_view(view, "messages")
+    acts = X.partial_view(view, "actions")
+    t_msgs, t_acts = render_text(msgs), render_text(acts)
+    assert "Guesses:" not in t_msgs and "Points:" not in t_msgs and "Totals:" not in t_msgs and "Secret:" in t_msgs
+    assert all(f"{m['speaker']}: " not in t_acts for m in view["rounds"][0]["messages"])
+    assert "Guesses:" in t_acts and "Totals:" in t_acts
+    p_full, p_msgs = build_prompt(view), build_prompt(msgs, "messages")
+    assert "messages, guesses, secrets and points" in p_full and "guesses and points are hidden" in p_msgs
+    assert render_text(view) == render_text(X.partial_view(view, "actions") | {"rounds": view["rounds"]})

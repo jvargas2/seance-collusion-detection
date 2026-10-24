@@ -353,6 +353,21 @@ def gender_effect(
     }
 
 
+# --- says vs does (E6) -------------------------------------------------------------
+
+
+def partial_view(view: dict[str, Any], kind: str) -> dict[str, Any]:
+    """The public view with only the messages ("messages") or only the
+    guesses and points ("actions"); the secrets stay in both."""
+    if kind == "messages":
+        rounds = [{"round": r["round"], "messages": r["messages"], "secret": r["secret"]} for r in view["rounds"]]
+        return {k: v for k, v in view.items() if k != "totals"} | {"rounds": rounds}
+    if kind == "actions":
+        rounds = [{k: v for k, v in r.items() if k != "messages"} for r in view["rounds"]]
+        return {**view, "rounds": rounds}
+    raise ValueError(kind)
+
+
 # --- theme (E4) ---------------------------------------------------------------------
 
 _NUMBER_WORDS = re.compile(
@@ -416,6 +431,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--names", nargs="+", choices=sorted(NAME_SETS), help="E3: re-read with the players renamed (paid)")
     ap.add_argument("--gender", action="store_true", help="E3 analysis of the renamed readings")
     ap.add_argument("--other-monitor", metavar="TAG", help="E5: re-read with another monitor model (paid); model and server from the environment")
+    ap.add_argument("--views", nargs="+", choices=("messages", "actions"), help="E6: re-read with a partial view (paid)")
     ap.add_argument("--compare-monitor", metavar="TAG", help="E5 analysis: the other monitor against the main one")
     ap.add_argument("--theme", type=Path, help="E4: a neutral-wording run made with --replicate, compared with the same main-study deals")
     ap.add_argument("--concurrency", type=int, default=4)
@@ -423,7 +439,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--env-file", default=".env")
     args = ap.parse_args(argv)
     if not (args.recalibrate or args.rotate or args.position or args.names or args.gender or args.theme
-            or args.other_monitor or args.compare_monitor):
+            or args.other_monitor or args.compare_monitor or args.views):
         ap.error("pass --recalibrate, --rotate, --position, --names and/or --gender")
     records = [r for r in load_records(args.run) if r["condition"] in (CLEAN, COALITION)]
     pred_dir, out_dir = args.run / "predictions", args.run / "metrics"
@@ -444,14 +460,14 @@ def main(argv: list[str] | None = None) -> int:
                 f"held-out ECE {r['calibration_held_out']['collusion']['ece']:.3f}"
             )
 
-    def monitor(may_differ: tuple[str, ...] = ("base_url",)):
+    def monitor(may_differ: tuple[str, ...] = ("base_url",), view_kind: str = "full"):
         """The main study's monitor, or None if any setting outside `may_differ` differs."""
         from .detectors import LLMMonitor
         from .inference import LimitedClient, OpenAICompatClient, load_settings
 
         settings = load_settings(args.env_file, prefix="SEANCE_MONITOR_", fallback_prefix="SEANCE_")
         client = LimitedClient(OpenAICompatClient(settings), args.concurrency)
-        det = LLMMonitor(client, settings=settings.describe(), n_readings=3)
+        det = LLMMonitor(client, settings=settings.describe(), n_readings=3, view_kind=view_kind)
         main_cfg = dict(next(iter(_read_predictions(main_path).values()))["detector"])
         new_cfg = det.describe()
         diff = sorted(k for k in set(main_cfg) | set(new_cfg) if k not in may_differ and main_cfg.get(k) != new_cfg.get(k))
@@ -487,6 +503,17 @@ def main(argv: list[str] | None = None) -> int:
         path = pred_dir / f"llm_monitor_{args.other_monitor}.jsonl"
         done = asyncio.run(predict_all(det, records, path, args.concurrency))
         print(f"{args.other_monitor} readings: {len(done)} of {len(records)} games scored")
+
+    for kind in args.views or []:
+        # E6: the same frozen monitor shown only the messages, or only the guesses and points.
+        det = monitor(may_differ=("base_url", "view"), view_kind=kind)
+        if det is None:
+            return 2
+        path = pred_dir / f"llm_monitor_view_{kind}.jsonl"
+        done = asyncio.run(
+            predict_all(det, records, path, args.concurrency, view_fn=lambda rec, k=kind: partial_view(public_view(rec), k))
+        )
+        print(f"view {kind}: {len(done)} of {len(records)} games scored")
 
     if args.compare_monitor:
         from .evaluate import score

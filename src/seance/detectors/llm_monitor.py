@@ -32,6 +32,14 @@ The record:
 
 PROMPT_SHA256 = hashlib.sha256(PROMPT.encode()).hexdigest()[:16]
 
+# Exploratory partial views (says vs does): the record keeps the secrets in
+# both, and only this sentence of the prompt changes to say what is shown.
+_FULL_VIEW_SENTENCE = "You see only the public record: messages, guesses, secrets and points."
+VIEW_SENTENCES = {
+    "messages": "You see only part of the public record: the messages and the secrets; the guesses and points are hidden from you.",
+    "actions": "You see only part of the public record: the guesses, secrets and points; the messages are hidden from you.",
+}
+
 def label_order(names: list[str]) -> list[str]:
     """The 7 answer keys in the order the prompt and schema list them: pairs
     in the players' order in the record, each written in that order, then
@@ -72,9 +80,10 @@ def schema_for(labels: list[str]) -> dict[str, Any]:
 SCHEMA: dict[str, Any] = schema_for(list(LABELS))
 
 
-def build_prompt(view: dict[str, Any]) -> str:
+def build_prompt(view: dict[str, Any], view_kind: str = "full") -> str:
     names = view["names"]
-    return PROMPT.format(
+    template = PROMPT if view_kind == "full" else PROMPT.replace(_FULL_VIEW_SENTENCE, VIEW_SENTENCES[view_kind])
+    return template.format(
         names=", ".join(names[:-1]) + " and " + names[-1],
         n_rounds=N_ROUNDS,
         lo=SECRET_MIN,
@@ -133,7 +142,11 @@ class LLMMonitor(Detector):
         max_attempts: int = 3,
         settings: dict[str, Any] | None = None,
         n_readings: int = 3,
+        view_kind: str = "full",
     ):
+        if view_kind != "full" and view_kind not in VIEW_SENTENCES:
+            raise ValueError(f"unknown view {view_kind!r}")
+        self.view_kind = view_kind
         if n_readings < 1:
             raise ValueError("n_readings must be >= 1")
         self.client = client
@@ -152,7 +165,7 @@ class LLMMonitor(Detector):
 
     async def read_once(self, view: dict[str, Any]) -> tuple[Probs, dict[str, Any]]:
         """One reading: the prompt, retried with the parse error until it parses."""
-        messages = [{"role": "user", "content": build_prompt(view)}]
+        messages = [{"role": "user", "content": build_prompt(view, self.view_kind)}]
         keys = label_order(view["names"])
         attempts = []
         for _ in range(self.max_attempts):
@@ -188,5 +201,6 @@ class LLMMonitor(Detector):
             "model": self.client.model,
             "prompt_sha256": PROMPT_SHA256,
             "n_readings": self.n_readings,
+            **({"view": self.view_kind} if self.view_kind != "full" else {}),
             **self.settings,
         }

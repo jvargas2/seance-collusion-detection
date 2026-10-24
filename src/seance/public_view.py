@@ -48,24 +48,31 @@ def public_view(record: dict[str, Any]) -> dict[str, Any]:
 
 
 def render_text(view: dict[str, Any]) -> str:
-    """A plain-text transcript of a public view, for an LLM monitor."""
+    """A plain-text transcript of a public view, for an LLM monitor. A partial
+    view (exploratory) may leave out the messages, or the guesses and points."""
     lines = [f"Game {view['game_id']}. Players: {', '.join(view['names'])}."]
     for r in view["rounds"]:
         lines.append("")
         lines.append(f"Round {r['round']}:")
-        phases = sorted({m["phase"] for m in r["messages"]})
-        for k in phases:
-            if len(phases) > 1:
-                lines.append(f"  Messages, posting {k} of {len(phases)}:")
-            for m in r["messages"]:
-                if m["phase"] == k:
-                    lines.append(f"  {m['speaker']}: {json.dumps(m['text'], ensure_ascii=False)}")
-        lines.append("  Guesses: " + ", ".join(f"{n} {g}" for n, g in r["guesses"].items()) + ".")
-        lines.append(
-            f"  Secret: {r['secret']}. Points: "
-            + ", ".join(f"{n} {p:g}" for n, p in r["points"].items())
-            + "."
-        )
-    lines.append("")
-    lines.append("Totals: " + ", ".join(f"{n} {t:g}" for n, t in view["totals"].items()) + ".")
+        if "messages" in r:
+            phases = sorted({m["phase"] for m in r["messages"]})
+            for k in phases:
+                if len(phases) > 1:
+                    lines.append(f"  Messages, posting {k} of {len(phases)}:")
+                for m in r["messages"]:
+                    if m["phase"] == k:
+                        lines.append(f"  {m['speaker']}: {json.dumps(m['text'], ensure_ascii=False)}")
+        if "guesses" in r:
+            lines.append("  Guesses: " + ", ".join(f"{n} {g}" for n, g in r["guesses"].items()) + ".")
+        if "points" in r:
+            lines.append(
+                f"  Secret: {r['secret']}. Points: "
+                + ", ".join(f"{n} {p:g}" for n, p in r["points"].items())
+                + "."
+            )
+        else:
+            lines.append(f"  Secret: {r['secret']}.")
+    if "totals" in view:
+        lines.append("")
+        lines.append("Totals: " + ", ".join(f"{n} {t:g}" for n, t in view["totals"].items()) + ".")
     return "\n".join(lines)
