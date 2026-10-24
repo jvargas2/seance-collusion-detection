@@ -7,8 +7,10 @@
 Two ways to build a game list:
 
 - `build_main_study`: the pre-registered main study. Seeds are fixed: 0-49
-  clean, 50-99 coalition, 100-105 positive control, and each allied game's
-  pair is drawn from its seed.
+  clean, 50-99 coalition, 100-105 positive control. Allied pairs are
+  balanced: the 50 coalition games cycle through shuffled rounds of all six
+  pairs (8 or 9 games each), and the 6 positive controls use each pair once,
+  both from fixed seeds.
 - `build_specs`: pilots and smoke tests. Pairs are balanced (each condition
   cycles through shuffled rounds of all six pairs) and seeds are drawn at
   random from outside the main-study range, so a pilot never replays a
@@ -47,6 +49,7 @@ MAIN_SEEDS = {
 MAIN_SEED_LIMIT = 106  # pilot seeds are drawn from [PILOT_SEED_MIN, 2**31)
 PILOT_SEED_MIN = 1000
 MAIN_ID_SHUFFLE_SEED = 20261023
+MAIN_PAIR_SEED = 20261024  # balanced pair assignment for the main study
 
 
 def pair_label(allies: tuple[int, int] | None) -> str:
@@ -119,11 +122,16 @@ def _balanced_pairs(n: int, rng: random.Random) -> list[tuple[int, int]]:
     return out[:n]
 
 
-def pair_from_seed(seed: int) -> tuple[int, int]:
-    """The allied pair for a main-study game, drawn from its seed. Uses its own
-    string-seeded stream (deterministic across runs and machines), separate
-    from the stream that deals the game."""
-    return random.Random(f"seance-pair-{seed}").choice(PAIRS)
+def main_pairs() -> dict[int, tuple[int, int]]:
+    """The allied pair for each main-study allied seed: balanced within each
+    condition (shuffled blocks of all six pairs), from a fixed string-seeded
+    stream separate from the one that deals each game."""
+    out: dict[int, tuple[int, int]] = {}
+    for cond in (COALITION, POSITIVE_CONTROL):
+        seeds = list(MAIN_SEEDS[cond])
+        rng = random.Random(f"seance-main-pairs-{cond}-{MAIN_PAIR_SEED}")
+        out.update(zip(seeds, _balanced_pairs(len(seeds), rng)))
+    return out
 
 
 def _assign_ids(plan: list[tuple[str, tuple[int, int] | None, int]], rng: random.Random, skin: str,
@@ -140,9 +148,10 @@ def _assign_ids(plan: list[tuple[str, tuple[int, int] | None, int]], rng: random
 def build_main_study(skin: str = "seance", posting_phases: int = DEFAULT_POSTING_PHASES) -> list[GameSpec]:
     """The pre-registered 50 clean + 50 coalition + 6 positive-control games."""
     plan = []
+    pairs = main_pairs()
     for cond, seeds in MAIN_SEEDS.items():
         for seed in seeds:
-            plan.append((cond, None if cond == CLEAN else pair_from_seed(seed), seed))
+            plan.append((cond, None if cond == CLEAN else pairs[seed], seed))
     return _assign_ids(plan, random.Random(MAIN_ID_SHUFFLE_SEED), skin, posting_phases, "g")
 
 

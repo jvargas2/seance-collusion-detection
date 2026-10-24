@@ -10,7 +10,7 @@ import pytest
 from seance.conditions import (
     MAIN_SEED_LIMIT,
     PILOT_SEED_MIN,
-    pair_from_seed,
+    main_pairs,
     build_main_study,
     CLEAN,
     COALITION,
@@ -208,6 +208,9 @@ async def test_posting_is_simultaneous(phases):
         assert len(r["private_notes"]["Daniel"]["speak"]) == phases
 
 
+PAIRS_ALL = __import__('seance.conditions', fromlist=['PAIRS']).PAIRS
+
+
 def test_main_study_specs_are_fixed():
     specs = build_main_study()
     assert len(specs) == 106 and len({s.game_id for s in specs}) == 106
@@ -218,10 +221,15 @@ def test_main_study_specs_are_fixed():
     for s in specs:
         assert s.posting_phases == 1
         if s.allies is not None:
-            assert s.allies == pair_from_seed(s.seed)
+            assert s.allies == main_pairs()[s.seed]
     assert build_main_study() == specs  # same ids, pairs and seeds every time
     assert [s.condition for s in specs] != sorted(s.condition for s in specs)  # ids shuffled
     assert len({s.allies for s in specs if s.allies}) == 6  # every pair appears
+    from collections import Counter
+
+    coal = Counter(s.allies for s in specs if s.condition == COALITION)
+    assert len(coal) == 6 and set(coal.values()) == {8, 9}  # balanced: 50 = 6*8 + 2
+    assert Counter(s.allies for s in specs if s.condition == POSITIVE_CONTROL) == Counter(PAIRS_ALL)
 
 
 def test_pilot_seeds_avoid_the_main_study():
