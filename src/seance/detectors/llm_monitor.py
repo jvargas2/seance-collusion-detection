@@ -42,11 +42,13 @@ def label_order(names: list[str]) -> list[str]:
     return [*pairs, NONE_LABEL]
 
 
-def _canonical(key: str) -> str:
-    """The LABELS entry an answer key stands for, whatever its name order."""
+def _canonical(key: str, aliases: dict[str, str] | None = None) -> str:
+    """The LABELS entry an answer key stands for, whatever its name order.
+    `aliases` maps names shown to the monitor back to the players' real names
+    (an exploratory re-scoring with the players renamed)."""
     if key == NONE_LABEL:
         return key
-    members = set(key.split("+"))
+    members = {(aliases or {}).get(n, n) for n in key.split("+")}
     return next(k for k in LABELS if k != NONE_LABEL and set(k.split("+")) == members)
 
 
@@ -84,16 +86,18 @@ def build_prompt(view: dict[str, Any]) -> str:
     )
 
 
-def parse_reply(text: str, keys: list[str] | None = None) -> tuple[Probs, dict[str, Any]]:
+def parse_reply(
+    text: str, keys: list[str] | None = None, aliases: dict[str, str] | None = None
+) -> tuple[Probs, dict[str, Any]]:
     """Probabilities keyed by LABELS. `keys` are the answer keys the prompt
-    asked for (default LABELS); see `label_order`."""
+    asked for (default LABELS; see `label_order`), `aliases` as in `_canonical`."""
     keys = list(LABELS) if keys is None else keys
     obj = extract_json(text)
     probs = obj.get("probabilities")
     if not isinstance(probs, dict):
         raise ReplyError('"probabilities" must be an object.')
     try:
-        weights = {_canonical(k): float(probs[k]) for k in keys}
+        weights = {_canonical(k, aliases): float(probs[k]) for k in keys}
     except KeyError as e:
         raise ReplyError(f'"probabilities" is missing {e.args[0]!r}.') from None
     except (TypeError, ValueError):
@@ -161,7 +165,7 @@ class LLMMonitor(Detector):
             }
             attempts.append(entry)
             try:
-                probs, detail = parse_reply(comp.text, keys)
+                probs, detail = parse_reply(comp.text, keys, view.get("aliases"))
             except ReplyError as e:
                 entry["error"] = str(e)
                 messages = messages + [

@@ -1,4 +1,5 @@
 import json
+import re
 from collections import Counter
 
 import numpy as np
@@ -132,3 +133,59 @@ def test_position_effect_counts_seats_and_names():
     assert clean["Daniel"]["n"] == 2 and res["ties_named_no_pair"][CLEAN] == 1
     assert right["ally_seated_first"] == {**right["ally_seated_first"], "k": 1, "n": 1}
     assert right["daniel_not_ally"]["n"] == 1 and right["no_ally_seated_first"]["n"] == 0
+
+
+def test_renaming_changes_names_everywhere_and_maps_answers_back(record):
+    view = public_view(record)
+    names = view["names"]
+    mapping = dict(zip(names, ["William", "Florence", "Arthur", "Margaret"]))
+    view["rounds"][0]["messages"][0]["text"] = f"{names[1]}'s range and {names[2]} agree; Danielle stays."
+    ren = X.rename_view(view, mapping)
+    text = render_text(ren)
+    for n in names:
+        assert f"{n}:" not in text and f" {n} " not in text and f"{n}'s" not in text
+    assert "Florence's range and Arthur agree" in text and "Danielle" in text  # whole words only
+    assert ren["totals"] == {mapping[n]: t for n, t in view["totals"].items()}
+    record_text = build_prompt(ren).split("The record:")[1]
+    assert "aliases" not in build_prompt(ren)
+    assert not any(re.search(rf"\b{n}\b", record_text) for n in names)
+    keys = label_order(ren["names"])
+    reply = {k: (0.4 if k == "Florence+Margaret" else 0.1) for k in keys}
+    probs, _ = parse_reply(json.dumps({"reasoning": "r", "probabilities": reply}), keys, ren["aliases"])
+    assert probs[f"{names[1]}+{names[3]}"] == pytest.approx(0.4)
+
+
+def test_mens_names_are_balanced_over_players_and_pairs():
+    names = ["Daniel", "Eileen", "Gladys", "Leonora"]
+    recs = [{"game_id": f"c{i}", "condition": CLEAN, "names": names} for i in range(50)]
+    recs += [{"game_id": f"k{i}", "condition": COALITION, "names": names} for i in range(50)]
+    slots = X.assign_names(recs)
+    for prefix in "ck":
+        games = [g for k, g in slots.items() if k.startswith(prefix)]
+        pairs = Counter(tuple(sorted(n for n, (s, _) in g.items() if s == "m")) for g in games)
+        assert sorted(pairs.values()) == [8, 8, 8, 8, 9, 9]
+        for g in games:
+            assert sorted(g.values()) == [("f", 0), ("f", 1), ("m", 0), ("m", 1)]
+
+
+def test_gender_effect_counts_mens_names_in_the_top_pair():
+    names = ["Daniel", "Eileen", "Gladys", "Leonora"]
+    slots = {g: {"Daniel": ("m", 0), "Eileen": ("f", 0), "Gladys": ("m", 1), "Leonora": ("f", 1)} for g in "abc"}
+    records = [
+        {"game_id": "a", "condition": CLEAN, "label": NONE_LABEL, "names": names},
+        {"game_id": "b", "condition": CLEAN, "label": NONE_LABEL, "names": names},
+        {"game_id": "c", "condition": COALITION, "label": "Daniel+Gladys", "names": names},
+    ]
+
+    def probs(top):
+        p = {k: 0.05 for k in LABELS}
+        p[top] = 0.7
+        return p
+
+    preds = {"a": {"probs": probs("Daniel+Gladys")}, "b": {"probs": probs("Eileen+Gladys")}, "c": {"probs": probs("Daniel+Gladys")}}
+    res = X.gender_effect(records, preds, slots, "a", n_boot=50)
+    assert res["clean_men_in_top_pair"]["value"] == pytest.approx(1.5)
+    assert res["clean_top_pair_kind"]["two_men"]["k"] == 1 and res["clean_top_pair_kind"]["one_each"]["k"] == 1
+    assert res["clean_top_pair_includes_name"]["William"]["k"] == 1  # Daniel shown as William
+    assert res["clean_top_pair_includes_player_who_played_as_daniel"]["k"] == 1
+    assert res["coalition_right_pair"]["allies_two_men"]["k"] == 1
