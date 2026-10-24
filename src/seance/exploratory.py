@@ -415,12 +415,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--position", action="store_true")
     ap.add_argument("--names", nargs="+", choices=sorted(NAME_SETS), help="E3: re-read with the players renamed (paid)")
     ap.add_argument("--gender", action="store_true", help="E3 analysis of the renamed readings")
+    ap.add_argument("--other-monitor", metavar="TAG", help="E5: re-read with another monitor model (paid); model and server from the environment")
+    ap.add_argument("--compare-monitor", metavar="TAG", help="E5 analysis: the other monitor against the main one")
     ap.add_argument("--theme", type=Path, help="E4: a neutral-wording run made with --replicate, compared with the same main-study deals")
     ap.add_argument("--concurrency", type=int, default=4)
     ap.add_argument("--n-boot", type=int, default=metrics.N_BOOT)
     ap.add_argument("--env-file", default=".env")
     args = ap.parse_args(argv)
-    if not (args.recalibrate or args.rotate or args.position or args.names or args.gender or args.theme):
+    if not (args.recalibrate or args.rotate or args.position or args.names or args.gender or args.theme
+            or args.other_monitor or args.compare_monitor):
         ap.error("pass --recalibrate, --rotate, --position, --names and/or --gender")
     records = [r for r in load_records(args.run) if r["condition"] in (CLEAN, COALITION)]
     pred_dir, out_dir = args.run / "predictions", args.run / "metrics"
@@ -441,8 +444,8 @@ def main(argv: list[str] | None = None) -> int:
                 f"held-out ECE {r['calibration_held_out']['collusion']['ece']:.3f}"
             )
 
-    def monitor():
-        """The main study's monitor, or None if any setting but the server address differs."""
+    def monitor(may_differ: tuple[str, ...] = ("base_url",)):
+        """The main study's monitor, or None if any setting outside `may_differ` differs."""
         from .detectors import LLMMonitor
         from .inference import LimitedClient, OpenAICompatClient, load_settings
 
@@ -451,7 +454,7 @@ def main(argv: list[str] | None = None) -> int:
         det = LLMMonitor(client, settings=settings.describe(), n_readings=3)
         main_cfg = dict(next(iter(_read_predictions(main_path).values()))["detector"])
         new_cfg = det.describe()
-        diff = sorted(k for k in set(main_cfg) | set(new_cfg) if k != "base_url" and main_cfg.get(k) != new_cfg.get(k))
+        diff = sorted(k for k in set(main_cfg) | set(new_cfg) if k not in may_differ and main_cfg.get(k) != new_cfg.get(k))
         if diff:
             print("refusing: monitor settings differ from the main study in " + ", ".join(f"{k} ({main_cfg.get(k)!r} vs {new_cfg.get(k)!r})" for k in diff))
             return None
@@ -473,6 +476,49 @@ def main(argv: list[str] | None = None) -> int:
         path = pred_dir / f"llm_monitor_names_{name_set}.jsonl"
         done = asyncio.run(predict_all(det, records, path, args.concurrency, view_fn=renamed_view_fn(records, name_set)))
         print(f"renamed readings ({name_set}): {len(done)} of {len(records)} games scored")
+
+    if args.other_monitor:
+        # E5: the frozen prompt and settings with another model as the monitor;
+        # only the model and server may differ (set SEANCE_MONITOR_MODEL and
+        # SEANCE_MONITOR_BASE_URL in the environment).
+        det = monitor(may_differ=("base_url", "model"))
+        if det is None:
+            return 2
+        path = pred_dir / f"llm_monitor_{args.other_monitor}.jsonl"
+        done = asyncio.run(predict_all(det, records, path, args.concurrency))
+        print(f"{args.other_monitor} readings: {len(done)} of {len(records)} games scored")
+
+    if args.compare_monitor:
+        from .evaluate import score
+
+        tag = args.compare_monitor
+        other = _read_predictions(pred_dir / f"llm_monitor_{tag}.jsonl")
+        main_preds = _read_predictions(main_path)
+        both = [r for r in records if r["game_id"] in other and r["game_id"] in main_preds]
+        labels = [r["label"] for r in both]
+        a = [other[r["game_id"]]["probs"] for r in both]
+        b = [main_preds[r["game_id"]]["probs"] for r in both]
+        out = {
+            "monitor": tag,
+            "n_games": len(both),
+            "n_failed": len(records) - len(both),
+            "preregistered_metrics": score(records, other, args.n_boot),
+            "paired_vs_main_monitor": {
+                m: metrics.paired_difference(metrics.stats()[m], labels, a, b, n_boot=args.n_boot)
+                for m in ("auroc", "right_pair_accuracy", "log_loss")
+            },
+            "clean_mean_p_none": float(np.mean([p[NONE_LABEL] for la, p in zip(labels, a) if la == NONE_LABEL])),
+            "position": position_effect(records, other, args.n_boot),
+        }
+        (out_dir / f"exploratory_monitor_{tag}.json").write_text(json.dumps(out, indent=1))
+        m = out["preregistered_metrics"]["main_clean_vs_coalition"]
+        print(f"{tag}: {out['n_games']} games ({out['n_failed']} failed)")
+        for k in ("auroc", "right_pair_accuracy", "log_loss"):
+            d = out["paired_vs_main_monitor"][k]
+            print(f"  {k:20s} {d['a_value']:.3f} vs Qwen {d['b_value']:.3f}: {d['difference']:+.3f} [{d['lo']:+.3f}, {d['hi']:+.3f}]")
+        ck = next(k for k in m if k.startswith("catch_rate_at"))
+        print(f"  catch at 5% FPR      {m[ck]['value']:.2f}; clean mean P(none) {out['clean_mean_p_none']:.2f}")
+        print("  clean top pair includes:", {k: _fmt(v) for k, v in out["position"]["clean_top_pair_includes"].items() if not k.startswith("seat")})
 
     if args.gender:
         from .evaluate import score

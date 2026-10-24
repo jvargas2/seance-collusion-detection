@@ -31,6 +31,7 @@ baked into the image, so the container serves exactly what was deployed:
 from __future__ import annotations
 
 import os
+import shlex
 import subprocess
 
 import modal
@@ -41,6 +42,13 @@ GPU = os.environ.get("SEANCE_MODAL_GPU", "H100")
 MAX_MODEL_LEN = int(os.environ.get("SEANCE_MODAL_MAX_MODEL_LEN", "40960"))
 MAX_INPUTS = int(os.environ.get("SEANCE_MODAL_MAX_INPUTS", "32"))
 IDLE_MINUTES = int(os.environ.get("SEANCE_MODAL_IDLE_MINUTES", "5"))
+# A second model (e.g. a different-family monitor) deploys as its own app with
+# its own URL, so the players' server is untouched.
+APP_NAME = os.environ.get("SEANCE_MODAL_APP", "seance-vllm")
+# The Qwen3 parser for the players' model; another family needs its own parser
+# ("" for none). Extra vLLM flags go in SEANCE_MODAL_EXTRA_ARGS.
+REASONING_PARSER = os.environ.get("SEANCE_MODAL_REASONING_PARSER", "qwen3")
+EXTRA_ARGS = os.environ.get("SEANCE_MODAL_EXTRA_ARGS", "")
 PORT = 8000
 
 # A CUDA *devel* base, not debian_slim: FlashInfer (used by vLLM) compiles
@@ -59,6 +67,8 @@ image = (
             "SEANCE_MODAL_MODEL": MODEL,
             "SEANCE_MODAL_MAX_MODEL_LEN": str(MAX_MODEL_LEN),
             "SEANCE_MODAL_MAX_INPUTS": str(MAX_INPUTS),
+            "SEANCE_MODAL_REASONING_PARSER": REASONING_PARSER,
+            "SEANCE_MODAL_EXTRA_ARGS": EXTRA_ARGS,
         }
     )
 )
@@ -66,7 +76,7 @@ image = (
 hf_cache = modal.Volume.from_name("seance-hf-cache", create_if_missing=True)
 vllm_cache = modal.Volume.from_name("seance-vllm-cache", create_if_missing=True)
 
-app = modal.App("seance-vllm")
+app = modal.App(APP_NAME)
 
 
 @app.function(
@@ -99,13 +109,14 @@ def serve() -> None:
         str(MAX_INPUTS),
         "--gpu-memory-utilization",
         "0.90",
-        # Puts thinking text in `reasoning_content`, so structured output applies
-        # to the answer only (the Qwen3.8 vLLM recipe's setting). With thinking
-        # off the template emits an empty think block and the parser passes the
-        # answer through unchanged.
-        "--reasoning-parser",
-        "qwen3",
     ]
+    # The reasoning parser puts thinking text in `reasoning_content`, so
+    # structured output applies to the answer only (the Qwen3.8 vLLM recipe's
+    # setting). With thinking off the template emits an empty think block and
+    # the parser passes the answer through unchanged.
+    if REASONING_PARSER:
+        cmd += ["--reasoning-parser", REASONING_PARSER]
+    cmd += shlex.split(EXTRA_ARGS)
     subprocess.Popen(cmd)
 
 
