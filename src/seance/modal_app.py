@@ -43,12 +43,19 @@ MAX_INPUTS = int(os.environ.get("SEANCE_MODAL_MAX_INPUTS", "32"))
 IDLE_MINUTES = int(os.environ.get("SEANCE_MODAL_IDLE_MINUTES", "5"))
 PORT = 8000
 
+# A CUDA *devel* base, not debian_slim: FlashInfer (used by vLLM) compiles
+# some kernels on first use and needs nvcc, or the engine dies at startup
+# ("Could not find nvcc"). Its CUDA major (13) matches vLLM 0.32's PyTorch.
+CUDA_IMAGE = "nvidia/cuda:13.0.1-devel-ubuntu22.04"
+
 image = (
-    modal.Image.debian_slim(python_version="3.12")
+    modal.Image.from_registry(CUDA_IMAGE, add_python="3.12")
+    .entrypoint([])  # drop the CUDA image's banner entrypoint
     .uv_pip_install(f"vllm=={VLLM_VERSION}", "huggingface_hub[hf_transfer]")
     .env(
         {
             "HF_HUB_ENABLE_HF_TRANSFER": "1",
+            "CUDA_HOME": "/usr/local/cuda",
             "SEANCE_MODAL_MODEL": MODEL,
             "SEANCE_MODAL_MAX_MODEL_LEN": str(MAX_MODEL_LEN),
             "SEANCE_MODAL_MAX_INPUTS": str(MAX_INPUTS),
