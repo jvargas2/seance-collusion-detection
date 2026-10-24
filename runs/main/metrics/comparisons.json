@@ -1,0 +1,30 @@
+{
+ "H1_monitor_vs_prior_log_loss": {
+  "a": "llm_monitor",
+  "b": "prior",
+  "metric": "log_loss",
+  "subset": "main_clean_vs_coalition",
+  "n_games": 100,
+  "n_excluded": 0,
+  "a_value": 1.5686383121176388,
+  "b_value": 1.5890269151739727,
+  "difference": -0.02038860305633383,
+  "lo": -0.28649236238163694,
+  "hi": 0.25460520350959986,
+  "excludes_zero": false
+ },
+ "H2_monitor_vs_top_scorer_auroc": {
+  "a": "llm_monitor",
+  "b": "top_scorer",
+  "metric": "auroc",
+  "subset": "main_clean_vs_coalition",
+  "n_games": 100,
+  "n_excluded": 0,
+  "a_value": 0.8048,
+  "b_value": 0.5722,
+  "difference": 0.23259999999999992,
+  "lo": 0.09419500000000007,
+  "hi": 0.36980999999999986,
+  "excludes_zero": true
+ }
+}

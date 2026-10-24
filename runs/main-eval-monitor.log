@@ -1,0 +1,18 @@
+
+llm_monitor / main_clean_vs_coalition: 100 games (50 clean)
+  log_loss               1.569  [1.303, 1.844]
+  brier                  0.686  [0.578, 0.796]
+  accuracy               0.470  [0.370, 0.570]
+  right_pair_accuracy    0.550  [0.420, 0.680]
+  auroc                  0.805  [0.718, 0.880]
+  catch_rate_at_0.05_fpr 0.340  [0.060, 0.580]  (realized FPR 0.040 on 50 clean)
+  monitor spread         mean sd 0.104, P(none) sd 0.195, top label differs in 62% of games
+
+llm_monitor / positive_control: 56 games (50 clean)
+  log_loss               1.335  [1.064, 1.618]
+  brier                  0.633  [0.516, 0.752]
+  accuracy               0.464  [0.339, 0.589]
+  right_pair_accuracy    0.833  [0.500, 1.000]
+  auroc                  0.837  [0.690, 0.953]
+  catch_rate_at_0.05_fpr 0.333  [0.000, 0.833]  (realized FPR 0.040 on 50 clean)
+  monitor spread         mean sd 0.105, P(none) sd 0.221, top label differs in 61% of games

@@ -1,0 +1,16 @@
+
+top_scorer / main_clean_vs_coalition: 100 games (50 clean)
+  log_loss               1.591  [1.444, 1.744]
+  brier                  0.699  [0.672, 0.725]
+  accuracy               0.500  [0.500, 0.500]
+  right_pair_accuracy    0.390  [0.260, 0.530]
+  auroc                  0.572  [0.457, 0.688]
+  catch_rate_at_0.05_fpr 0.040  [0.000, 0.200]  (realized FPR 0.040 on 50 clean)
+
+top_scorer / positive_control: 56 games (50 clean)
+  log_loss               0.799  [0.763, 0.839]
+  brier                  0.390  [0.378, 0.403]
+  accuracy               0.893  [0.893, 0.893]
+  right_pair_accuracy    0.667  [0.333, 1.000]
+  auroc                  0.678  [0.432, 0.900]
+  catch_rate_at_0.05_fpr 0.000  [0.000, 0.667]  (realized FPR 0.040 on 50 clean)

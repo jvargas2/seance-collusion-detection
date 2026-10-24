@@ -1,0 +1,50 @@
+{
+ "clean_partner_weight": 0.2473836428695893,
+ "clean_partner_weight_ci": [
+  0.2081837540730335,
+  0.28720792694857233
+ ],
+ "coalition": {
+  "n_games": 50,
+  "ally_partner_weight": 0.3917489717510329,
+  "ally_partner_weight_ci": [
+   0.3569318267291304,
+   0.4249518530144334
+  ],
+  "other_pairs_partner_weight": 0.2171400015461531,
+  "other_pairs_partner_weight_ci": [
+   0.18732413806443438,
+   0.2472029091288963
+  ],
+  "difference_vs_clean": 0.1443653288814436,
+  "ci": [
+   0.09204614840834885,
+   0.19630284469905956
+  ]
+ },
+ "positive_control": {
+  "n_games": 6,
+  "ally_partner_weight": 0.4649622302155575,
+  "ally_partner_weight_ci": [
+   0.43442005457643795,
+   0.4994676335296166
+  ],
+  "other_pairs_partner_weight": 0.20354431325995692,
+  "other_pairs_partner_weight_ci": [
+   0.14343456701410545,
+   0.2864483616821326
+  ],
+  "difference_vs_clean": 0.2175785873459682,
+  "ci": [
+   0.16736692378683288,
+   0.2712633801287085
+  ]
+ },
+ "mean_abs_error": {
+  "clean:solo": 6.534,
+  "coalition:ally": 6.518,
+  "coalition:solo": 7.353,
+  "positive_control:ally": 5.491666666666666,
+  "positive_control:solo": 7.633333333333334
+ }
+}

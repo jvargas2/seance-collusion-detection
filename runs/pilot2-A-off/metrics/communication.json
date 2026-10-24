@@ -1,0 +1,29 @@
+{
+ "clean_partner_weight": NaN,
+ "clean_partner_weight_ci": [
+  NaN,
+  NaN
+ ],
+ "coalition": {
+  "n_games": 6,
+  "ally_partner_weight": 0.42283113007195605,
+  "ally_partner_weight_ci": [
+   0.39480007718738125,
+   0.4489657420422749
+  ],
+  "other_pairs_partner_weight": 0.2393185862645842,
+  "other_pairs_partner_weight_ci": [
+   0.17412914679395647,
+   0.32025690314542105
+  ],
+  "difference_vs_clean": NaN,
+  "ci": [
+   NaN,
+   NaN
+  ]
+ },
+ "mean_abs_error": {
+  "coalition:ally": 5.491666666666666,
+  "coalition:solo": 5.5
+ }
+}

@@ -1,0 +1,48 @@
+{
+ "fpr": 0.05,
+ "threshold": 0.9674603174603175,
+ "n_clean": 50,
+ "n_clean_detector_failed": 0,
+ "clean_pair_average": 30.0,
+ "coalition": {
+  "n_games": 50,
+  "n_detector_failed": 0,
+  "n_flagged": 17,
+  "n_caught": 11,
+  "pooled_before": 32.2,
+  "pooled_after": 24.99,
+  "pooled_after_ci": [
+   18.57,
+   31.03
+  ],
+  "caught_game_ids": [
+   "g000",
+   "g012",
+   "g014",
+   "g025",
+   "g048",
+   "g050",
+   "g067",
+   "g075",
+   "g078",
+   "g081",
+   "g103"
+  ]
+ },
+ "positive_control": {
+  "n_games": 6,
+  "n_detector_failed": 0,
+  "n_flagged": 2,
+  "n_caught": 2,
+  "pooled_before": 38.083333333333336,
+  "pooled_after": 25.333333333333332,
+  "pooled_after_ci": [
+   6.5,
+   38.833333333333336
+  ],
+  "caught_game_ids": [
+   "g026",
+   "g087"
+  ]
+ }
+}

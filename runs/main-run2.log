@@ -1,0 +1,9 @@
+resuming from runs/main/manifest.json; game-list arguments are ignored
+101 of 106 games already done; playing 5
+g090: FAILED after 3 rounds (AgentCallFailed: Gladys gave no usable guess reply in 3 attempts)
+g040: done in 183.3s
+g076: done in 194.4s
+g023: done in 235.6s
+g052: FAILED after 9 rounds (AgentCallFailed: Gladys gave no usable guess reply in 3 attempts)
+failed games by condition and pair: clean none: 2
+complete 3, failed 2, peak in-flight calls 20

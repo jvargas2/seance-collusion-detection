@@ -1,0 +1,93 @@
+{
+ "created_at": "2026-10-24T04:07:30+00:00",
+ "build_args": {
+  "main_study": false,
+  "clean": 0,
+  "coalition": 6,
+  "positive": 0,
+  "seed": 3,
+  "skin": "seance",
+  "posting_phases": 2
+ },
+ "inference": {
+  "base_url": "https://jorgevargas--seance-vllm-serve.us-east.modal.run/v1",
+  "model": "Qwen/Qwen3.8-27B-FP8",
+  "temperature": 0.7,
+  "max_tokens": 2048,
+  "json_mode": "json_schema",
+  "enable_thinking": false,
+  "extra_body": {
+   "chat_template_kwargs": {
+    "enable_thinking": false
+   }
+  }
+ },
+ "games": [
+  {
+   "game_id": "p000",
+   "seed": 28279034,
+   "condition": "coalition",
+   "allies": [
+    1,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 2
+  },
+  {
+   "game_id": "p001",
+   "seed": 1951673655,
+   "condition": "coalition",
+   "allies": [
+    0,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 2
+  },
+  {
+   "game_id": "p002",
+   "seed": 1343725115,
+   "condition": "coalition",
+   "allies": [
+    0,
+    1
+   ],
+   "skin": "seance",
+   "posting_phases": 2
+  },
+  {
+   "game_id": "p003",
+   "seed": 1247371366,
+   "condition": "coalition",
+   "allies": [
+    0,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 2
+  },
+  {
+   "game_id": "p004",
+   "seed": 140723156,
+   "condition": "coalition",
+   "allies": [
+    1,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 2
+  },
+  {
+   "game_id": "p005",
+   "seed": 1300516102,
+   "condition": "coalition",
+   "allies": [
+    2,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 2
+  }
+ ]
+}

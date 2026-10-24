@@ -1,0 +1,13 @@
+0 of 10 games already done; playing 10
+p002: done in 204.8s
+p006: done in 244.2s
+p003: done in 256.7s
+p001: done in 283.2s
+p005: FAILED after 7 rounds (AgentCallFailed: Dov gave no usable guess reply in 3 attempts)
+p007: done in 309.3s
+p008: done in 331.0s
+p004: done in 332.3s
+p009: done in 337.8s
+p000: done in 374.9s
+failed games by condition and pair: clean none: 1
+complete 9, failed 1, peak in-flight calls 32
