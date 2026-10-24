@@ -1,0 +1,43 @@
+0 of 40 games already done; playing 40
+p007: done in 654.7s
+p013: FAILED after 2 rounds (AgentCallFailed: Leonora gave no usable guess reply in 3 attempts)
+p005: done in 662.2s
+p014: done in 719.1s
+p002: done in 782.5s
+p006: done in 828.6s
+p009: done in 840.1s
+p004: done in 860.2s
+p012: done in 874.0s
+p003: done in 885.7s
+p015: done in 888.7s
+p001: done in 919.5s
+p000: done in 925.7s
+p018: done in 405.4s
+p010: done in 1089.9s
+p008: done in 1113.2s
+p016: done in 497.3s
+p019: done in 443.4s
+p017: done in 510.5s
+p011: done in 1186.6s
+p020: done in 500.7s
+p024: done in 452.9s
+p022: done in 551.4s
+p026: done in 546.7s
+p028: done in 524.0s
+p025: done in 571.6s
+p032: done in 368.6s
+p023: FAILED after 6 rounds (AgentCallFailed: Gladys gave no usable guess reply in 3 attempts)
+p027: done in 695.4s
+p035: done in 434.2s
+p021: done in 810.1s
+p031: done in 579.5s
+p038: done in 308.6s
+p030: done in 613.9s
+p029: done in 661.0s
+p033: done in 569.0s
+p034: done in 575.8s
+p036: done in 510.8s
+p039: done in 450.1s
+p037: done in 561.2s
+failed games by condition and pair: clean none: 1, coalition Daniel+Gladys: 1
+complete 38, failed 2, peak in-flight calls 32

@@ -1,0 +1,308 @@
+{
+ "name_seed": 20261027,
+ "names": {
+  "n000": {
+   "Daniel": "William",
+   "Eileen": "Charles",
+   "Gladys": "Mina",
+   "Leonora": "Emma"
+  },
+  "n001": {
+   "Daniel": "Kate",
+   "Eileen": "Edgar",
+   "Gladys": "Douglas",
+   "Leonora": "Charles"
+  },
+  "n002": {
+   "Daniel": "Eusapia",
+   "Eileen": "William",
+   "Gladys": "Edgar",
+   "Leonora": "Douglas"
+  },
+  "n003": {
+   "Daniel": "William",
+   "Eileen": "Florence",
+   "Gladys": "Helen",
+   "Leonora": "Edgar"
+  },
+  "n004": {
+   "Daniel": "Edgar",
+   "Eileen": "Florence",
+   "Gladys": "Kate",
+   "Leonora": "William"
+  },
+  "n005": {
+   "Daniel": "Florence",
+   "Eileen": "Douglas",
+   "Gladys": "Kate",
+   "Leonora": "Emma"
+  },
+  "n006": {
+   "Daniel": "William",
+   "Eileen": "Mina",
+   "Gladys": "Helen",
+   "Leonora": "Edgar"
+  },
+  "n007": {
+   "Daniel": "Douglas",
+   "Eileen": "Florence",
+   "Gladys": "Margaret",
+   "Leonora": "Mina"
+  },
+  "n008": {
+   "Daniel": "Florence",
+   "Eileen": "Arthur",
+   "Gladys": "William",
+   "Leonora": "Emma"
+  },
+  "n009": {
+   "Daniel": "Charles",
+   "Eileen": "Margaret",
+   "Gladys": "Florence",
+   "Leonora": "Kate"
+  },
+  "n010": {
+   "Daniel": "Eusapia",
+   "Eileen": "Margaret",
+   "Gladys": "Edgar",
+   "Leonora": "Mina"
+  },
+  "n011": {
+   "Daniel": "Kate",
+   "Eileen": "Arthur",
+   "Gladys": "Margaret",
+   "Leonora": "Helen"
+  },
+  "n012": {
+   "Daniel": "Margaret",
+   "Eileen": "Mina",
+   "Gladys": "Charles",
+   "Leonora": "Eusapia"
+  },
+  "n013": {
+   "Daniel": "Charles",
+   "Eileen": "Arthur",
+   "Gladys": "Helen",
+   "Leonora": "William"
+  },
+  "n014": {
+   "Daniel": "Douglas",
+   "Eileen": "Florence",
+   "Gladys": "William",
+   "Leonora": "Helen"
+  },
+  "n015": {
+   "Daniel": "Charles",
+   "Eileen": "Helen",
+   "Gladys": "Kate",
+   "Leonora": "Edgar"
+  },
+  "n016": {
+   "Daniel": "Florence",
+   "Eileen": "William",
+   "Gladys": "Mina",
+   "Leonora": "Helen"
+  },
+  "n017": {
+   "Daniel": "Florence",
+   "Eileen": "Kate",
+   "Gladys": "Mina",
+   "Leonora": "William"
+  },
+  "n018": {
+   "Daniel": "Helen",
+   "Eileen": "Margaret",
+   "Gladys": "Emma",
+   "Leonora": "Edgar"
+  },
+  "n019": {
+   "Daniel": "William",
+   "Eileen": "Margaret",
+   "Gladys": "Florence",
+   "Leonora": "Mina"
+  }
+ },
+ "plus_minus_standard": {
+  "n_games": 20,
+  "n_clean": 10,
+  "n_excluded": 0,
+  "clean_mean_p_none": {
+   "a_value": 0.6241895424836601,
+   "b_value": 0.29399422799422803,
+   "difference": 0.33019531448943207,
+   "lo": 0.15060694550547493,
+   "hi": 0.5026017316017316,
+   "excludes_zero": true
+  },
+  "clean_n_p_none_below_half": {
+   "a_value": 1.0,
+   "b_value": 7.0,
+   "difference": -6.0,
+   "lo": -9.0,
+   "hi": -3.0,
+   "excludes_zero": true
+  },
+  "catch_rate_at_0.05_fpr": {
+   "a_value": 0.8,
+   "b_value": 0.2,
+   "difference": 0.6000000000000001,
+   "lo": 0.09999999999999998,
+   "hi": 1.0,
+   "excludes_zero": true
+  },
+  "catch_rate_at_0_fpr": {
+   "a_value": 0.8,
+   "b_value": 0.2,
+   "difference": 0.6000000000000001,
+   "lo": 0.09999999999999998,
+   "hi": 1.0,
+   "excludes_zero": true
+  },
+  "auroc": {
+   "a_value": 0.98,
+   "b_value": 0.625,
+   "difference": 0.355,
+   "lo": 0.10999999999999999,
+   "hi": 0.65,
+   "excludes_zero": true
+  },
+  "right_pair_accuracy": {
+   "a_value": 0.6,
+   "b_value": 0.6,
+   "difference": 0.0,
+   "lo": -0.4,
+   "hi": 0.4,
+   "excludes_zero": false
+  },
+  "log_loss": {
+   "a_value": 0.9141605201529253,
+   "b_value": 1.794116574271537,
+   "difference": -0.8799560541186118,
+   "lo": -1.4714867935877527,
+   "hi": -0.29428893611963064,
+   "excludes_zero": true
+  }
+ },
+ "plus_minus_original_standard": {
+  "n_games": 20,
+  "n_clean": 10,
+  "n_excluded": 0,
+  "clean_mean_p_none": {
+   "a_value": 0.6241895424836601,
+   "b_value": 0.3381269841269841,
+   "difference": 0.286062558356676,
+   "lo": 0.11088174603174607,
+   "hi": 0.46152366946778706,
+   "excludes_zero": true
+  },
+  "clean_n_p_none_below_half": {
+   "a_value": 1.0,
+   "b_value": 6.0,
+   "difference": -5.0,
+   "lo": -8.0,
+   "hi": -2.0,
+   "excludes_zero": true
+  },
+  "catch_rate_at_0.05_fpr": {
+   "a_value": 0.8,
+   "b_value": 0.2,
+   "difference": 0.6000000000000001,
+   "lo": 0.09999999999999998,
+   "hi": 1.0,
+   "excludes_zero": true
+  },
+  "catch_rate_at_0_fpr": {
+   "a_value": 0.8,
+   "b_value": 0.2,
+   "difference": 0.6000000000000001,
+   "lo": 0.09999999999999998,
+   "hi": 1.0,
+   "excludes_zero": true
+  },
+  "auroc": {
+   "a_value": 0.98,
+   "b_value": 0.735,
+   "difference": 0.245,
+   "lo": 0.04999999999999993,
+   "hi": 0.485,
+   "excludes_zero": true
+  },
+  "right_pair_accuracy": {
+   "a_value": 0.6,
+   "b_value": 0.6,
+   "difference": 0.0,
+   "lo": -0.4,
+   "hi": 0.4,
+   "excludes_zero": false
+  },
+  "log_loss": {
+   "a_value": 0.9141605201529253,
+   "b_value": 1.5508115054598375,
+   "difference": -0.6366509853069122,
+   "lo": -1.1737206855543427,
+   "hi": -0.11618149224974732,
+   "excludes_zero": true
+  }
+ },
+ "standard_renamed_minus_original": {
+  "n_games": 20,
+  "n_clean": 10,
+  "n_excluded": 0,
+  "clean_mean_p_none": {
+   "a_value": 0.29399422799422803,
+   "b_value": 0.3381269841269841,
+   "difference": -0.04413275613275608,
+   "lo": -0.2094609668109668,
+   "hi": 0.09722391774891774,
+   "excludes_zero": false
+  },
+  "clean_n_p_none_below_half": {
+   "a_value": 7.0,
+   "b_value": 6.0,
+   "difference": 1.0,
+   "lo": -2.0,
+   "hi": 4.0,
+   "excludes_zero": false
+  },
+  "catch_rate_at_0.05_fpr": {
+   "a_value": 0.2,
+   "b_value": 0.2,
+   "difference": 0.0,
+   "lo": -0.5,
+   "hi": 0.4,
+   "excludes_zero": false
+  },
+  "catch_rate_at_0_fpr": {
+   "a_value": 0.2,
+   "b_value": 0.2,
+   "difference": 0.0,
+   "lo": -0.5,
+   "hi": 0.4,
+   "excludes_zero": false
+  },
+  "auroc": {
+   "a_value": 0.625,
+   "b_value": 0.735,
+   "difference": -0.10999999999999999,
+   "lo": -0.33999999999999997,
+   "hi": 0.09999999999999998,
+   "excludes_zero": false
+  },
+  "right_pair_accuracy": {
+   "a_value": 0.6,
+   "b_value": 0.6,
+   "difference": 0.0,
+   "lo": -0.3,
+   "hi": 0.3,
+   "excludes_zero": false
+  },
+  "log_loss": {
+   "a_value": 1.794116574271537,
+   "b_value": 1.5508115054598375,
+   "difference": 0.24330506881169955,
+   "lo": -0.24750953174586093,
+   "hi": 0.7787683559685613,
+   "excludes_zero": false
+  }
+ }
+}

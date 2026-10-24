@@ -1,0 +1,788 @@
+{
+ "name_seed": 20261027,
+ "names": {
+  "g000": {
+   "Daniel": "Kate",
+   "Eileen": "Mina",
+   "Gladys": "William",
+   "Leonora": "Eusapia"
+  },
+  "g001": {
+   "Daniel": "Edgar",
+   "Eileen": "Helen",
+   "Gladys": "Douglas",
+   "Leonora": "Mina"
+  },
+  "g002": {
+   "Daniel": "Arthur",
+   "Eileen": "Helen",
+   "Gladys": "Douglas",
+   "Leonora": "Margaret"
+  },
+  "g003": {
+   "Daniel": "Mina",
+   "Eileen": "William",
+   "Gladys": "Helen",
+   "Leonora": "Edgar"
+  },
+  "g004": {
+   "Daniel": "Arthur",
+   "Eileen": "Eusapia",
+   "Gladys": "Edgar",
+   "Leonora": "William"
+  },
+  "g005": {
+   "Daniel": "Arthur",
+   "Eileen": "William",
+   "Gladys": "Charles",
+   "Leonora": "Kate"
+  },
+  "g006": {
+   "Daniel": "Douglas",
+   "Eileen": "William",
+   "Gladys": "Margaret",
+   "Leonora": "Charles"
+  },
+  "g007": {
+   "Daniel": "Florence",
+   "Eileen": "Arthur",
+   "Gladys": "Helen",
+   "Leonora": "Kate"
+  },
+  "g008": {
+   "Daniel": "Edgar",
+   "Eileen": "Douglas",
+   "Gladys": "Arthur",
+   "Leonora": "Mina"
+  },
+  "g009": {
+   "Daniel": "William",
+   "Eileen": "Margaret",
+   "Gladys": "Mina",
+   "Leonora": "Helen"
+  },
+  "g010": {
+   "Daniel": "Douglas",
+   "Eileen": "Emma",
+   "Gladys": "Arthur",
+   "Leonora": "Kate"
+  },
+  "g011": {
+   "Daniel": "Mina",
+   "Eileen": "Margaret",
+   "Gladys": "Kate",
+   "Leonora": "Florence"
+  },
+  "g012": {
+   "Daniel": "Arthur",
+   "Eileen": "Emma",
+   "Gladys": "Helen",
+   "Leonora": "Edgar"
+  },
+  "g014": {
+   "Daniel": "Helen",
+   "Eileen": "Edgar",
+   "Gladys": "Douglas",
+   "Leonora": "Kate"
+  },
+  "g015": {
+   "Daniel": "Douglas",
+   "Eileen": "Helen",
+   "Gladys": "Edgar",
+   "Leonora": "Florence"
+  },
+  "g016": {
+   "Daniel": "Emma",
+   "Eileen": "Charles",
+   "Gladys": "Helen",
+   "Leonora": "Arthur"
+  },
+  "g017": {
+   "Daniel": "Emma",
+   "Eileen": "Florence",
+   "Gladys": "Edgar",
+   "Leonora": "Margaret"
+  },
+  "g018": {
+   "Daniel": "Edgar",
+   "Eileen": "Kate",
+   "Gladys": "Charles",
+   "Leonora": "Douglas"
+  },
+  "g019": {
+   "Daniel": "Eusapia",
+   "Eileen": "William",
+   "Gladys": "Kate",
+   "Leonora": "Edgar"
+  },
+  "g020": {
+   "Daniel": "Emma",
+   "Eileen": "Mina",
+   "Gladys": "Douglas",
+   "Leonora": "Helen"
+  },
+  "g021": {
+   "Daniel": "Douglas",
+   "Eileen": "Mina",
+   "Gladys": "Edgar",
+   "Leonora": "Helen"
+  },
+  "g022": {
+   "Daniel": "Edgar",
+   "Eileen": "Florence",
+   "Gladys": "Emma",
+   "Leonora": "William"
+  },
+  "g023": {
+   "Daniel": "William",
+   "Eileen": "Edgar",
+   "Gladys": "Eusapia",
+   "Leonora": "Mina"
+  },
+  "g024": {
+   "Daniel": "Emma",
+   "Eileen": "Douglas",
+   "Gladys": "Charles",
+   "Leonora": "Mina"
+  },
+  "g025": {
+   "Daniel": "Helen",
+   "Eileen": "Kate",
+   "Gladys": "William",
+   "Leonora": "Mina"
+  },
+  "g027": {
+   "Daniel": "Charles",
+   "Eileen": "Margaret",
+   "Gladys": "Helen",
+   "Leonora": "Arthur"
+  },
+  "g028": {
+   "Daniel": "Eusapia",
+   "Eileen": "Charles",
+   "Gladys": "Edgar",
+   "Leonora": "Mina"
+  },
+  "g029": {
+   "Daniel": "Charles",
+   "Eileen": "Douglas",
+   "Gladys": "Emma",
+   "Leonora": "Florence"
+  },
+  "g030": {
+   "Daniel": "Edgar",
+   "Eileen": "Arthur",
+   "Gladys": "Mina",
+   "Leonora": "Helen"
+  },
+  "g031": {
+   "Daniel": "Helen",
+   "Eileen": "Arthur",
+   "Gladys": "William",
+   "Leonora": "Edgar"
+  },
+  "g032": {
+   "Daniel": "Edgar",
+   "Eileen": "Florence",
+   "Gladys": "Mina",
+   "Leonora": "Helen"
+  },
+  "g033": {
+   "Daniel": "Arthur",
+   "Eileen": "Charles",
+   "Gladys": "William",
+   "Leonora": "Eusapia"
+  },
+  "g034": {
+   "Daniel": "Margaret",
+   "Eileen": "William",
+   "Gladys": "Helen",
+   "Leonora": "Douglas"
+  },
+  "g035": {
+   "Daniel": "Edgar",
+   "Eileen": "Florence",
+   "Gladys": "Mina",
+   "Leonora": "William"
+  },
+  "g036": {
+   "Daniel": "Florence",
+   "Eileen": "Arthur",
+   "Gladys": "Douglas",
+   "Leonora": "Eusapia"
+  },
+  "g037": {
+   "Daniel": "Margaret",
+   "Eileen": "Kate",
+   "Gladys": "Arthur",
+   "Leonora": "Florence"
+  },
+  "g038": {
+   "Daniel": "Mina",
+   "Eileen": "Helen",
+   "Gladys": "Margaret",
+   "Leonora": "Florence"
+  },
+  "g039": {
+   "Daniel": "Douglas",
+   "Eileen": "Kate",
+   "Gladys": "Charles",
+   "Leonora": "Eusapia"
+  },
+  "g040": {
+   "Daniel": "Margaret",
+   "Eileen": "Douglas",
+   "Gladys": "Edgar",
+   "Leonora": "Kate"
+  },
+  "g041": {
+   "Daniel": "William",
+   "Eileen": "Douglas",
+   "Gladys": "Charles",
+   "Leonora": "Arthur"
+  },
+  "g042": {
+   "Daniel": "Kate",
+   "Eileen": "Florence",
+   "Gladys": "Mina",
+   "Leonora": "Douglas"
+  },
+  "g043": {
+   "Daniel": "William",
+   "Eileen": "Kate",
+   "Gladys": "Florence",
+   "Leonora": "Charles"
+  },
+  "g044": {
+   "Daniel": "William",
+   "Eileen": "Douglas",
+   "Gladys": "Emma",
+   "Leonora": "Helen"
+  },
+  "g045": {
+   "Daniel": "Kate",
+   "Eileen": "Charles",
+   "Gladys": "Florence",
+   "Leonora": "Arthur"
+  },
+  "g046": {
+   "Daniel": "Eusapia",
+   "Eileen": "Helen",
+   "Gladys": "Edgar",
+   "Leonora": "William"
+  },
+  "g047": {
+   "Daniel": "Douglas",
+   "Eileen": "Eusapia",
+   "Gladys": "Emma",
+   "Leonora": "William"
+  },
+  "g048": {
+   "Daniel": "Mina",
+   "Eileen": "Douglas",
+   "Gladys": "Florence",
+   "Leonora": "Margaret"
+  },
+  "g049": {
+   "Daniel": "Arthur",
+   "Eileen": "Douglas",
+   "Gladys": "Helen",
+   "Leonora": "Kate"
+  },
+  "g050": {
+   "Daniel": "Arthur",
+   "Eileen": "William",
+   "Gladys": "Eusapia",
+   "Leonora": "Edgar"
+  },
+  "g051": {
+   "Daniel": "Emma",
+   "Eileen": "Florence",
+   "Gladys": "William",
+   "Leonora": "Helen"
+  },
+  "g052": {
+   "Daniel": "Margaret",
+   "Eileen": "Edgar",
+   "Gladys": "Charles",
+   "Leonora": "Eusapia"
+  },
+  "g053": {
+   "Daniel": "Douglas",
+   "Eileen": "Charles",
+   "Gladys": "Margaret",
+   "Leonora": "Emma"
+  },
+  "g055": {
+   "Daniel": "Mina",
+   "Eileen": "Edgar",
+   "Gladys": "Margaret",
+   "Leonora": "Douglas"
+  },
+  "g056": {
+   "Daniel": "Helen",
+   "Eileen": "Kate",
+   "Gladys": "Mina",
+   "Leonora": "Douglas"
+  },
+  "g057": {
+   "Daniel": "Mina",
+   "Eileen": "William",
+   "Gladys": "Eusapia",
+   "Leonora": "Helen"
+  },
+  "g058": {
+   "Daniel": "Florence",
+   "Eileen": "Edgar",
+   "Gladys": "Margaret",
+   "Leonora": "Douglas"
+  },
+  "g059": {
+   "Daniel": "Arthur",
+   "Eileen": "William",
+   "Gladys": "Florence",
+   "Leonora": "Helen"
+  },
+  "g060": {
+   "Daniel": "Emma",
+   "Eileen": "Kate",
+   "Gladys": "Charles",
+   "Leonora": "Eusapia"
+  },
+  "g061": {
+   "Daniel": "Mina",
+   "Eileen": "Arthur",
+   "Gladys": "Emma",
+   "Leonora": "William"
+  },
+  "g062": {
+   "Daniel": "Helen",
+   "Eileen": "Mina",
+   "Gladys": "Charles",
+   "Leonora": "Kate"
+  },
+  "g063": {
+   "Daniel": "Eusapia",
+   "Eileen": "Edgar",
+   "Gladys": "Margaret",
+   "Leonora": "Kate"
+  },
+  "g065": {
+   "Daniel": "Margaret",
+   "Eileen": "Arthur",
+   "Gladys": "William",
+   "Leonora": "Emma"
+  },
+  "g066": {
+   "Daniel": "Mina",
+   "Eileen": "William",
+   "Gladys": "Charles",
+   "Leonora": "Edgar"
+  },
+  "g067": {
+   "Daniel": "Charles",
+   "Eileen": "Mina",
+   "Gladys": "Edgar",
+   "Leonora": "Arthur"
+  },
+  "g068": {
+   "Daniel": "Douglas",
+   "Eileen": "Margaret",
+   "Gladys": "Helen",
+   "Leonora": "Florence"
+  },
+  "g069": {
+   "Daniel": "Kate",
+   "Eileen": "Margaret",
+   "Gladys": "Emma",
+   "Leonora": "Mina"
+  },
+  "g070": {
+   "Daniel": "Helen",
+   "Eileen": "Edgar",
+   "Gladys": "Douglas",
+   "Leonora": "William"
+  },
+  "g071": {
+   "Daniel": "Edgar",
+   "Eileen": "Mina",
+   "Gladys": "Emma",
+   "Leonora": "Margaret"
+  },
+  "g072": {
+   "Daniel": "Edgar",
+   "Eileen": "Douglas",
+   "Gladys": "Florence",
+   "Leonora": "Emma"
+  },
+  "g073": {
+   "Daniel": "Emma",
+   "Eileen": "Kate",
+   "Gladys": "Charles",
+   "Leonora": "Florence"
+  },
+  "g074": {
+   "Daniel": "Eusapia",
+   "Eileen": "Charles",
+   "Gladys": "Margaret",
+   "Leonora": "Emma"
+  },
+  "g075": {
+   "Daniel": "Douglas",
+   "Eileen": "Arthur",
+   "Gladys": "Helen",
+   "Leonora": "Kate"
+  },
+  "g076": {
+   "Daniel": "Margaret",
+   "Eileen": "Florence",
+   "Gladys": "Charles",
+   "Leonora": "Douglas"
+  },
+  "g077": {
+   "Daniel": "Edgar",
+   "Eileen": "Mina",
+   "Gladys": "Douglas",
+   "Leonora": "Helen"
+  },
+  "g078": {
+   "Daniel": "Emma",
+   "Eileen": "Arthur",
+   "Gladys": "William",
+   "Leonora": "Florence"
+  },
+  "g079": {
+   "Daniel": "Margaret",
+   "Eileen": "Edgar",
+   "Gladys": "Kate",
+   "Leonora": "Emma"
+  },
+  "g080": {
+   "Daniel": "Edgar",
+   "Eileen": "Charles",
+   "Gladys": "Emma",
+   "Leonora": "Florence"
+  },
+  "g081": {
+   "Daniel": "Arthur",
+   "Eileen": "Douglas",
+   "Gladys": "Edgar",
+   "Leonora": "Eusapia"
+  },
+  "g082": {
+   "Daniel": "Edgar",
+   "Eileen": "Mina",
+   "Gladys": "Helen",
+   "Leonora": "Florence"
+  },
+  "g083": {
+   "Daniel": "Florence",
+   "Eileen": "Kate",
+   "Gladys": "Charles",
+   "Leonora": "Emma"
+  },
+  "g084": {
+   "Daniel": "Margaret",
+   "Eileen": "Mina",
+   "Gladys": "Douglas",
+   "Leonora": "Charles"
+  },
+  "g086": {
+   "Daniel": "Eusapia",
+   "Eileen": "Florence",
+   "Gladys": "Mina",
+   "Leonora": "Margaret"
+  },
+  "g088": {
+   "Daniel": "Eusapia",
+   "Eileen": "Charles",
+   "Gladys": "Arthur",
+   "Leonora": "Kate"
+  },
+  "g089": {
+   "Daniel": "Kate",
+   "Eileen": "Douglas",
+   "Gladys": "Emma",
+   "Leonora": "Florence"
+  },
+  "g090": {
+   "Daniel": "Charles",
+   "Eileen": "Kate",
+   "Gladys": "Eusapia",
+   "Leonora": "Edgar"
+  },
+  "g091": {
+   "Daniel": "Florence",
+   "Eileen": "Mina",
+   "Gladys": "Margaret",
+   "Leonora": "Kate"
+  },
+  "g092": {
+   "Daniel": "Edgar",
+   "Eileen": "William",
+   "Gladys": "Mina",
+   "Leonora": "Douglas"
+  },
+  "g093": {
+   "Daniel": "Margaret",
+   "Eileen": "Eusapia",
+   "Gladys": "Helen",
+   "Leonora": "Charles"
+  },
+  "g094": {
+   "Daniel": "Kate",
+   "Eileen": "Douglas",
+   "Gladys": "Helen",
+   "Leonora": "William"
+  },
+  "g095": {
+   "Daniel": "Florence",
+   "Eileen": "Helen",
+   "Gladys": "Arthur",
+   "Leonora": "Charles"
+  },
+  "g096": {
+   "Daniel": "Helen",
+   "Eileen": "Eusapia",
+   "Gladys": "Arthur",
+   "Leonora": "Edgar"
+  },
+  "g097": {
+   "Daniel": "Mina",
+   "Eileen": "Charles",
+   "Gladys": "Edgar",
+   "Leonora": "Eusapia"
+  },
+  "g098": {
+   "Daniel": "Arthur",
+   "Eileen": "William",
+   "Gladys": "Florence",
+   "Leonora": "Helen"
+  },
+  "g099": {
+   "Daniel": "Florence",
+   "Eileen": "Douglas",
+   "Gladys": "Arthur",
+   "Leonora": "Edgar"
+  },
+  "g100": {
+   "Daniel": "Edgar",
+   "Eileen": "Margaret",
+   "Gladys": "Eusapia",
+   "Leonora": "Emma"
+  },
+  "g101": {
+   "Daniel": "Emma",
+   "Eileen": "Arthur",
+   "Gladys": "Mina",
+   "Leonora": "Florence"
+  },
+  "g102": {
+   "Daniel": "Arthur",
+   "Eileen": "Douglas",
+   "Gladys": "Mina",
+   "Leonora": "Eusapia"
+  },
+  "g103": {
+   "Daniel": "Kate",
+   "Eileen": "Mina",
+   "Gladys": "Helen",
+   "Leonora": "Douglas"
+  },
+  "g104": {
+   "Daniel": "Edgar",
+   "Eileen": "Douglas",
+   "Gladys": "Emma",
+   "Leonora": "Charles"
+  },
+  "g105": {
+   "Daniel": "Mina",
+   "Eileen": "Eusapia",
+   "Gladys": "Edgar",
+   "Leonora": "Helen"
+  }
+ },
+ "plus_minus_standard": {
+  "n_games": 100,
+  "n_clean": 50,
+  "n_excluded": 0,
+  "clean_mean_p_none": {
+   "a_value": 0.586344033583662,
+   "b_value": 0.3482158111609481,
+   "difference": 0.23812822242271398,
+   "lo": 0.17236170761945704,
+   "hi": 0.3026443577468465,
+   "excludes_zero": true
+  },
+  "clean_n_p_none_below_half": {
+   "a_value": 8.0,
+   "b_value": 39.0,
+   "difference": -31.0,
+   "lo": -37.02499999999998,
+   "hi": -24.0,
+   "excludes_zero": true
+  },
+  "catch_rate_at_0.05_fpr": {
+   "a_value": 0.52,
+   "b_value": 0.14,
+   "difference": 0.38,
+   "lo": -0.06,
+   "hi": 0.6404999999999927,
+   "excludes_zero": false
+  },
+  "catch_rate_at_0_fpr": {
+   "a_value": 0.3,
+   "b_value": 0.0,
+   "difference": 0.3,
+   "lo": 0.020000000000000018,
+   "hi": 0.6,
+   "excludes_zero": true
+  },
+  "auroc": {
+   "a_value": 0.8698,
+   "b_value": 0.796,
+   "difference": 0.07379999999999998,
+   "lo": -0.027599999999999958,
+   "hi": 0.17200000000000004,
+   "excludes_zero": false
+  },
+  "right_pair_accuracy": {
+   "a_value": 0.6733333333333333,
+   "b_value": 0.62,
+   "difference": 0.053333333333333344,
+   "lo": -0.053333333333333455,
+   "hi": 0.16333333333333333,
+   "excludes_zero": false
+  },
+  "log_loss": {
+   "a_value": 1.0128176347076656,
+   "b_value": 1.5355216113693564,
+   "difference": -0.5227039766616908,
+   "lo": -0.8724225551386522,
+   "hi": -0.22871581138857455,
+   "excludes_zero": true
+  }
+ },
+ "plus_minus_original_standard": {
+  "n_games": 100,
+  "n_clean": 50,
+  "n_excluded": 0,
+  "clean_mean_p_none": {
+   "a_value": 0.586344033583662,
+   "b_value": 0.35737823503577987,
+   "difference": 0.22896579854788218,
+   "lo": 0.15447395756111196,
+   "hi": 0.3006974462231555,
+   "excludes_zero": true
+  },
+  "clean_n_p_none_below_half": {
+   "a_value": 8.0,
+   "b_value": 35.0,
+   "difference": -27.0,
+   "lo": -35.0,
+   "hi": -19.0,
+   "excludes_zero": true
+  },
+  "catch_rate_at_0.05_fpr": {
+   "a_value": 0.52,
+   "b_value": 0.34,
+   "difference": 0.18,
+   "lo": -0.14,
+   "hi": 0.56,
+   "excludes_zero": false
+  },
+  "catch_rate_at_0_fpr": {
+   "a_value": 0.3,
+   "b_value": 0.08,
+   "difference": 0.21999999999999997,
+   "lo": -0.10000000000000003,
+   "hi": 0.52,
+   "excludes_zero": false
+  },
+  "auroc": {
+   "a_value": 0.8698,
+   "b_value": 0.8048,
+   "difference": 0.06500000000000006,
+   "lo": -0.031399999999999983,
+   "hi": 0.16400499999999996,
+   "excludes_zero": false
+  },
+  "right_pair_accuracy": {
+   "a_value": 0.6733333333333333,
+   "b_value": 0.55,
+   "difference": 0.1233333333333333,
+   "lo": -0.010000000000000009,
+   "hi": 0.26,
+   "excludes_zero": false
+  },
+  "log_loss": {
+   "a_value": 1.0128176347076656,
+   "b_value": 1.5686383121176388,
+   "difference": -0.5558206774099732,
+   "lo": -0.8038430390102587,
+   "hi": -0.3102108314099136,
+   "excludes_zero": true
+  }
+ },
+ "standard_renamed_minus_original": {
+  "n_games": 100,
+  "n_clean": 50,
+  "n_excluded": 0,
+  "clean_mean_p_none": {
+   "a_value": 0.3482158111609481,
+   "b_value": 0.35737823503577987,
+   "difference": -0.009162423874831793,
+   "lo": -0.07628707924080683,
+   "hi": 0.05894427536158802,
+   "excludes_zero": false
+  },
+  "clean_n_p_none_below_half": {
+   "a_value": 39.0,
+   "b_value": 35.0,
+   "difference": 4.0,
+   "lo": -2.0,
+   "hi": 10.0,
+   "excludes_zero": false
+  },
+  "catch_rate_at_0.05_fpr": {
+   "a_value": 0.14,
+   "b_value": 0.34,
+   "difference": -0.2,
+   "lo": -0.48000000000000004,
+   "hi": 0.26,
+   "excludes_zero": false
+  },
+  "catch_rate_at_0_fpr": {
+   "a_value": 0.0,
+   "b_value": 0.08,
+   "difference": -0.08,
+   "lo": -0.4,
+   "hi": 0.21999999999999997,
+   "excludes_zero": false
+  },
+  "auroc": {
+   "a_value": 0.796,
+   "b_value": 0.8048,
+   "difference": -0.008799999999999919,
+   "lo": -0.10319999999999996,
+   "hi": 0.08719999999999994,
+   "excludes_zero": false
+  },
+  "right_pair_accuracy": {
+   "a_value": 0.62,
+   "b_value": 0.55,
+   "difference": 0.06999999999999995,
+   "lo": -0.030000000000000027,
+   "hi": 0.17999999999999994,
+   "excludes_zero": false
+  },
+  "log_loss": {
+   "a_value": 1.5355216113693564,
+   "b_value": 1.5686383121176388,
+   "difference": -0.033116700748282435,
+   "lo": -0.32296445732243007,
+   "hi": 0.2891914260107001,
+   "excludes_zero": false
+  }
+ }
+}

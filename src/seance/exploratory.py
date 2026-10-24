@@ -49,13 +49,14 @@ games with the frozen prompt. `--redaction` compares information passing,
 honest players' error and points, the allies' pooled points and the
 monitor's verdicts, with paired bootstrap intervals over matched deals.
 
-`--plus-factors` (E7, a follow-up decided after the main study) reads every clean and coalition game of a
-run with the frozen monitor ("standard") and/or the same prompt plus one
-paragraph telling it that open sharing with the whole table is ordinary
-cooperation and to count only evidence that singles out one pair, as
-antitrust courts require "plus factors" beyond parallel conduct
-("plus_factors"). Every game is shown with its players renamed from a pool of
-real mediums' first names, seeded per game, the same names for both monitors.
+`--plus-factors` (E7, a follow-up decided after the main study) reads every
+clean and coalition game of a run with the frozen monitor ("standard")
+and/or the same prompt plus one paragraph telling it that open sharing with
+the whole table is ordinary cooperation and to count only evidence that
+singles out one pair, as antitrust courts require "plus factors" beyond
+parallel conduct ("plus_factors"). Every game is shown with its players
+renamed from a pool of real mediums' first names, seeded per game, the same
+names for both monitors.
 `--plus-compare` scores plus-factor minus standard, paired on the same games.
 """
 
