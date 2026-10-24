@@ -9,7 +9,7 @@ import hashlib
 from typing import Any
 
 from ..agents import ReplyError, extract_json
-from ..conditions import LABELS
+from ..conditions import LABELS, NONE_LABEL
 from ..game import MAX_MESSAGE_WORDS, N_ROUNDS, SECRET_MAX, SECRET_MIN, VISION_WIDTH
 from ..inference import ChatClient
 from ..public_view import render_text
@@ -32,20 +32,42 @@ The record:
 
 PROMPT_SHA256 = hashlib.sha256(PROMPT.encode()).hexdigest()[:16]
 
-SCHEMA: dict[str, Any] = {
-    "type": "object",
-    "properties": {
-        "reasoning": {"type": "string"},
-        "probabilities": {
-            "type": "object",
-            "properties": {k: {"type": "number", "minimum": 0, "maximum": 1} for k in LABELS},
-            "required": list(LABELS),
-            "additionalProperties": False,
+def label_order(names: list[str]) -> list[str]:
+    """The 7 answer keys in the order the prompt and schema list them: pairs
+    in the players' order in the record, each written in that order, then
+    "none". For the record's usual order this is exactly LABELS. A view with
+    the seats rotated (an exploratory re-scoring) gets keys in its own order,
+    e.g. "Gladys+Daniel"; `parse_reply` maps them back to LABELS."""
+    pairs = [f"{names[i]}+{names[j]}" for i in range(len(names)) for j in range(i + 1, len(names))]
+    return [*pairs, NONE_LABEL]
+
+
+def _canonical(key: str) -> str:
+    """The LABELS entry an answer key stands for, whatever its name order."""
+    if key == NONE_LABEL:
+        return key
+    members = set(key.split("+"))
+    return next(k for k in LABELS if k != NONE_LABEL and set(k.split("+")) == members)
+
+
+def schema_for(labels: list[str]) -> dict[str, Any]:
+    return {
+        "type": "object",
+        "properties": {
+            "reasoning": {"type": "string"},
+            "probabilities": {
+                "type": "object",
+                "properties": {k: {"type": "number", "minimum": 0, "maximum": 1} for k in labels},
+                "required": list(labels),
+                "additionalProperties": False,
+            },
         },
-    },
-    "required": ["reasoning", "probabilities"],
-    "additionalProperties": False,
-}
+        "required": ["reasoning", "probabilities"],
+        "additionalProperties": False,
+    }
+
+
+SCHEMA: dict[str, Any] = schema_for(list(LABELS))
 
 
 def build_prompt(view: dict[str, Any]) -> str:
@@ -57,23 +79,26 @@ def build_prompt(view: dict[str, Any]) -> str:
         hi=SECRET_MAX,
         width=VISION_WIDTH,
         max_words=MAX_MESSAGE_WORDS,
-        label_keys=", ".join(f'"{k}": <probability>' for k in LABELS),
+        label_keys=", ".join(f'"{k}": <probability>' for k in label_order(names)),
         record=render_text(view),
     )
 
 
-def parse_reply(text: str) -> tuple[Probs, dict[str, Any]]:
+def parse_reply(text: str, keys: list[str] | None = None) -> tuple[Probs, dict[str, Any]]:
+    """Probabilities keyed by LABELS. `keys` are the answer keys the prompt
+    asked for (default LABELS); see `label_order`."""
+    keys = list(LABELS) if keys is None else keys
     obj = extract_json(text)
     probs = obj.get("probabilities")
     if not isinstance(probs, dict):
         raise ReplyError('"probabilities" must be an object.')
     try:
-        weights = {k: float(probs[k]) for k in LABELS}
+        weights = {_canonical(k): float(probs[k]) for k in keys}
     except KeyError as e:
         raise ReplyError(f'"probabilities" is missing {e.args[0]!r}.') from None
     except (TypeError, ValueError):
         raise ReplyError("every probability must be a number.") from None
-    extra = set(probs) - set(LABELS)
+    extra = set(probs) - set(keys)
     if extra:
         raise ReplyError(f'"probabilities" has unknown keys {sorted(extra)}.')
     try:
@@ -124,9 +149,10 @@ class LLMMonitor(Detector):
     async def read_once(self, view: dict[str, Any]) -> tuple[Probs, dict[str, Any]]:
         """One reading: the prompt, retried with the parse error until it parses."""
         messages = [{"role": "user", "content": build_prompt(view)}]
+        keys = label_order(view["names"])
         attempts = []
         for _ in range(self.max_attempts):
-            comp = await self.client.complete(messages, "monitor_verdict", SCHEMA)
+            comp = await self.client.complete(messages, "monitor_verdict", schema_for(keys))
             entry = {
                 "raw": comp.text,
                 "prompt_tokens": comp.prompt_tokens,
@@ -135,7 +161,7 @@ class LLMMonitor(Detector):
             }
             attempts.append(entry)
             try:
-                probs, detail = parse_reply(comp.text)
+                probs, detail = parse_reply(comp.text, keys)
             except ReplyError as e:
                 entry["error"] = str(e)
                 messages = messages + [

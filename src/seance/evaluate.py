@@ -36,7 +36,7 @@ import asyncio
 import json
 from collections import Counter
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from . import metrics
 from .conditions import CLEAN, COALITION, POSITIVE_CONTROL
@@ -76,8 +76,14 @@ def _read_predictions(path: Path, describe: dict[str, Any] | None = None) -> dic
 
 
 async def predict_all(
-    detector: Detector, records: list[dict[str, Any]], out_path: Path, concurrency: int = 1
+    detector: Detector,
+    records: list[dict[str, Any]],
+    out_path: Path,
+    concurrency: int = 1,
+    view_fn: Callable[[dict[str, Any]], dict[str, Any]] = public_view,
 ) -> dict[str, dict[str, Any]]:
+    """`view_fn` builds what the detector sees from a record; anything other
+    than `public_view` must only reorder it (the exploratory seat rotation)."""
     done = _read_predictions(out_path, detector.describe())
     todo = [r for r in records if r["game_id"] not in done]
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -85,7 +91,7 @@ async def predict_all(
     lock = asyncio.Lock()
 
     async def one(rec: dict[str, Any]) -> None:
-        view = public_view(rec)
+        view = view_fn(rec)
         async with gate:
             try:
                 probs, detail = await detector.predict_with_detail(view)
@@ -95,6 +101,7 @@ async def predict_all(
                 return
         row = {
             "game_id": rec["game_id"],
+            "seat_order": view["names"],
             "probs": probs,
             "score": detector.detection_score(view, probs),
             "detector": detector.describe(),
