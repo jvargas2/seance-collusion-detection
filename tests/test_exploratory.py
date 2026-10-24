@@ -189,3 +189,13 @@ def test_gender_effect_counts_mens_names_in_the_top_pair():
     assert res["clean_top_pair_includes_name"]["William"]["k"] == 1  # Daniel shown as William
     assert res["clean_top_pair_includes_player_who_played_as_daniel"]["k"] == 1
     assert res["coalition_right_pair"]["allies_two_men"]["k"] == 1
+
+
+def test_message_style_counts_digits_and_number_words_by_role():
+    rec = {
+        "roles": {"A": "ally", "B": "solo"},
+        "rounds": [{"messages": [{"speaker": "A", "text": "the clock strikes forty"}, {"speaker": "B", "text": "I see 30 to 69"}]}],
+    }
+    style = X.message_style([rec])
+    assert style["ally"] == {"messages": 1, "digits": 0.0, "number_words": 1.0}
+    assert style["solo"] == {"messages": 1, "digits": 1.0, "number_words": 0.0}

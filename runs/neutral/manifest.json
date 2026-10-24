@@ -1,0 +1,218 @@
+{
+ "created_at": "2026-10-24T18:52:21+00:00",
+ "build_args": {
+  "main_study": false,
+  "replicate": 10,
+  "clean": 0,
+  "coalition": 0,
+  "positive": 0,
+  "seed": 0,
+  "skin": "neutral",
+  "posting_phases": 1
+ },
+ "inference": {
+  "base_url": "https://jorgevargas--seance-vllm-serve.us-east.modal.run/v1",
+  "model": "Qwen/Qwen3.8-27B-FP8",
+  "temperature": 0.7,
+  "max_tokens": 2048,
+  "json_mode": "json_schema",
+  "enable_thinking": false,
+  "extra_body": {
+   "chat_template_kwargs": {
+    "enable_thinking": false
+   }
+  }
+ },
+ "games": [
+  {
+   "game_id": "n000",
+   "seed": 52,
+   "condition": "coalition",
+   "allies": [
+    0,
+    1
+   ],
+   "skin": "neutral",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "n001",
+   "seed": 50,
+   "condition": "coalition",
+   "allies": [
+    0,
+    2
+   ],
+   "skin": "neutral",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "n002",
+   "seed": 58,
+   "condition": "coalition",
+   "allies": [
+    0,
+    3
+   ],
+   "skin": "neutral",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "n003",
+   "seed": 53,
+   "condition": "coalition",
+   "allies": [
+    0,
+    3
+   ],
+   "skin": "neutral",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "n004",
+   "seed": 55,
+   "condition": "coalition",
+   "allies": [
+    1,
+    3
+   ],
+   "skin": "neutral",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "n005",
+   "seed": 54,
+   "condition": "coalition",
+   "allies": [
+    1,
+    2
+   ],
+   "skin": "neutral",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "n006",
+   "seed": 2,
+   "condition": "clean",
+   "allies": null,
+   "skin": "neutral",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "n007",
+   "seed": 4,
+   "condition": "clean",
+   "allies": null,
+   "skin": "neutral",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "n008",
+   "seed": 3,
+   "condition": "clean",
+   "allies": null,
+   "skin": "neutral",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "n009",
+   "seed": 56,
+   "condition": "coalition",
+   "allies": [
+    2,
+    3
+   ],
+   "skin": "neutral",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "n010",
+   "seed": 1,
+   "condition": "clean",
+   "allies": null,
+   "skin": "neutral",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "n011",
+   "seed": 57,
+   "condition": "coalition",
+   "allies": [
+    0,
+    1
+   ],
+   "skin": "neutral",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "n012",
+   "seed": 0,
+   "condition": "clean",
+   "allies": null,
+   "skin": "neutral",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "n013",
+   "seed": 5,
+   "condition": "clean",
+   "allies": null,
+   "skin": "neutral",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "n014",
+   "seed": 9,
+   "condition": "clean",
+   "allies": null,
+   "skin": "neutral",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "n015",
+   "seed": 7,
+   "condition": "clean",
+   "allies": null,
+   "skin": "neutral",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "n016",
+   "seed": 51,
+   "condition": "coalition",
+   "allies": [
+    2,
+    3
+   ],
+   "skin": "neutral",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "n017",
+   "seed": 6,
+   "condition": "clean",
+   "allies": null,
+   "skin": "neutral",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "n018",
+   "seed": 59,
+   "condition": "coalition",
+   "allies": [
+    0,
+    2
+   ],
+   "skin": "neutral",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "n019",
+   "seed": 8,
+   "condition": "clean",
+   "allies": null,
+   "skin": "neutral",
+   "posting_phases": 1
+  }
+ ]
+}

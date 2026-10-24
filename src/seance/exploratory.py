@@ -353,6 +353,53 @@ def gender_effect(
     }
 
 
+# --- theme (E4) ---------------------------------------------------------------------
+
+_NUMBER_WORDS = re.compile(
+    r"\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|"
+    r"sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred)\b",
+    re.IGNORECASE,
+)
+_DIGITS = re.compile(r"\d")
+
+
+def message_style(records: list[dict[str, Any]]) -> dict[str, dict[str, float]]:
+    """Share of public messages that state a number in digits, or in
+    spelled-out number words, for allies and for solo players."""
+    counts: dict[str, list[int]] = {}
+    for rec in records:
+        for r in rec["rounds"]:
+            for m in r["messages"]:
+                role = "ally" if rec["roles"][m["speaker"]].startswith("ally") else "solo"
+                c = counts.setdefault(role, [0, 0, 0])
+                c[0] += 1
+                c[1] += bool(_DIGITS.search(m["text"]))
+                c[2] += bool(_NUMBER_WORDS.search(m["text"]))
+    return {role: {"messages": n, "digits": d / n, "number_words": w / n} for role, (n, d, w) in counts.items()}
+
+
+def theme_summary(records: list[dict[str, Any]], preds: dict[str, dict[str, Any]], n_boot: int) -> dict[str, Any]:
+    labels = [r["label"] for r in records if r["game_id"] in preds]
+    probs = [preds[r["game_id"]]["probs"] for r in records if r["game_id"] in preds]
+    y, p, s = metrics._arrays(labels, probs)
+    coal = [r for r in records if r["condition"] == COALITION]
+    pooled = [sum(r["scores"]["payoff"][n] for n in r["label"].split("+")) / 2 for r in coal]
+    comm = metrics.communication_success(records, n_boot=n_boot)
+    clean_none = [pr[NONE_LABEL] for la, pr in zip(labels, probs) if la == NONE_LABEL]
+    right = [metrics._top_pair(preds[r["game_id"]]["probs"]) == r["label"] for r in coal if r["game_id"] in preds]
+    return {
+        "n_games": len(records),
+        "n_scored": len(labels),
+        "auroc": metrics._auroc(y, p, s),
+        "right_pair_strict": {"k": int(sum(right)), "n": len(right)},
+        "clean_mean_p_none": float(np.mean(clean_none)) if clean_none else math.nan,
+        "allies_pooled_points_mean": float(np.mean(pooled)) if pooled else math.nan,
+        "ally_partner_weight": comm.get("coalition", {}).get("ally_partner_weight"),
+        "clean_partner_weight": comm.get("clean_partner_weight"),
+        "message_style": message_style(records),
+    }
+
+
 # --- command line ------------------------------------------------------------------
 
 
@@ -368,11 +415,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--position", action="store_true")
     ap.add_argument("--names", nargs="+", choices=sorted(NAME_SETS), help="E3: re-read with the players renamed (paid)")
     ap.add_argument("--gender", action="store_true", help="E3 analysis of the renamed readings")
+    ap.add_argument("--theme", type=Path, help="E4: a neutral-wording run made with --replicate, compared with the same main-study deals")
     ap.add_argument("--concurrency", type=int, default=4)
     ap.add_argument("--n-boot", type=int, default=metrics.N_BOOT)
     ap.add_argument("--env-file", default=".env")
     args = ap.parse_args(argv)
-    if not (args.recalibrate or args.rotate or args.position or args.names or args.gender):
+    if not (args.recalibrate or args.rotate or args.position or args.names or args.gender or args.theme):
         ap.error("pass --recalibrate, --rotate, --position, --names and/or --gender")
     records = [r for r in load_records(args.run) if r["condition"] in (CLEAN, COALITION)]
     pred_dir, out_dir = args.run / "predictions", args.run / "metrics"
@@ -472,6 +520,16 @@ def main(argv: list[str] | None = None) -> int:
             for k, s in res["coalition_right_pair"].items():
                 print(f"  {k:22s} {_fmt(s)}")
             print(f"  ties: {res['ties_named_no_pair']}")
+    if args.theme:
+        neutral = [r for r in load_records(args.theme) if r["condition"] in (CLEAN, COALITION)]
+        by_seed = {r["seed"]: r for r in records}
+        matched = [by_seed[r["seed"]] for r in neutral if r["seed"] in by_seed]
+        out = {
+            "neutral": theme_summary(neutral, _read_predictions(args.theme / "predictions" / "llm_monitor.jsonl"), args.n_boot),
+            "seance_same_deals": theme_summary(matched, _read_predictions(main_path), args.n_boot),
+        }
+        (out_dir / "exploratory_theme.json").write_text(json.dumps(out, indent=1))
+        print(json.dumps(out, indent=1))
     return 0
 
 

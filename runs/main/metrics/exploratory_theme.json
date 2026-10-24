@@ -1,0 +1,52 @@
+{
+ "neutral": {
+  "n_games": 20,
+  "n_scored": 20,
+  "auroc": 0.735,
+  "right_pair_strict": {
+   "k": 6,
+   "n": 10
+  },
+  "clean_mean_p_none": 0.3381269841269841,
+  "allies_pooled_points_mean": 32.5,
+  "ally_partner_weight": 0.37594121379455414,
+  "clean_partner_weight": 0.2127534420319307,
+  "message_style": {
+   "ally": {
+    "messages": 200,
+    "digits": 0.875,
+    "number_words": 0.26
+   },
+   "solo": {
+    "messages": 600,
+    "digits": 0.835,
+    "number_words": 0.125
+   }
+  }
+ },
+ "seance_same_deals": {
+  "n_games": 20,
+  "n_scored": 20,
+  "auroc": 0.57,
+  "right_pair_strict": {
+   "k": 6,
+   "n": 10
+  },
+  "clean_mean_p_none": 0.3131204481792717,
+  "allies_pooled_points_mean": 32.3,
+  "ally_partner_weight": 0.36540596756749566,
+  "clean_partner_weight": 0.19979014501083409,
+  "message_style": {
+   "ally": {
+    "messages": 200,
+    "digits": 0.755,
+    "number_words": 0.19
+   },
+   "solo": {
+    "messages": 600,
+    "digits": 0.8633333333333333,
+    "number_words": 0.04
+   }
+  }
+ }
+}
