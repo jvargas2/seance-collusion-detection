@@ -32,7 +32,7 @@ from typing import Any
 
 from . import game as G
 from .agents import GUESS, SPEAK, AgentCallFailed, CallLog, call_medium, system_prompt
-from .conditions import GameSpec, build_specs
+from .conditions import GameSpec, build_main_study, build_specs
 from .inference import ChatClient, LimitedClient
 from .skins import get_skin
 
@@ -64,7 +64,7 @@ def code_version() -> str:
         return "unknown"
 
 
-def _settings(skin: str, max_attempts: int) -> dict[str, Any]:
+def _settings(skin: str, max_attempts: int, posting_phases: int) -> dict[str, Any]:
     return {
         "n_mediums": G.N_MEDIUMS,
         "n_rounds": G.N_ROUNDS,
@@ -72,7 +72,8 @@ def _settings(skin: str, max_attempts: int) -> dict[str, Any]:
         "vision_width": G.VISION_WIDTH,
         "points_by_place": list(G.POINTS_BY_PLACE),
         "tie_rule": G.TIE_RULE,
-        "speaking_order": "round-robin, first speaker rotates (round r starts with seat r mod 4)",
+        "posting_mode": G.POSTING_MODE,
+        "posting_phases": posting_phases,
         "message_word_cap": G.MAX_MESSAGE_WORDS,
         "skin": skin,
         "max_attempts_per_call": max_attempts,
@@ -101,54 +102,60 @@ async def play_game(
     skin = get_skin(spec.skin)
     names = G.MEDIUM_NAMES
     setup = G.deal(spec.seed)
-    game = G.Game(setup, allies=spec.allies)
+    game = G.Game(setup, allies=spec.allies, posting_phases=spec.posting_phases)
     seats = range(setup.n_mediums)
-    systems = [system_prompt(skin, s, spec.role(s), spec.partner(s)) for s in seats]
-    notes: list[list[dict[str, str]]] = [[] for _ in seats]  # per seat, per round
+    systems = [system_prompt(skin, s, spec.role(s), spec.partner(s), spec.posting_phases) for s in seats]
+    notes: list[list[dict[str, Any]]] = [[] for _ in seats]  # per seat, per round
     calls: list[CallLog] = []
     rounds_out: list[dict[str, Any]] = []
     started = _now()
 
     try:
         for rnd in setup.rounds:
-            round_notes: list[dict[str, str]] = [{} for _ in seats]
-            for s in seats:  # filled in as the round goes, so the guess call sees this round's speak note
+            round_notes: list[dict[str, Any]] = [{SPEAK: []} for _ in seats]
+            for s in seats:  # filled in as the round goes; each seat sees only its own
                 notes[s].append(round_notes[s])
-            while (seat := game.next_speaker()) is not None:
-                out, log = await call_medium(
-                    client, skin, systems[seat], game, seat, SPEAK, notes[seat], spec.partner(seat), max_attempts
-                )
-                calls.append(log)
-                round_notes[seat][SPEAK] = out["private_note"]
-                game.submit_message(seat, out["public_message"])
 
-            results = await asyncio.gather(
-                *(
-                    call_medium(
-                        client, skin, systems[s], game, s, GUESS, notes[s], spec.partner(s), max_attempts
-                    )
-                    for s in seats
-                ),
-                return_exceptions=True,
-            )
-            errors = [r for r in results if isinstance(r, BaseException)]
-            calls.extend(r.log for r in errors if isinstance(r, AgentCallFailed))
-            calls.extend(r[1] for r in results if not isinstance(r, BaseException))
-            if errors:
-                raise errors[0]
-            guesses = []
-            for s, (out, log) in zip(seats, results):
+            async def all_at_once(phase: str) -> list[dict]:
+                # Every prompt is built before anyone's reply is recorded, so no
+                # medium sees another's message (or note) from this phase.
+                results = await asyncio.gather(
+                    *(
+                        call_medium(
+                            client, skin, systems[s], game, s, phase, notes[s], spec.partner(s), max_attempts
+                        )
+                        for s in seats
+                    ),
+                    return_exceptions=True,
+                )
+                errors = [r for r in results if isinstance(r, BaseException)]
+                calls.extend(r.log for r in errors if isinstance(r, AgentCallFailed))
+                calls.extend(r[1] for r in results if not isinstance(r, BaseException))
+                if errors:
+                    raise errors[0]
+                return [out for out, _ in results]
+
+            while game.posting_phase is not None:
+                outs = await all_at_once(SPEAK)
+                for s, out in zip(seats, outs):
+                    round_notes[s][SPEAK].append(out["private_note"])
+                game.submit_posts([out["public_message"] for out in outs])
+
+            outs = await all_at_once(GUESS)
+            for s, out in zip(seats, outs):
                 round_notes[s][GUESS] = out["private_note"]
-                guesses.append(out["guess"])
-            res = game.submit_guesses(guesses)
+            res = game.submit_guesses([out["guess"] for out in outs])
 
             rounds_out.append(
                 {
                     "round": rnd.index + 1,
                     "secret": rnd.secret,
                     "visions": {names[s]: [rnd.visions[s].lo, rnd.visions[s].hi] for s in seats},
-                    "speaking_order": [names[s] for s in rnd.speaking_order],
-                    "messages": [{"speaker": names[s], "text": t} for s, t in res.messages],
+                    "messages": [
+                        {"phase": k + 1, "speaker": names[s], "text": t}
+                        for k, texts in enumerate(res.posts)
+                        for s, t in enumerate(texts)
+                    ],
                     "guesses": {names[s]: res.guesses[s] for s in seats},
                     "points": {names[s]: res.points[s] for s in seats},
                     "private_notes": {names[s]: round_notes[s] for s in seats},
@@ -173,7 +180,8 @@ async def play_game(
         "allies": [names[s] for s in spec.allies] if spec.allies else None,
         "model": client.model,
         "inference": inference_settings or {},
-        "settings": _settings(spec.skin, max_attempts),
+        "enable_thinking": (inference_settings or {}).get("enable_thinking"),
+        "settings": _settings(spec.skin, max_attempts, spec.posting_phases),
         "names": list(names),
         "roles": {names[s]: spec.role(s) for s in seats},
         "system_prompts": {names[s]: systems[s] for s in seats},
@@ -188,6 +196,10 @@ async def play_game(
             "prompt": sum(c.prompt_tokens for c in calls),
             "completion": sum(c.completion_tokens for c in calls),
             "truncated_messages": sum(1 for c in calls if c.truncated),
+            # Non-zero means thinking was on despite the setting: check the endpoint.
+            "attempts_with_reasoning": sum(
+                1 for c in calls for a in c.attempts if a.get("reasoning_chars", 0) > 0
+            ),
         },
         "calls": [c.to_dict() for c in calls],
         "started_at": started,
@@ -288,6 +300,9 @@ async def run_games(
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", required=True, type=Path, help="run directory")
+    ap.add_argument("--main-study", action="store_true", help="the pre-registered 50/50/6 games (fixed seeds)")
+    ap.add_argument("--posting-phases", type=int, default=G.DEFAULT_POSTING_PHASES, choices=(1, 2),
+                    help="simultaneous posting phases per round (2 = post, read, post again)")
     ap.add_argument("--clean", type=int, default=0)
     ap.add_argument("--coalition", type=int, default=0)
     ap.add_argument("--positive", type=int, default=0)
@@ -312,8 +327,16 @@ def main(argv: list[str] | None = None) -> int:
         inner = OpenAICompatClient(settings)
         inf = settings.describe()
 
-    specs = build_specs(args.clean, args.coalition, args.positive, args.seed, args.skin)
-    meta = {"build_args": {k: getattr(args, k) for k in ("clean", "coalition", "positive", "seed", "skin")}, "inference": inf}
+    if args.main_study:
+        if args.clean or args.coalition or args.positive:
+            print("--main-study fixes the game list; drop --clean/--coalition/--positive", file=sys.stderr)
+            return 2
+        specs = build_main_study(args.skin, args.posting_phases)
+    else:
+        specs = build_specs(args.clean, args.coalition, args.positive, args.seed, args.skin,
+                            posting_phases=args.posting_phases)
+    build_keys = ("main_study", "clean", "coalition", "positive", "seed", "skin", "posting_phases")
+    meta = {"build_args": {k: getattr(args, k) for k in build_keys}, "inference": inf}
     if (args.out / MANIFEST).exists():
         prior = json.loads((args.out / MANIFEST).read_text()).get("inference", {})
         if prior != inf:

@@ -39,12 +39,10 @@ def test_deal_is_deterministic_per_seed():
     assert G.deal(7) != G.deal(8)
 
 
-def test_speaking_order_rotates_round_robin():
-    setup = G.deal(1)
-    assert setup.rounds[0].speaking_order == (0, 1, 2, 3)
-    assert setup.rounds[1].speaking_order == (1, 2, 3, 0)
-    assert setup.rounds[4].speaking_order == (0, 1, 2, 3)
-    assert setup.rounds[9].speaking_order == (1, 2, 3, 0)
+def test_deal_has_no_speaking_order():
+    rnd = G.deal(1).rounds[0]
+    assert not hasattr(rnd, "speaking_order")
+    assert not hasattr(G, "speaking_order")
 
 
 @pytest.mark.parametrize(
@@ -76,32 +74,49 @@ def test_allies_pool_points():
 
 
 def _play_round(game, guesses):
-    while (s := game.next_speaker()) is not None:
-        game.submit_message(s, f"hello from {s}")
+    while game.posting_phase is not None:
+        game.submit_posts([f"hello from {s}" for s in range(4)])
     return game.submit_guesses(guesses)
 
 
-def test_game_enforces_order_of_play():
+def test_game_enforces_simultaneous_posting_then_guessing():
     game = G.Game(G.deal(3), allies=(2, 0))
     assert game.allies == (0, 2)
+    assert game.posting_phase == 0 and game.posts_so_far() == []
     with pytest.raises(RuntimeError):
-        game.submit_guesses((1, 2, 3, 4))  # nobody has spoken
-    with pytest.raises(RuntimeError):
-        game.submit_message(1, "out of turn")  # seat 0 speaks first in round 1
-    game.submit_message(0, "first")
+        game.submit_guesses((1, 2, 3, 4))  # nobody has posted
     with pytest.raises(ValueError):
-        game.submit_message(1, "word " * (G.MAX_MESSAGE_WORDS + 1))
-    for s in (1, 2, 3):
-        game.submit_message(s, "ok")
+        game.submit_posts(["only", "three", "posts"])  # all four post at once
+    with pytest.raises(ValueError):
+        game.submit_posts(["ok", "word " * (G.MAX_MESSAGE_WORDS + 1), "ok", "ok"])
+    assert game.posts_so_far() == []  # a rejected batch records nothing
+    game.submit_posts(["a", "b", "c", "d"])
+    assert game.posting_phase is None
+    assert game.posts_so_far() == [("a", "b", "c", "d")]
     with pytest.raises(RuntimeError):
-        game.submit_message(0, "again")
+        game.submit_posts(["again"] * 4)  # one posting phase by default
     with pytest.raises(ValueError):
         game.submit_guesses((0, 50, 50, 50))  # 0 is out of range
     with pytest.raises(TypeError):
         game.submit_guesses((50.5, 50, 50, 50))
     res = game.submit_guesses((50, 50, 50, 50))
     assert res.points == (3, 3, 3, 3)
-    assert game.next_speaker() == 1  # round 2 starts with seat 1
+    assert res.posts == (("a", "b", "c", "d"),)
+    assert game.posting_phase == 0 and game.posts_so_far() == []  # round 2 starts fresh
+
+
+def test_two_posting_phases():
+    game = G.Game(G.deal(3), posting_phases=2)
+    game.submit_posts(["a1", "b1", "c1", "d1"])
+    assert game.posting_phase == 1
+    with pytest.raises(RuntimeError):
+        game.submit_guesses((50, 50, 50, 50))  # second posting still open
+    game.submit_posts(["a2", "b2", "c2", "d2"])
+    res = game.submit_guesses((50, 50, 50, 50))
+    assert res.posts == (("a1", "b1", "c1", "d1"), ("a2", "b2", "c2", "d2"))
+    for bad in (0, 3):
+        with pytest.raises(ValueError):
+            G.Game(G.deal(3), posting_phases=bad)
 
 
 def test_full_game_totals_and_payoffs():

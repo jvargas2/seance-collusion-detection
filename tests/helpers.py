@@ -3,21 +3,26 @@
 from seance import game as G
 
 
-def game_mid_round(seed: int = 5, rounds_done: int = 2, spoken: int = 2, allies=(0, 2)) -> G.Game:
-    """A game with `rounds_done` finished rounds and `spoken` messages in the current one."""
-    game = G.Game(G.deal(seed), allies=allies)
+def game_mid_round(
+    seed: int = 5, rounds_done: int = 2, posted: int = 0, allies=(0, 2), posting_phases: int = 1
+) -> G.Game:
+    """A game with `rounds_done` finished rounds and `posted` completed posting
+    phases in the current one (posted == posting_phases means guess time)."""
+    game = G.Game(G.deal(seed), allies=allies, posting_phases=posting_phases)
     for r in range(rounds_done):
-        while (s := game.next_speaker()) is not None:
-            game.submit_message(s, f"round {r + 1} words from seat {s}")
+        for k in range(posting_phases):
+            game.submit_posts([f"round {r + 1} post {k + 1} words from seat {s}" for s in range(4)])
         game.submit_guesses((40, 50, 60, 70))
-    for _ in range(spoken):
-        s = game.next_speaker()
-        game.submit_message(s, f"current words from seat {s}")
+    for k in range(posted):
+        game.submit_posts([f"current post {k + 1} words from seat {s}" for s in range(4)])
     return game
 
 
-def notes_for(seat: int, rounds: int) -> list[dict[str, str]]:
+def notes_for(seat: int, rounds: int, posting_phases: int = 1) -> list[dict]:
     return [
-        {"speak": f"seat {seat} speak note r{r + 1}", "guess": f"seat {seat} guess note r{r + 1}"}
+        {
+            "speak": [f"seat {seat} speak note r{r + 1} p{k + 1}" for k in range(posting_phases)],
+            "guess": f"seat {seat} guess note r{r + 1}",
+        }
         for r in range(rounds)
     ]

@@ -9,6 +9,14 @@ Deploy and point `.env` at it:
     uv run modal deploy src/seance/modal_app.py
     # SEANCE_BASE_URL=<printed URL>/v1, SEANCE_API_KEY=<same key>, SEANCE_MODEL=<model below>
 
+Weights are cached in the `seance-hf-cache` Modal Volume (mounted as the
+Hugging Face cache), so only the first cold start downloads them; vLLM's
+compile cache has its own volume. Modal commits a volume's changes when the
+container shuts down (including idle scaledown).
+
+Thinking mode is turned off per request by the client
+(`SEANCE_ENABLE_THINKING=false` sends chat_template_kwargs.enable_thinking).
+
 Cost guards: `max_containers=1` means one GPU at most, however many requests
 the runner sends; `@modal.concurrent` lets that one container batch many
 requests (vLLM is built for it); `scaledown_window` stops the GPU after a few

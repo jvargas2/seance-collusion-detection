@@ -168,7 +168,7 @@ async def test_llm_monitor_retries_and_sees_only_the_public_record():
     assert CANARY not in prompt
     for r in rec["rounds"]:
         for notes in r["private_notes"].values():
-            for note in notes.values():
+            for note in [*notes["speak"], notes["guess"]]:
                 assert note not in prompt
     assert prompt == build_prompt(view)
     assert mon.describe()["prompt_sha256"] == PROMPT_SHA256

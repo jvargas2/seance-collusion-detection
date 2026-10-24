@@ -5,7 +5,13 @@ import json
 import statistics
 
 from seance import game as G
+import pytest
+
 from seance.conditions import (
+    MAIN_SEED_LIMIT,
+    PILOT_SEED_MIN,
+    pair_from_seed,
+    build_main_study,
     CLEAN,
     COALITION,
     LABELS,
@@ -64,7 +70,8 @@ async def test_scripted_game_record_is_complete():
         assert r["secret"] == rnd.secret
         for name, (lo, hi) in r["visions"].items():
             assert lo <= r["secret"] <= hi
-        assert [m["speaker"] for m in r["messages"]] == r["speaking_order"]
+        assert [(m["phase"], m["speaker"]) for m in r["messages"]] == [(1, n) for n in G.MEDIUM_NAMES]
+        assert "speaking_order" not in r
         assert r["points"] == dict(zip(G.MEDIUM_NAMES, G.score_round(r["secret"], tuple(r["guesses"].values()))))
         assert set(r["private_notes"][a]) == {"speak", "guess"}
     ind = rec["scores"]["individual"]
@@ -131,7 +138,7 @@ async def test_run_is_resumable_and_retries_failed_games(tmp_path):
     counts = await run_games(specs, Broken(), tmp_path, log=quiet)
     assert counts == {"complete": 0, "failed": 4}
     failed = json.loads(failed_path(tmp_path, specs[0].game_id).read_text())
-    assert failed["rounds_done"] == 0 and failed["tokens"]["calls"] == 1
+    assert failed["rounds_done"] == 0 and failed["tokens"]["calls"] == 4  # four simultaneous posts
     assert [a["raw"] for a in failed["calls"][0]["attempts"]] == ["no", "no", "no"]
 
     counts = await run_games(specs, ScriptedModel(seed=8), tmp_path, log=quiet)
@@ -166,13 +173,66 @@ async def test_guess_call_sees_own_speak_note_from_this_round_only():
     rec = await play_game(spec, ScriptedModel(seed=13))
     guess_calls = [c for c in rec["calls"] if c["phase"] == "guess" and c["round"] == 4]
     for c in guess_calls:
-        own = rec["rounds"][3]["private_notes"][c["medium"]]["speak"]
+        own = rec["rounds"][3]["private_notes"][c["medium"]]["speak"][0]
         assert json.dumps(own, ensure_ascii=False) in c["user_prompt"]
         for other, notes in rec["rounds"][3]["private_notes"].items():
-            if other != c["medium"] and notes["speak"] != own:
-                assert json.dumps(notes["speak"], ensure_ascii=False) not in c["user_prompt"]
+            if other != c["medium"] and notes["speak"][0] != own:
+                assert json.dumps(notes["speak"][0], ensure_ascii=False) not in c["user_prompt"]
     speak_calls = [c for c in rec["calls"] if c["phase"] == "speak" and c["round"] == 4]
-    assert all("when you spoke this round" not in c["user_prompt"] for c in speak_calls)
+    assert all("from posting this round" not in c["user_prompt"] for c in speak_calls)
+
+
+@pytest.mark.parametrize("phases", [1, 2])
+async def test_posting_is_simultaneous(phases):
+    spec = build_specs(0, 1, 0, seed=14, posting_phases=phases)[0]
+    rec = await play_game(spec, ScriptedModel(seed=14))
+    assert rec["settings"]["posting_mode"] == "simultaneous"
+    assert rec["settings"]["posting_phases"] == phases
+    assert rec["tokens"]["calls"] == G.N_ROUNDS * G.N_MEDIUMS * (phases + 1)
+    for r in rec["rounds"]:
+        assert [m["phase"] for m in r["messages"]] == [k for k in range(1, phases + 1) for _ in range(4)]
+        for k in range(1, phases + 1):
+            speak = [c for c in rec["calls"] if c["round"] == r["round"] and c["posting_phase"] == k]
+            assert len(speak) == 4
+            for c in speak:
+                now = c["user_prompt"].split("(now):", 1)[1]
+                # Nobody sees a message from the phase they are writing in.
+                assert f"Messages, posting {k} of" not in now
+                if k == 1:
+                    assert "Messages" not in now and "everyone writes at the same time" in now
+                else:
+                    assert f"Messages, posting {k - 1} of {phases}:" in now
+                    for m in r["messages"]:
+                        if m["phase"] == k - 1:
+                            assert f'{m["speaker"]}: {json.dumps(m["text"], ensure_ascii=False)}' in now
+        assert len(r["private_notes"]["Ada"]["speak"]) == phases
+
+
+def test_main_study_specs_are_fixed():
+    specs = build_main_study()
+    assert len(specs) == 106 and len({s.game_id for s in specs}) == 106
+    by = {c: sorted(s.seed for s in specs if s.condition == c) for c in (CLEAN, COALITION, POSITIVE_CONTROL)}
+    assert by[CLEAN] == list(range(0, 50))
+    assert by[COALITION] == list(range(50, 100))
+    assert by[POSITIVE_CONTROL] == list(range(100, 106))
+    for s in specs:
+        assert s.posting_phases == 1
+        if s.allies is not None:
+            assert s.allies == pair_from_seed(s.seed)
+    assert build_main_study() == specs  # same ids, pairs and seeds every time
+    assert [s.condition for s in specs] != sorted(s.condition for s in specs)  # ids shuffled
+    assert len({s.allies for s in specs if s.allies}) == 6  # every pair appears
+
+
+def test_pilot_seeds_avoid_the_main_study():
+    for seed in range(20):
+        for s in build_specs(5, 5, 2, seed=seed):
+            assert s.seed >= PILOT_SEED_MIN > MAIN_SEED_LIMIT
+            assert s.game_id.startswith("p")
+
+
+def test_cli_main_study_refuses_extra_counts(tmp_path):
+    assert main(["--out", str(tmp_path / "m"), "--fake", "--main-study", "--clean", "3"]) == 2
 
 
 def test_empty_manifest_is_never_written(tmp_path, capsys):
@@ -189,8 +249,8 @@ def test_cli_fake_run_and_resume(tmp_path, capsys):
     assert main(["--out", str(out), "--fake", "--clean", "2", "--coalition", "2", "--positive", "1", "--seed", "3"]) == 0
     manifest = json.loads((out / MANIFEST).read_text())
     assert len(manifest["games"]) == 5
-    assert len(list((out / "games").glob("g*.json"))) == 5
+    assert len(list((out / "games").glob("p*.json"))) == 5
     # Resuming ignores new game-list arguments and plays nothing new.
     assert main(["--out", str(out), "--fake", "--clean", "9", "--seed", "3"]) == 0
-    assert len(list((out / "games").glob("g*.json"))) == 5
+    assert len(list((out / "games").glob("p*.json"))) == 5
     assert "5 of 5 games already done" in capsys.readouterr().out

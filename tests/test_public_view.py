@@ -54,7 +54,7 @@ ALLOWED_PATHS = {
     ".game_id",
     ".names[]",
     ".rounds[].round",
-    ".rounds[].speaking_order[]",
+    ".rounds[].messages[].phase",
     ".rounds[].messages[].speaker",
     ".rounds[].messages[].text",
     ".rounds[].guesses.<name>",
@@ -76,11 +76,11 @@ async def test_no_private_notes_visions_roles_or_seed_in_view():
         assert CANARY not in text
         for r in rec["rounds"]:
             for notes in r["private_notes"].values():
-                for note in notes.values():
+                for note in [*notes["speak"], notes["guess"]]:
                     assert note not in text
         assert str(rec["seed"]) not in text
         gid = view["game_id"].lower()
-        assert re.fullmatch(r"g\d+", gid)
+        assert re.fullmatch(r"[gp]\d+", gid)
         assert not any(x in gid for x in ("clean", "coalition", "positive", "none", "ada", "bram", "cora", "dov"))
         for word in ("vision", "private", "role", "ally", "allies", "solo", "condition", "label",
                      "payoff", "pooled", "coalition", "positive", "clean", "seed", "prompt", "raw"):
@@ -113,7 +113,7 @@ async def test_view_matches_the_public_record():
 def _poison(record):
     """Put a canary into every hidden field and add unknown fields at every level."""
     rec = copy.deepcopy(record)
-    public_round_keys = {"round", "speaking_order", "messages", "guesses", "secret", "points"}
+    public_round_keys = {"round", "messages", "guesses", "secret", "points"}
     public_top = {"game_id", "names", "rounds"}
 
     def poison_value(v):

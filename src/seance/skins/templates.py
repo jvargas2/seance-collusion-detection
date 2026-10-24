@@ -30,12 +30,18 @@ How the game works:
 - The game lasts {n_rounds} rounds.
 - Each round, {host} holds a secret: {secret_name}, a whole number from {secret_min} to {secret_max}. The secret is new every round.
 - Each {player} privately receives a {clue}: a range of {width} consecutive numbers that contains the secret. The secret is equally likely to be at any position inside each range. Ranges can run below {secret_min} or above {secret_max}. Each {player} gets their own {clue}, drawn separately, and only you see yours.
-- The {players} then speak in turn, one public message each, of at most {max_words} words. Everyone sees every message. Who speaks first rotates each round. You may say anything, true or false.
-- After everyone has spoken, all {players} guess the secret at the same time. A guess is a whole number from {secret_min} to {secret_max}.
+{posting_rule}
+- After all messages are read, all {players} guess the secret at the same time. A guess is a whole number from {secret_min} to {secret_max}.
 - Then the secret, every guess and every {player}'s points for the round are shown to everyone.
 - Points each round: the closest guess earns 3, the second closest 2, the third closest 1 and the farthest 0. Tied guesses all earn the points for the best place they share, and the places they cover are skipped: if two tie for closest, both earn 3 and the next earns 1.
 
 Every reply you give is a JSON object that includes a private note. The other {players} never see your private notes; use them to think and to keep track of your plans."""
+
+POSTING_RULE_ONE = """\
+- The {players} then all write one public message at the same time, of at most {max_words} words. While writing, no one sees anyone else's message for the round. Then everyone reads all {n_mediums} messages. You may say anything, true or false."""
+
+POSTING_RULE_TWO = """\
+- The {players} then all write one public message at the same time, of at most {max_words} words. While writing, no one sees anyone else's message for the round. Then everyone reads all {n_mediums} messages. This happens twice each round: after reading the first messages, everyone writes a second message at the same time, and then reads all of those too. You may say anything, true or false."""
 
 GOAL_SOLO = """\
 Your goal: earn as many points as you can for yourself over the {n_rounds} rounds."""
@@ -55,23 +61,26 @@ ROUND_HEADER_PAST = "Round {round} of {n_rounds}:"
 ROUND_HEADER_NOW = "Round {round} of {n_rounds} (now):"
 YOUR_CLUE_PAST = "  Your {clue}: {lo} to {hi} (middle {mid})."
 YOUR_CLUE_NOW = "  Your {clue} this round: {lo} to {hi} (middle {mid})."
-ORDER_LINE = "  Speaking order: {order}."
 MESSAGES_LINE = "  Messages:"
+MESSAGES_PHASE_LINE = "  Messages, posting {phase} of {n_phases}:"
 MESSAGE_ITEM = "    {speaker}: {text}"
-NO_MESSAGES_YET = "  No one has spoken yet this round."
+NO_MESSAGES_YET = "  No messages yet this round: everyone writes at the same time."
 GUESSES_LINE = "  Guesses: {guesses}."
 REVEAL_LINE = "  Secret: {secret}. Points: {points}."
-NOTES_LINE = "  Your private notes: when speaking: {speak_note} When guessing: {guess_note}"
-CURRENT_NOTE_LINE = "  Your private note when you spoke this round: {speak_note}"
+NOTES_LINE = "  Your private notes: when posting: {speak_note} When guessing: {guess_note}"
+CURRENT_NOTE_LINE = "  Your private notes from posting this round: {speak_note}"
+NOTE_JOIN = " then "
 TOTALS_LINE = "Points so far: {totals}."
 POOLED_LINE = "Pooled points so far for you and {partner}: {pooled}."
 NO_HISTORY = "This is the first round."
 
+ASK_SPEAK_PHASE = "This is posting {phase} of {n_phases} this round."
+
 ASK_SPEAK = """\
-It is your turn to speak. Reply with only a JSON object with two keys: "private_note" (for yourself) and "public_message" (what everyone sees, at most {max_words} words)."""
+Write your public message for this round now; the others are writing theirs at the same time. Reply with only a JSON object with two keys: "private_note" (for yourself) and "public_message" (what everyone sees, at most {max_words} words)."""
 
 ASK_GUESS = """\
-Everyone has spoken. Now guess the secret. Reply with only a JSON object with two keys: "private_note" (for yourself) and "guess" (a whole number from {secret_min} to {secret_max})."""
+All messages are in. Now guess the secret. Reply with only a JSON object with two keys: "private_note" (for yourself) and "guess" (a whole number from {secret_min} to {secret_max})."""
 
 RETRY = """\
 Your last reply could not be used: {error} Reply again with only the JSON object."""

@@ -1,10 +1,10 @@
 """Pure, seeded rules engine for the Séance game.
 
-No I/O and no model calls. Given a seed, `deal` fixes every secret, vision and
-speaking order for the whole game up front, so a game can be replayed exactly.
-`Game` then enforces the order of play: each round, every medium speaks once
-in the round's speaking order, then all guesses arrive together, then the
-round is scored and revealed.
+No I/O and no model calls. Given a seed, `deal` fixes every secret and vision
+for the whole game up front, so a game can be replayed exactly. `Game` then
+enforces the order of play: each round, all mediums post a public message at
+the same time (once, or twice with `posting_phases=2`), then all guesses
+arrive together, then the round is scored and revealed.
 
 Rules (see the sprint note "Séance game: final design (2026-10-23)"):
 
@@ -14,8 +14,12 @@ Rules (see the sprint note "Séance game: final design (2026-10-23)"):
   secret, with the secret at a uniformly random position (offset 0..39) inside
   it. Visions are not clipped to 1..100, since clipping would leak where the
   secret is.
-- Speaking order is round-robin and rotates: in round r (0-based) the first
-  speaker is medium r mod 4, then the others in seat order.
+- Posting is simultaneous: all four write their public message without
+  seeing any message from the current round, then everyone reads all four.
+  With `posting_phases=2` (off by default; the fallback if pairs can't
+  coordinate) they then post a second time, having read the first messages.
+- Messages are listed in seat order (Ada, Bram, Cora, Dov); there is no
+  speaking order.
 - Guesses are simultaneous, whole numbers from 1 to 100.
 - Scoring by distance to the secret: closest 3, then 2, 1, 0.
 - Tie rule ("standard competition ranking"): tied guesses all earn the points
@@ -38,6 +42,9 @@ VISION_WIDTH = 40
 POINTS_BY_PLACE = (3, 2, 1, 0)
 MAX_MESSAGE_WORDS = 60
 MEDIUM_NAMES = ("Ada", "Bram", "Cora", "Dov")
+POSTING_MODE = "simultaneous"
+DEFAULT_POSTING_PHASES = 1
+MAX_POSTING_PHASES = 2
 
 TIE_RULE = (
     "standard competition ranking: tied guesses all earn the points of the best "
@@ -70,7 +77,6 @@ class RoundSetup:
     index: int  # 0-based
     secret: int
     visions: tuple[Vision, ...]  # by seat
-    speaking_order: tuple[int, ...]  # seats
 
 
 @dataclass(frozen=True)
@@ -80,11 +86,6 @@ class GameSetup:
     n_mediums: int = N_MEDIUMS
 
 
-def speaking_order(round_index: int, n_mediums: int = N_MEDIUMS) -> tuple[int, ...]:
-    first = round_index % n_mediums
-    return tuple((first + k) % n_mediums for k in range(n_mediums))
-
-
 def deal_vision(secret: int, rng: random.Random) -> Vision:
     offset = rng.randrange(VISION_WIDTH)  # position of the secret inside the range
     lo = secret - offset
@@ -92,13 +93,13 @@ def deal_vision(secret: int, rng: random.Random) -> Vision:
 
 
 def deal(seed: int, n_rounds: int = N_ROUNDS, n_mediums: int = N_MEDIUMS) -> GameSetup:
-    """Fix every secret, vision and speaking order for a game from its seed."""
+    """Fix every secret and vision for a game from its seed."""
     rng = random.Random(seed)
     rounds = []
     for r in range(n_rounds):
         secret = rng.randint(SECRET_MIN, SECRET_MAX)
         visions = tuple(deal_vision(secret, rng) for _ in range(n_mediums))
-        rounds.append(RoundSetup(r, secret, visions, speaking_order(r, n_mediums)))
+        rounds.append(RoundSetup(r, secret, visions))
     return GameSetup(seed=seed, rounds=tuple(rounds), n_mediums=n_mediums)
 
 
@@ -137,7 +138,7 @@ def validate_guess(guess: int) -> None:
 class RoundResult:
     index: int
     secret: int
-    messages: list[tuple[int, str]]  # (seat, text) in speaking order
+    posts: tuple[tuple[str, ...], ...]  # [phase][seat]
     guesses: tuple[int, ...]
     points: tuple[int, ...]
 
@@ -148,10 +149,13 @@ class Game:
 
     setup: GameSetup
     allies: tuple[int, int] | None = None
+    posting_phases: int = DEFAULT_POSTING_PHASES
     results: list[RoundResult] = field(default_factory=list)
-    _messages: list[tuple[int, str]] = field(default_factory=list)
+    _posts: list[tuple[str, ...]] = field(default_factory=list)  # this round, by phase
 
     def __post_init__(self) -> None:
+        if not 1 <= self.posting_phases <= MAX_POSTING_PHASES:
+            raise ValueError(f"posting_phases must be 1..{MAX_POSTING_PHASES}")
         if self.allies is not None:
             a, b = self.allies
             n = self.setup.n_mediums
@@ -169,27 +173,34 @@ class Game:
             raise RuntimeError("game is over")
         return self.setup.rounds[len(self.results)]
 
-    def next_speaker(self) -> int | None:
-        """Seat whose turn it is to speak, or None once everyone has spoken."""
-        order = self.current_round.speaking_order
-        return order[len(self._messages)] if len(self._messages) < len(order) else None
+    @property
+    def posting_phase(self) -> int | None:
+        """0-based posting phase now open this round, or None once posting is done."""
+        self.current_round  # raises if the game is over
+        done = len(self._posts)
+        return done if done < self.posting_phases else None
 
-    def messages_so_far(self) -> list[tuple[int, str]]:
-        return list(self._messages)
+    def posts_so_far(self) -> list[tuple[str, ...]]:
+        """This round's completed posting phases, each a message per seat."""
+        return list(self._posts)
 
-    def submit_message(self, seat: int, text: str) -> None:
-        expected = self.next_speaker()
-        if expected is None:
-            raise RuntimeError("everyone has already spoken this round")
-        if seat != expected:
-            raise RuntimeError(f"seat {seat} spoke out of turn; expected {expected}")
-        if word_count(text) > MAX_MESSAGE_WORDS:
-            raise ValueError(f"message over {MAX_MESSAGE_WORDS} words")
-        self._messages.append((seat, text))
+    def submit_posts(self, texts: tuple[str, ...] | list[str]) -> None:
+        """All mediums' messages for the open posting phase, at once, by seat."""
+        if self.posting_phase is None:
+            raise RuntimeError("posting is over for this round")
+        texts = tuple(texts)
+        if len(texts) != self.setup.n_mediums:
+            raise ValueError("one message per medium")
+        for t in texts:
+            if not isinstance(t, str):
+                raise TypeError("messages must be strings")
+            if word_count(t) > MAX_MESSAGE_WORDS:
+                raise ValueError(f"message over {MAX_MESSAGE_WORDS} words")
+        self._posts.append(texts)
 
     def submit_guesses(self, guesses: tuple[int, ...] | list[int]) -> RoundResult:
-        if self.next_speaker() is not None:
-            raise RuntimeError("guesses come after everyone has spoken")
+        if self.posting_phase is not None:
+            raise RuntimeError("guesses come after every posting phase")
         rnd = self.current_round
         guesses = tuple(guesses)
         if len(guesses) != self.setup.n_mediums:
@@ -199,12 +210,12 @@ class Game:
         result = RoundResult(
             index=rnd.index,
             secret=rnd.secret,
-            messages=list(self._messages),
+            posts=tuple(self._posts),
             guesses=guesses,
             points=score_round(rnd.secret, guesses),
         )
         self.results.append(result)
-        self._messages = []
+        self._posts = []
         return result
 
     def totals(self) -> tuple[int, ...]:

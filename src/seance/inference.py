@@ -28,6 +28,7 @@ class Completion:
     completion_tokens: int = 0
     latency_s: float = 0.0
     finish_reason: str | None = None
+    reasoning_chars: int = 0  # thinking text returned (separately or as <think> in the content)
 
 
 class ChatClient(Protocol):
@@ -49,6 +50,17 @@ class InferenceSettings:
     extra_body: dict[str, Any] = field(default_factory=dict)
     timeout_s: float = 120.0
     http_retries: int = 4
+    # Qwen3-family thinking mode, sent as vLLM's chat_template_kwargs.enable_thinking.
+    # False by default: thinking multiplies output tokens 5-10x. None sends nothing
+    # (for providers that reject the field; set their equivalent in extra_body).
+    enable_thinking: bool | None = False
+
+    def request_extra_body(self) -> dict[str, Any]:
+        body = json.loads(json.dumps(self.extra_body))  # deep copy
+        if self.enable_thinking is not None:
+            kwargs = body.setdefault("chat_template_kwargs", {})
+            kwargs["enable_thinking"] = self.enable_thinking
+        return body
 
     def describe(self) -> dict[str, Any]:
         """Settings safe to write into a game record (no key)."""
@@ -58,7 +70,8 @@ class InferenceSettings:
             "temperature": self.temperature,
             "max_tokens": self.max_tokens,
             "json_mode": self.json_mode,
-            "extra_body": self.extra_body,
+            "enable_thinking": self.enable_thinking,
+            "extra_body": self.request_extra_body(),
         }
 
 
@@ -84,6 +97,9 @@ def load_settings(
     missing = [prefix + k for k in ("BASE_URL", "API_KEY", "MODEL") if not get(k)]
     if missing:
         raise RuntimeError(f"missing {', '.join(missing)}: copy .env.example to .env and fill it in")
+    thinking = (get("ENABLE_THINKING", "false") or "").strip().lower()
+    if thinking not in ("true", "false", "unset"):
+        raise RuntimeError(f"{prefix}ENABLE_THINKING must be true, false or unset")
     json_mode = get("JSON_MODE", "json_schema")
     if json_mode not in JSON_MODES:
         raise RuntimeError(f"{prefix}JSON_MODE must be one of {JSON_MODES}")
@@ -97,6 +113,7 @@ def load_settings(
         extra_body=json.loads(get("EXTRA_BODY", "{}")),
         timeout_s=float(get("TIMEOUT_S", "120")),
         http_retries=int(get("HTTP_RETRIES", "4")),
+        enable_thinking={"true": True, "false": False, "unset": None}[thinking],
     )
 
 
@@ -139,14 +156,21 @@ class OpenAICompatClient:
         fmt = self._response_format(schema_name, schema)
         if fmt is not None:
             kwargs["response_format"] = fmt
-        if self.settings.extra_body:
-            kwargs["extra_body"] = self.settings.extra_body
+        extra_body = self.settings.request_extra_body()
+        if extra_body:
+            kwargs["extra_body"] = extra_body
         start = time.monotonic()
         resp = await self._client.chat.completions.create(**kwargs)
         choice = resp.choices[0]
         usage = resp.usage
+        text = choice.message.content or ""
+        reasoning = getattr(choice.message, "reasoning_content", None) or getattr(choice.message, "reasoning", None)
+        reasoning_chars = len(reasoning) if isinstance(reasoning, str) else 0
+        if "<think>" in text or "</think>" in text:
+            reasoning_chars += len(text.split("</think>", 1)[0])
         return Completion(
-            text=choice.message.content or "",
+            text=text,
+            reasoning_chars=reasoning_chars,
             model=resp.model or self.model,
             prompt_tokens=getattr(usage, "prompt_tokens", 0) or 0,
             completion_tokens=getattr(usage, "completion_tokens", 0) or 0,

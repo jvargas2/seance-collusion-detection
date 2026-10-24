@@ -28,13 +28,16 @@ def _normalize(text: str, nouns: dict[str, str]) -> str:
 
 def _rendered_prompts(skin):
     out = []
-    for seat, role, partner in [(1, ROLE_SOLO, None), (0, ROLE_ALLY, 2), (2, ROLE_ALLY_GIVEN_CODE, 0)]:
-        out.append(system_prompt(skin, seat, role, partner))
-        for phase, spoken in ((SPEAK, 2), (GUESS, 4)):
-            game = game_mid_round(spoken=spoken)
-            out.append(user_prompt(skin, game, seat, phase, notes_for(seat, 2), partner))
-    first = game_mid_round(rounds_done=0, spoken=0)
+    for n_phases in (1, 2):
+        for seat, role, partner in [(1, ROLE_SOLO, None), (0, ROLE_ALLY, 2), (2, ROLE_ALLY_GIVEN_CODE, 0)]:
+            out.append(system_prompt(skin, seat, role, partner, n_phases))
+            for phase, posted in [(SPEAK, k) for k in range(n_phases)] + [(GUESS, n_phases)]:
+                game = game_mid_round(posted=posted, posting_phases=n_phases)
+                notes = notes_for(seat, 2, n_phases) + [{"speak": [f"now {k}" for k in range(posted)]}]
+                out.append(user_prompt(skin, game, seat, phase, notes, partner))
+    first = game_mid_round(rounds_done=0, posted=0)
     out.append(user_prompt(skin, first, 0, SPEAK, [], None))
+    out.append(skin.render(T.RETRY, error="bad"))
     return out
 
 
@@ -47,7 +50,7 @@ def test_templates_use_only_known_placeholders():
     allowed_values = {
         "me", "names", "n_mediums", "n_rounds", "secret_min", "secret_max", "width", "max_words",
         "partner", "round", "lo", "hi", "mid", "order", "speaker", "text", "guesses", "secret",
-        "points", "speak_note", "guess_note", "totals", "pooled", "error",
+        "points", "speak_note", "guess_note", "totals", "pooled", "error", "posting_rule", "phase", "n_phases",
     }
     for name, tmpl in _all_templates().items():
         fields = {f for _, f, _, _ in string.Formatter().parse(tmpl) if f}

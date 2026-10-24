@@ -2,9 +2,9 @@
 
 Built by copying a whitelist of public fields out of a game record, never by
 deleting hidden ones, so a field added to records later stays hidden unless
-it is added here on purpose. The monitor sees, per round: the speaking
-order, the public messages, every guess, the secret and each medium's
-points; and each medium's individual running total.
+it is added here on purpose. The monitor sees, per round: the
+public messages (with their posting phase), every guess, the secret and
+each medium's points; and each medium's individual running total.
 
 It never sees visions, private notes, roles, the condition or label, the
 allies, pooled payoffs, prompts, raw model output or the seed (the seed would
@@ -18,7 +18,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-PUBLIC_VIEW_VERSION = 1
+PUBLIC_VIEW_VERSION = 2
 
 
 def public_view(record: dict[str, Any]) -> dict[str, Any]:
@@ -28,9 +28,9 @@ def public_view(record: dict[str, Any]) -> dict[str, Any]:
         rounds.append(
             {
                 "round": int(r["round"]),
-                "speaking_order": [str(n) for n in r["speaking_order"]],
                 "messages": [
-                    {"speaker": str(m["speaker"]), "text": str(m["text"])} for m in r["messages"]
+                    {"phase": int(m["phase"]), "speaker": str(m["speaker"]), "text": str(m["text"])}
+                    for m in r["messages"]
                 ],
                 "guesses": {n: int(r["guesses"][n]) for n in names},
                 "secret": int(r["secret"]),
@@ -53,8 +53,13 @@ def render_text(view: dict[str, Any]) -> str:
     for r in view["rounds"]:
         lines.append("")
         lines.append(f"Round {r['round']}:")
-        for m in r["messages"]:
-            lines.append(f"  {m['speaker']}: {json.dumps(m['text'], ensure_ascii=False)}")
+        phases = sorted({m["phase"] for m in r["messages"]})
+        for k in phases:
+            if len(phases) > 1:
+                lines.append(f"  Messages, posting {k} of {len(phases)}:")
+            for m in r["messages"]:
+                if m["phase"] == k:
+                    lines.append(f"  {m['speaker']}: {json.dumps(m['text'], ensure_ascii=False)}")
         lines.append("  Guesses: " + ", ".join(f"{n} {g}" for n, g in r["guesses"].items()) + ".")
         lines.append(
             f"  Secret: {r['secret']}. Points: "

@@ -16,6 +16,7 @@ from typing import Any
 
 from .conditions import ROLE_ALLY, ROLE_ALLY_GIVEN_CODE, ROLE_SOLO
 from .game import (
+    DEFAULT_POSTING_PHASES,
     MAX_MESSAGE_WORDS,
     MEDIUM_NAMES,
     N_ROUNDS,
@@ -62,7 +63,9 @@ def _join_names(names: list[str]) -> str:
     return ", ".join(names[:-1]) + " and " + names[-1] if len(names) > 1 else names[0]
 
 
-def system_prompt(skin: Skin, seat: int, role: str, partner: int | None) -> str:
+def system_prompt(
+    skin: Skin, seat: int, role: str, partner: int | None, posting_phases: int = DEFAULT_POSTING_PHASES
+) -> str:
     common = dict(
         n_mediums=len(MEDIUM_NAMES),
         n_rounds=N_ROUNDS,
@@ -71,8 +74,16 @@ def system_prompt(skin: Skin, seat: int, role: str, partner: int | None) -> str:
         width=VISION_WIDTH,
         max_words=MAX_MESSAGE_WORDS,
     )
+    posting = {1: T.POSTING_RULE_ONE, 2: T.POSTING_RULE_TWO}[posting_phases]
+    posting_rule = skin.render(posting, n_mediums=common["n_mediums"], max_words=common["max_words"])
     parts = [
-        skin.render(T.RULES, me=MEDIUM_NAMES[seat], names=_join_names(list(MEDIUM_NAMES)), **common)
+        skin.render(
+            T.RULES,
+            me=MEDIUM_NAMES[seat],
+            names=_join_names(list(MEDIUM_NAMES)),
+            posting_rule=posting_rule,
+            **common,
+        )
     ]
     if role == ROLE_SOLO:
         if partner is not None:
@@ -98,20 +109,38 @@ def _quote(text: str) -> str:
     return json.dumps(text, ensure_ascii=False)
 
 
+def _posts_lines(posts: tuple[tuple[str, ...], ...] | list[tuple[str, ...]], n_phases: int) -> list[str]:
+    lines = []
+    for k, texts in enumerate(posts):
+        if n_phases == 1:
+            lines.append(T.MESSAGES_LINE)
+        else:
+            lines.append(T.MESSAGES_PHASE_LINE.format(phase=k + 1, n_phases=n_phases))
+        for speaker, text in enumerate(texts):
+            lines.append(T.MESSAGE_ITEM.format(speaker=MEDIUM_NAMES[speaker], text=_quote(text)))
+    return lines
+
+
+def _speak_notes(round_notes: dict) -> str:
+    return T.NOTE_JOIN.join(_quote(n) for n in round_notes.get(SPEAK, []))
+
+
 def user_prompt(
     skin: Skin,
     game: Game,
     seat: int,
     phase: str,
-    notes: list[dict[str, str]],
+    notes: list[dict],
     partner: int | None,
 ) -> str:
     """Everything `seat` may know right now: the public record so far, its own
     visions and its own earlier private notes. Nothing about anyone else's.
 
-    `notes[r]` holds the seat's notes for round r (0-based); at guess time the
-    current round's entry may already hold this round's speak note."""
+    `notes[r]` holds the seat's notes for round r (0-based): {"speak": [one
+    note per posting phase], "guess": note}. The current round's entry holds
+    whatever this seat has written so far this round."""
     n_rounds = len(game.setup.rounds)
+    n_phases = game.posting_phases
     lines: list[str] = []
     if not game.results:
         lines.append(T.NO_HISTORY)
@@ -119,18 +148,12 @@ def user_prompt(
         v = game.setup.rounds[res.index].visions[seat]
         lines.append(T.ROUND_HEADER_PAST.format(round=res.index + 1, n_rounds=n_rounds))
         lines.append(skin.render(T.YOUR_CLUE_PAST, lo=v.lo, hi=v.hi, mid=v.middle))
-        lines.append(T.MESSAGES_LINE)
-        for speaker, text in res.messages:
-            lines.append(T.MESSAGE_ITEM.format(speaker=MEDIUM_NAMES[speaker], text=_quote(text)))
+        lines.extend(_posts_lines(res.posts, n_phases))
         lines.append(T.GUESSES_LINE.format(guesses=_seq(res.guesses)))
         lines.append(T.REVEAL_LINE.format(secret=res.secret, points=_seq(res.points)))
         if res.index < len(notes):
             n = notes[res.index]
-            lines.append(
-                T.NOTES_LINE.format(
-                    speak_note=_quote(n.get(SPEAK, "")), guess_note=_quote(n.get(GUESS, ""))
-                )
-            )
+            lines.append(T.NOTES_LINE.format(speak_note=_speak_notes(n), guess_note=_quote(n.get(GUESS, ""))))
     if game.results:
         totals = game.totals()
         lines.append(T.TOTALS_LINE.format(totals=_seq(totals)))
@@ -144,20 +167,23 @@ def user_prompt(
     lines.append("")
     lines.append(T.ROUND_HEADER_NOW.format(round=rnd.index + 1, n_rounds=n_rounds))
     lines.append(skin.render(T.YOUR_CLUE_NOW, lo=v.lo, hi=v.hi, mid=v.middle))
-    lines.append(T.ORDER_LINE.format(order=", ".join(MEDIUM_NAMES[s] for s in rnd.speaking_order)))
-    so_far = game.messages_so_far()
+    so_far = game.posts_so_far()
     if so_far:
-        lines.append(T.MESSAGES_LINE)
-        for speaker, text in so_far:
-            lines.append(T.MESSAGE_ITEM.format(speaker=MEDIUM_NAMES[speaker], text=_quote(text)))
+        lines.extend(_posts_lines(so_far, n_phases))
     else:
         lines.append(T.NO_MESSAGES_YET)
-    if phase == GUESS and rnd.index < len(notes) and SPEAK in notes[rnd.index]:
-        lines.append(T.CURRENT_NOTE_LINE.format(speak_note=_quote(notes[rnd.index][SPEAK])))
+    if rnd.index < len(notes) and notes[rnd.index].get(SPEAK):
+        lines.append(T.CURRENT_NOTE_LINE.format(speak_note=_speak_notes(notes[rnd.index])))
     lines.append("")
     if phase == SPEAK:
+        if game.posting_phase is None:
+            raise RuntimeError("posting is over for this round")
+        if n_phases > 1:
+            lines.append(T.ASK_SPEAK_PHASE.format(phase=game.posting_phase + 1, n_phases=n_phases))
         lines.append(skin.render(T.ASK_SPEAK, max_words=MAX_MESSAGE_WORDS))
     elif phase == GUESS:
+        if game.posting_phase is not None:
+            raise RuntimeError("guesses come after every posting phase")
         lines.append(skin.render(T.ASK_GUESS, secret_min=SECRET_MIN, secret_max=SECRET_MAX))
     else:
         raise ValueError(f"unknown phase {phase!r}")
@@ -270,12 +296,14 @@ class CallLog:
     attempts: list[dict[str, Any]] = field(default_factory=list)
     result: dict[str, Any] | None = None
     truncated: bool = False
+    posting_phase: int | None = None  # 0-based, speak calls only
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "round": self.round + 1,
             "medium": MEDIUM_NAMES[self.seat],
             "phase": self.phase,
+            "posting_phase": None if self.posting_phase is None else self.posting_phase + 1,
             "user_prompt": self.user_prompt,
             "attempts": self.attempts,
             "result": self.result,
@@ -298,13 +326,19 @@ async def call_medium(
     game: Game,
     seat: int,
     phase: str,
-    notes: list[dict[str, str]],
+    notes: list[dict],
     partner: int | None,
     max_attempts: int = 3,
 ) -> tuple[dict, CallLog]:
     """One validated call. Raises AgentCallFailed after max_attempts bad replies."""
     user = user_prompt(skin, game, seat, phase, notes, partner)
-    log = CallLog(round=game.current_round.index, seat=seat, phase=phase, user_prompt=user)
+    log = CallLog(
+        round=game.current_round.index,
+        seat=seat,
+        phase=phase,
+        user_prompt=user,
+        posting_phase=game.posting_phase if phase == SPEAK else None,
+    )
     messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
     parse = PARSERS[phase]
     for attempt in range(1, max_attempts + 1):
@@ -316,6 +350,7 @@ async def call_medium(
             "completion_tokens": comp.completion_tokens,
             "latency_s": round(comp.latency_s, 3),
             "finish_reason": comp.finish_reason,
+            "reasoning_chars": comp.reasoning_chars,
             "error": None,
         }
         log.attempts.append(entry)

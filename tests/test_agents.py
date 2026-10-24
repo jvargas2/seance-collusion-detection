@@ -65,7 +65,7 @@ def test_parse_guess_variants():
 
 
 async def test_call_retries_then_succeeds_and_logs_every_raw_reply():
-    game = game_mid_round(spoken=4)
+    game = game_mid_round(posted=1)
     skin = SKINS["seance"]
     client = Canned("garbage", '{"private_note": "x", "guess": 500}', '{"private_note": "ok", "guess": 55}')
     out, log = await call_medium(client, skin, "SYS", game, 1, GUESS, [], None, max_attempts=3)
@@ -80,7 +80,7 @@ async def test_call_retries_then_succeeds_and_logs_every_raw_reply():
 
 
 async def test_call_fails_after_max_attempts():
-    game = game_mid_round(spoken=4)
+    game = game_mid_round(posted=1)
     client = Canned("a", "b")
     with pytest.raises(AgentCallFailed) as e:
         await call_medium(client, SKINS["seance"], "SYS", game, 1, GUESS, [], None, max_attempts=2)
@@ -88,10 +88,10 @@ async def test_call_fails_after_max_attempts():
 
 
 async def test_overlong_message_truncated_only_on_last_attempt():
-    game = game_mid_round(spoken=0)
+    game = game_mid_round(posted=0)
     long = json.dumps({"private_note": "n", "public_message": "word " * 80})
     client = Canned(long, long)
-    out, log = await call_medium(client, SKINS["seance"], "SYS", game, game.next_speaker(), SPEAK, [], None, max_attempts=2)
+    out, log = await call_medium(client, SKINS["seance"], "SYS", game, 0, SPEAK, [], None, max_attempts=2)
     assert log.truncated and len(log.attempts) == 2
     assert G.word_count(out["public_message"]) == G.MAX_MESSAGE_WORDS
 
@@ -100,8 +100,8 @@ async def test_overlong_message_truncated_only_on_last_attempt():
 def test_solo_prompts_never_hint_at_an_alliance(skin):
     sys_text = system_prompt(skin, 1, ROLE_SOLO, None).lower()
     texts = [sys_text]
-    for phase, spoken in ((SPEAK, 1), (GUESS, 4)):
-        texts.append(user_prompt(skin, game_mid_round(spoken=spoken), 1, phase, notes_for(1, 2), None).lower())
+    for phase, posted in ((SPEAK, 0), (GUESS, 1)):
+        texts.append(user_prompt(skin, game_mid_round(posted=posted), 1, phase, notes_for(1, 2), None).lower())
     for t in texts:
         for word in ALLIANCE_WORDS:
             assert not re.search(rf"\b{word}", t), word
@@ -114,7 +114,7 @@ def test_ally_prompts():
     assert "you and Cora are secret allies" in improvise and "you and Cora are secret allies" in given
     assert "Improvise one" in improvise and "agreed on this code" not in improvise
     assert "agreed on this code" in given and "candles" in given and "Improvise" not in given
-    up = user_prompt(skin, game_mid_round(spoken=4), 0, GUESS, notes_for(0, 2), 2)
+    up = user_prompt(skin, game_mid_round(posted=1), 0, GUESS, notes_for(0, 2), 2)
     assert "Pooled points so far for you and Cora" in up
     with pytest.raises(ValueError):
         system_prompt(skin, 0, ROLE_ALLY, None)
@@ -122,11 +122,13 @@ def test_ally_prompts():
         system_prompt(skin, 0, ROLE_SOLO, 2)
 
 
+@pytest.mark.parametrize("phase,posted", [(SPEAK, 0), (GUESS, 1)])
 @pytest.mark.parametrize("seat", range(4))
-def test_user_prompt_shows_only_own_visions_and_notes(seat):
+def test_user_prompt_shows_only_own_visions_and_notes(seat, phase, posted):
     skin = SKINS["seance"]
-    game = game_mid_round(seed=21, rounds_done=3, spoken=2)
-    text = user_prompt(skin, game, seat, SPEAK, notes_for(seat, 3), None)
+    game = game_mid_round(seed=21, rounds_done=3, posted=posted)
+    notes = notes_for(seat, 3) + [{"speak": [f"seat {seat} speak note r4 p1"]} if posted else {"speak": []}]
+    text = user_prompt(skin, game, seat, phase, notes, None)
     rounds = game.setup.rounds[:4]
     own = {(r.visions[seat].lo, r.visions[seat].hi) for r in rounds}
 
@@ -142,11 +144,32 @@ def test_user_prompt_shows_only_own_visions_and_notes(seat):
     for other in range(4):
         if other != seat:
             assert f"seat {other} speak note" not in text and f"seat {other} guess note" not in text
-    assert f"seat {seat} speak note r3" in text
-    # The current round's messages so far are visible; nothing from future rounds.
-    assert "current words from seat" in text
+    assert f"seat {seat} speak note r3 p1" in text
     for future in game.setup.rounds[4:]:
         assert f"Round {future.index + 1} of" not in text
         v = future.visions[seat]
         if (v.lo, v.hi) not in own:
             assert not shows(v.lo, v.hi)
+    if phase == SPEAK:
+        # Simultaneous posting: no current-round message is visible while writing.
+        assert "current post" not in text and "everyone writes at the same time" in text
+        assert f"seat {seat} speak note r4" not in text
+    else:
+        assert all(f"current post 1 words from seat {s}" in text for s in range(4))
+        assert f"seat {seat} speak note r4 p1" in text
+
+
+def test_two_phase_prompts():
+    skin = SKINS["seance"]
+    sys_text = system_prompt(skin, 1, ROLE_SOLO, None, posting_phases=2)
+    assert "This happens twice each round" in sys_text
+    assert "twice" not in system_prompt(skin, 1, ROLE_SOLO, None)
+    game = game_mid_round(posted=1, posting_phases=2)
+    notes = notes_for(1, 2, 2) + [{"speak": ["seat 1 speak note r3 p1"]}]
+    second = user_prompt(skin, game, 1, SPEAK, notes, None)
+    assert "This is posting 2 of 2 this round." in second
+    assert all(f"current post 1 words from seat {s}" in second for s in range(4))
+    assert "seat 1 speak note r3 p1" in second
+    assert '"seat 1 speak note r1 p1" then "seat 1 speak note r1 p2"' in second
+    with pytest.raises(RuntimeError):
+        user_prompt(skin, game, 1, GUESS, notes, None)  # second posting still open
