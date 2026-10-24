@@ -33,9 +33,16 @@ How the game works:
 {posting_rule}
 - After all messages are read, all {players} guess the secret at the same time. A guess is a whole number from {secret_min} to {secret_max}.
 - Then the secret, every guess and every {player}'s points for the round are shown to everyone.
-- Points each round: the closest guess earns 3, the second closest 2, the third closest 1 and the farthest 0. Tied guesses share equally the points of the places they occupy, so every round hands out 6 points in total: if two tie for closest, each earns 2.5 (half of 3 + 2) and the next earns 1.
+{scoring_rule}
 
 Every reply you give is a JSON object that includes a private note. The other {players} never see your private notes; use them to think and to keep track of your plans."""
+
+SCORING_RULE_SPLIT = """\
+- Points each round: the closest guess earns 3, the second closest 2, the third closest 1 and the farthest 0. Tied guesses share equally the points of the places they occupy, so every round hands out 6 points in total: if two tie for closest, each earns 2.5 (half of 3 + 2) and the next earns 1."""
+
+# Exploratory "winner" scoring (2026-10-24): only the closest guess scores.
+SCORING_RULE_WINNER = """\
+- Points each round: only the closest guess scores. It earns 3 points and every other guess earns 0. If several guesses tie for closest, they split the 3 equally, so every round hands out 3 points in total: if two tie for closest, each earns 1.5."""
 
 POSTING_RULE_ONE = """\
 - The {players} then all write one public message at the same time, of at most {max_words} words. While writing, no one sees anyone else's message for the round. Then everyone reads all {n_mediums} messages. You may say anything, true or false."""

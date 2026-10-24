@@ -50,7 +50,7 @@ def test_templates_use_only_known_placeholders():
     allowed_values = {
         "me", "names", "n_mediums", "n_rounds", "secret_min", "secret_max", "width", "max_words",
         "partner", "round", "lo", "hi", "mid", "speaker", "text", "guesses", "secret",
-        "points", "speak_note", "guess_note", "totals", "pooled", "error", "posting_rule", "phase", "n_phases",
+        "points", "speak_note", "guess_note", "totals", "pooled", "error", "posting_rule", "scoring_rule", "phase", "n_phases",
     }
     for name, tmpl in _all_templates().items():
         fields = {f for _, f, _, _ in string.Formatter().parse(tmpl) if f}

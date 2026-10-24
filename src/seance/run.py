@@ -63,7 +63,9 @@ def code_version() -> str:
         return "unknown"
 
 
-def _settings(skin: str, max_attempts: int, posting_phases: int) -> dict[str, Any]:
+def _settings(skin: str, max_attempts: int, posting_phases: int, scoring: str = G.DEFAULT_SCORING) -> dict[str, Any]:
+    # Only a non-default scoring rule is recorded, so default records are unchanged.
+    rule = {} if scoring == G.DEFAULT_SCORING else {"scoring": scoring, "winner_points": G.WINNER_POINTS}
     return {
         "n_mediums": G.N_MEDIUMS,
         "n_rounds": G.N_ROUNDS,
@@ -71,6 +73,7 @@ def _settings(skin: str, max_attempts: int, posting_phases: int) -> dict[str, An
         "vision_width": G.VISION_WIDTH,
         "points_by_place": list(G.POINTS_BY_PLACE),
         "tie_rule": G.TIE_RULE,
+        **rule,
         "posting_mode": G.POSTING_MODE,
         "posting_phases": posting_phases,
         "message_word_cap": G.MAX_MESSAGE_WORDS,
@@ -101,9 +104,9 @@ async def play_game(
     skin = get_skin(spec.skin)
     names = G.MEDIUM_NAMES
     setup = G.deal(spec.seed)
-    game = G.Game(setup, allies=spec.allies, posting_phases=spec.posting_phases)
+    game = G.Game(setup, allies=spec.allies, posting_phases=spec.posting_phases, scoring=spec.scoring)
     seats = range(setup.n_mediums)
-    systems = [system_prompt(skin, s, spec.role(s), spec.partner(s), spec.posting_phases) for s in seats]
+    systems = [system_prompt(skin, s, spec.role(s), spec.partner(s), spec.posting_phases, spec.scoring) for s in seats]
     notes: list[list[dict[str, Any]]] = [[] for _ in seats]  # per seat, per round
     calls: list[CallLog] = []
     rounds_out: list[dict[str, Any]] = []
@@ -180,7 +183,7 @@ async def play_game(
         "model": client.model,
         "inference": inference_settings or {},
         "enable_thinking": (inference_settings or {}).get("enable_thinking"),
-        "settings": _settings(spec.skin, max_attempts, spec.posting_phases),
+        "settings": _settings(spec.skin, max_attempts, spec.posting_phases, spec.scoring),
         "names": list(names),
         "roles": {names[s]: spec.role(s) for s in seats},
         "system_prompts": {names[s]: systems[s] for s in seats},
@@ -309,6 +312,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--positive", type=int, default=0)
     ap.add_argument("--seed", type=int, default=0, help="seed for building the game list")
     ap.add_argument("--skin", default="seance")
+    ap.add_argument("--scoring", default=G.DEFAULT_SCORING, choices=G.SCORING_RULES,
+                    help='scoring rule; "winner" (exploratory): only the closest guess scores 3, ties split it')
     ap.add_argument("--fake", action="store_true", help="use the scripted fake model (offline)")
     ap.add_argument("--concurrency", type=int, default=8, help="max in-flight model calls")
     ap.add_argument("--games-in-flight", type=int, default=8)
@@ -332,16 +337,24 @@ def main(argv: list[str] | None = None) -> int:
         if args.clean or args.coalition or args.positive:
             print("--main-study fixes the game list; drop --clean/--coalition/--positive", file=sys.stderr)
             return 2
+        if args.scoring != G.DEFAULT_SCORING:
+            print("--main-study uses the default scoring; use --replicate for another rule", file=sys.stderr)
+            return 2
         specs = build_main_study(args.skin, args.posting_phases)
     elif args.replicate:
         if args.clean or args.coalition or args.positive:
             print("--replicate fixes the game list; drop --clean/--coalition/--positive", file=sys.stderr)
             return 2
-        specs = build_replication(args.replicate, args.skin, args.posting_phases)
+        specs = build_replication(args.replicate, args.skin, args.posting_phases, args.scoring)
     else:
+        if args.scoring != G.DEFAULT_SCORING:
+            print("--scoring is only wired to --replicate", file=sys.stderr)
+            return 2
         specs = build_specs(args.clean, args.coalition, args.positive, args.seed, args.skin,
                             posting_phases=args.posting_phases)
     build_keys = ("main_study", "replicate", "clean", "coalition", "positive", "seed", "skin", "posting_phases")
+    if args.scoring != G.DEFAULT_SCORING:
+        build_keys += ("scoring",)
     meta = {"build_args": {k: getattr(args, k) for k in build_keys}, "inference": inf}
     if (args.out / MANIFEST).exists():
         prior = json.loads((args.out / MANIFEST).read_text()).get("inference", {})

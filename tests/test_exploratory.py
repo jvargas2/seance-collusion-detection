@@ -197,8 +197,8 @@ def test_message_style_counts_digits_and_number_words_by_role():
         "rounds": [{"messages": [{"speaker": "A", "text": "the clock strikes forty"}, {"speaker": "B", "text": "I see 30 to 69"}]}],
     }
     style = X.message_style([rec])
-    assert style["ally"] == {"messages": 1, "digits": 0.0, "number_words": 1.0}
-    assert style["solo"] == {"messages": 1, "digits": 1.0, "number_words": 0.0}
+    assert style["ally"] == {"messages": 1, "digits": 0.0, "number_words": 1.0, "sharing_words": 0.0}
+    assert style["solo"] == {"messages": 1, "digits": 1.0, "number_words": 0.0, "sharing_words": 0.0}
 
 
 def test_partial_views_hide_one_side_and_keep_the_prompt_honest(record):

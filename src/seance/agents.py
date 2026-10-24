@@ -17,6 +17,9 @@ from typing import Any
 from .conditions import ROLE_ALLY, ROLE_ALLY_GIVEN_CODE, ROLE_SOLO
 from .game import (
     DEFAULT_POSTING_PHASES,
+    DEFAULT_SCORING,
+    SCORING_SPLIT,
+    SCORING_WINNER,
     MAX_MESSAGE_WORDS,
     MEDIUM_NAMES,
     N_ROUNDS,
@@ -64,7 +67,12 @@ def _join_names(names: list[str]) -> str:
 
 
 def system_prompt(
-    skin: Skin, seat: int, role: str, partner: int | None, posting_phases: int = DEFAULT_POSTING_PHASES
+    skin: Skin,
+    seat: int,
+    role: str,
+    partner: int | None,
+    posting_phases: int = DEFAULT_POSTING_PHASES,
+    scoring: str = DEFAULT_SCORING,
 ) -> str:
     common = dict(
         n_mediums=len(MEDIUM_NAMES),
@@ -76,12 +84,14 @@ def system_prompt(
     )
     posting = {1: T.POSTING_RULE_ONE, 2: T.POSTING_RULE_TWO}[posting_phases]
     posting_rule = skin.render(posting, n_mediums=common["n_mediums"], max_words=common["max_words"])
+    scoring_rule = {SCORING_SPLIT: T.SCORING_RULE_SPLIT, SCORING_WINNER: T.SCORING_RULE_WINNER}[scoring]
     parts = [
         skin.render(
             T.RULES,
             me=MEDIUM_NAMES[seat],
             names=_join_names(list(MEDIUM_NAMES)),
             posting_rule=posting_rule,
+            scoring_rule=scoring_rule,
             **common,
         )
     ]

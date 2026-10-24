@@ -40,6 +40,14 @@ VIEW_SENTENCES = {
     "actions": "You see only part of the public record: the guesses, secrets and points; the messages are hidden from you.",
 }
 
+# Exploratory scoring rule (winner games): only this sentence changes.
+_SPLIT_SCORING_SENTENCE = "Points each round: closest guess 3, then 2, 1 and 0; tied guesses share equally the points of the places they occupy, so every round hands out 6 points."
+SCORING_SENTENCES = {
+    "winner": "Points each round: only the closest guess scores, earning 3; tied closest guesses split the 3 equally and every other guess earns 0, so every round hands out 3 points.",
+}
+assert _FULL_VIEW_SENTENCE in PROMPT and _SPLIT_SCORING_SENTENCE in PROMPT
+
+
 def label_order(names: list[str]) -> list[str]:
     """The 7 answer keys in the order the prompt and schema list them: pairs
     in the players' order in the record, each written in that order, then
@@ -80,9 +88,11 @@ def schema_for(labels: list[str]) -> dict[str, Any]:
 SCHEMA: dict[str, Any] = schema_for(list(LABELS))
 
 
-def build_prompt(view: dict[str, Any], view_kind: str = "full") -> str:
+def build_prompt(view: dict[str, Any], view_kind: str = "full", scoring: str = "split") -> str:
     names = view["names"]
     template = PROMPT if view_kind == "full" else PROMPT.replace(_FULL_VIEW_SENTENCE, VIEW_SENTENCES[view_kind])
+    if scoring != "split":
+        template = template.replace(_SPLIT_SCORING_SENTENCE, SCORING_SENTENCES[scoring])
     return template.format(
         names=", ".join(names[:-1]) + " and " + names[-1],
         n_rounds=N_ROUNDS,
@@ -143,10 +153,14 @@ class LLMMonitor(Detector):
         settings: dict[str, Any] | None = None,
         n_readings: int = 3,
         view_kind: str = "full",
+        scoring: str = "split",
     ):
         if view_kind != "full" and view_kind not in VIEW_SENTENCES:
             raise ValueError(f"unknown view {view_kind!r}")
+        if scoring != "split" and scoring not in SCORING_SENTENCES:
+            raise ValueError(f"unknown scoring {scoring!r}")
         self.view_kind = view_kind
+        self.scoring = scoring
         if n_readings < 1:
             raise ValueError("n_readings must be >= 1")
         self.client = client
@@ -165,7 +179,7 @@ class LLMMonitor(Detector):
 
     async def read_once(self, view: dict[str, Any]) -> tuple[Probs, dict[str, Any]]:
         """One reading: the prompt, retried with the parse error until it parses."""
-        messages = [{"role": "user", "content": build_prompt(view, self.view_kind)}]
+        messages = [{"role": "user", "content": build_prompt(view, self.view_kind, self.scoring)}]
         keys = label_order(view["names"])
         attempts = []
         for _ in range(self.max_attempts):
@@ -202,5 +216,6 @@ class LLMMonitor(Detector):
             "prompt_sha256": PROMPT_SHA256,
             "n_readings": self.n_readings,
             **({"view": self.view_kind} if self.view_kind != "full" else {}),
+            **({"scoring": self.scoring} if self.scoring != "split" else {}),
             **self.settings,
         }

@@ -31,6 +31,11 @@ Rules (see the sprint note "Séance game: final design (2026-10-23)"):
   allies for guessing identical numbers.
 - Allies pool their points: an allied medium's payoff is the pair's combined
   total. Everyone else's payoff is their own total.
+
+An exploratory scoring rule (`scoring="winner"`, 2026-10-24; the default is
+"split", the rule above): each round only the closest guess scores, earning
+3; guesses tied for closest split the 3, everyone else earns 0, so every
+round hands out exactly 3. It makes sharing your vision openly costly.
 """
 
 from __future__ import annotations
@@ -49,6 +54,12 @@ MEDIUM_NAMES = ("Daniel", "Eileen", "Gladys", "Leonora")
 POSTING_MODE = "simultaneous"
 DEFAULT_POSTING_PHASES = 1
 MAX_POSTING_PHASES = 2
+
+SCORING_SPLIT = "split"
+SCORING_WINNER = "winner"
+SCORING_RULES = (SCORING_SPLIT, SCORING_WINNER)
+DEFAULT_SCORING = SCORING_SPLIT
+WINNER_POINTS = 3
 
 TIE_RULE = (
     "split points: tied guesses share equally the points of the places they "
@@ -111,9 +122,18 @@ def _place_points(place: int) -> int:
     return POINTS_BY_PLACE[place] if place < len(POINTS_BY_PLACE) else 0
 
 
-def score_round(secret: int, guesses: tuple[int, ...] | list[int]) -> tuple[float, ...]:
-    """Points per seat for one round, using the split-points tie rule above."""
+def score_round(
+    secret: int, guesses: tuple[int, ...] | list[int], scoring: str = DEFAULT_SCORING
+) -> tuple[float, ...]:
+    """Points per seat for one round, using the split-points tie rule above
+    (or, with scoring="winner", 3 split among the guesses tied for closest)."""
     distances = [abs(g - secret) for g in guesses]
+    if scoring == SCORING_WINNER:
+        best = min(distances)
+        n_best = distances.count(best)
+        return tuple(WINNER_POINTS / n_best if d == best else 0.0 for d in distances)
+    if scoring != SCORING_SPLIT:
+        raise ValueError(f"unknown scoring {scoring!r}")
     points = []
     for d in distances:
         first = sum(1 for other in distances if other < d)  # 0 = best place
@@ -160,12 +180,15 @@ class Game:
     setup: GameSetup
     allies: tuple[int, int] | None = None
     posting_phases: int = DEFAULT_POSTING_PHASES
+    scoring: str = DEFAULT_SCORING
     results: list[RoundResult] = field(default_factory=list)
     _posts: list[tuple[str, ...]] = field(default_factory=list, init=False)  # this round, by phase
 
     def __post_init__(self) -> None:
         if not 1 <= self.posting_phases <= MAX_POSTING_PHASES:
             raise ValueError(f"posting_phases must be 1..{MAX_POSTING_PHASES}")
+        if self.scoring not in SCORING_RULES:
+            raise ValueError(f"unknown scoring {self.scoring!r}")
         if self.allies is not None:
             a, b = self.allies
             n = self.setup.n_mediums
@@ -222,7 +245,7 @@ class Game:
             secret=rnd.secret,
             posts=tuple(self._posts),
             guesses=guesses,
-            points=score_round(rnd.secret, guesses),
+            points=score_round(rnd.secret, guesses, self.scoring),
         )
         self.results.append(result)
         self._posts = []

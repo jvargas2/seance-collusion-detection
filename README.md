@@ -87,6 +87,8 @@ Main-study results (2026-10-24):
 - **E3, renamed players** (`--names a b`, then `--gender`; Addendum 2). All four players renamed from two sets of two men's and two women's names, balanced over players: men's names per top pair 0.95 [0.77, 1.14] and 1.02 [0.83, 1.21] (chance 1), and the player who played as Daniel is in 60% and 52% of top pairs (chance 50%). No gender lean at this size; the lean was tied to the name Daniel. Results in `metrics/exploratory_names.json`.
 - **E4, neutral wording** (`seance.run --out runs/neutral --replicate 10 --skin neutral`, then `--theme runs/neutral`; Addendum 3). The first 10 clean and 10 coalition deals replayed in plain wording: ally partner weight 0.38 vs 0.37, pooled points 32.5 vs 32.3, right pair 6 of 10 in both; allies write numbers as digits more often (88% vs 76%). Results in `metrics/exploratory_theme.json`.
 
+- **E7, winner-take-all scoring** (Addendum 5; `seance.run --out runs/winner --replicate 20 --scoring winner`, then `seance.exploratory --run runs/main --scoring-run runs/winner` (paid) and `--scoring-compare runs/winner`): only the closest guess scores 3 (ties split it), so sharing is costly. The monitor reads both the winner games (its scoring sentence changed) and the same 40 main-study deals with the players renamed per deal from a pool of mediums' names. Results in `runs/winner/metrics/exploratory_scoring.json`.
+
 ## Explorer
 
 ```bash
