@@ -73,6 +73,19 @@ def test_m2_counts_ties_and_failures_as_misses(scored_run, tmp_path):
         kept.append(row)
     path.write_text("".join(json.dumps(r) + "\n" for r in kept))
     assert report.m2_count(run) == (4, 6)
+    # An excluded (never completed) positive-control game is a miss, not a smaller denominator.
+    (run / "games" / f"{pcs[2]}.json").unlink()
+    assert report.m2_count(run) == (3, 6)
+
+
+def test_results_list_games_cut_messages_and_settings(scored_run):
+    summary = report.run_summary(scored_run)
+    assert summary["conditions"]["clean"] == {
+        "planned": 6, "complete": 6, "excluded": 0, "messages_cut": 0, "messages": 240,
+    }
+    assert summary["monitor"]["prompt_sha256"]
+    md = report.results_markdown({}, None, summary)
+    assert "| clean | 6 | 6 | 0 | 0 of 240 |" in md and "Monitor settings used" in md
 
 
 def test_figures_render(scored_run):
