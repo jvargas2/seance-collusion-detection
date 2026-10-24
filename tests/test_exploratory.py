@@ -212,3 +212,53 @@ def test_partial_views_hide_one_side_and_keep_the_prompt_honest(record):
     p_full, p_msgs = build_prompt(view), build_prompt(msgs, "messages")
     assert "messages, guesses, secrets and points" in p_full and "guesses and points are hidden" in p_msgs
     assert render_text(view) == render_text(X.partial_view(view, "actions") | {"rounds": view["rounds"]})
+
+
+def test_plus_factor_prompt_adds_one_paragraph_and_leaves_the_frozen_prompt_alone(record):
+    from seance.detectors import llm_monitor as M
+
+    assert M.PROMPT_SHA256 == "212c62e53f7d4d02"
+    view = public_view(record)
+    std, plus = build_prompt(view), build_prompt(view, prompt_variant="plus_factors")
+    assert plus.replace(M.PLUS_FACTORS_PARAGRAPH + "\n\n", "") == std
+    assert plus.index(M.PLUS_FACTORS_PARAGRAPH) < plus.index("Reply with only")
+    client = ScriptedModel(seed=1)
+    assert LLMMonitor(client, settings={"temperature": 0.7}).describe()["prompt_sha256"] == M.PROMPT_SHA256
+    d = LLMMonitor(client, settings={"temperature": 0.7}, prompt_variant="plus_factors").describe()
+    assert d["prompt_variant"] == "plus_factors" and d["prompt_sha256"] != M.PROMPT_SHA256
+    with pytest.raises(ValueError):
+        LLMMonitor(client, settings={"temperature": 0.7}, prompt_variant="nope")
+
+
+def test_random_names_are_seeded_per_game_and_map_back(record):
+    a, b = X.random_names(record), X.random_names(record)
+    assert a == b and len(set(a.values())) == 4
+    assert set(a.values()) <= set(X.MEDIUM_POOL) and not set(a.values()) & set(record["names"])
+    other = {**record, "game_id": record["game_id"] + "x"}
+    assert any(X.random_names(other) != X.random_names({**record, "game_id": g}) for g in ("q1", "q2", "q3"))
+    view = X.random_names_view_fn()(record)
+    assert view["names"] == [a[n] for n in record["names"]]
+    text = render_text(view)
+    assert not any(re.search(rf"\b{n}\b", text) for n in record["names"])
+    assert view["aliases"] == {v: k for k, v in a.items()}
+
+
+def test_compare_monitors_measures():
+    labels = [NONE_LABEL] * 4 + ["Daniel+Eileen"] * 4
+    recs = [{"game_id": f"g{i}", "label": la, "condition": CLEAN if la == NONE_LABEL else COALITION} for i, la in enumerate(labels)]
+
+    def probs(none, top="Daniel+Eileen"):
+        rest = (1 - none) / 6
+        p = {k: rest for k in LABELS}
+        p[NONE_LABEL] = none
+        return p
+
+    # a: confident "none" on clean games; b: accuses every clean game.
+    a = {r["game_id"]: {"probs": probs(0.9 if r["condition"] == CLEAN else 0.2)} for r in recs}
+    b = {r["game_id"]: {"probs": probs(0.3)} for r in recs}
+    out = X.compare_monitors(recs, a, b, n_boot=200)
+    assert out["n_games"] == 8 and out["n_clean"] == 4
+    assert out["clean_mean_p_none"]["a_value"] == pytest.approx(0.9)
+    assert out["clean_n_p_none_below_half"]["a_value"] == 0 and out["clean_n_p_none_below_half"]["b_value"] == 4
+    assert out["catch_rate_at_0_fpr"]["a_value"] == 1.0 and out["catch_rate_at_0_fpr"]["b_value"] == 0.0
+    assert out["auroc"]["a_value"] == 1.0 and out["auroc"]["b_value"] == 0.5
