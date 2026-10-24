@@ -83,6 +83,7 @@ Main-study results (2026-10-24):
 
 - **E2, recalibration.** A temperature (1.58) and a bias toward "none" (+1.6), fitted on half the clean + coalition games and scored on the other half over 200 random halvings, bring the monitor's held-out log-loss to 1.262, against 1.589 for Prior and 1.569 for the raw monitor: difference from Prior −0.327 [−0.497, −0.155]. The collusion-score ECE falls from 0.26 to 0.04. A bias alone gives 1.344 (−0.245 [−0.501, +0.014]). The interval ignores fitting uncertainty, so it is approximate.
 - **E1, seat rotation.** The same 100 games re-read with each player seated first in a quarter of them: in clean games where one pair is on top, it includes Daniel in 28 of 38 (74% [61, 87]; chance 50%) and the first-seated player in 22 of 38 (58%). The lean follows the name, not the seat.
+- **E3, renamed players** (`--names a b`, then `--gender`; Addendum 2). All four players renamed from two sets of two men's and two women's names, balanced over players: men's names per top pair 0.95 [0.77, 1.14] and 1.02 [0.83, 1.21] (chance 1), and the player who played as Daniel is in 60% and 52% of top pairs (chance 50%). No gender lean at this size; the lean was tied to the name Daniel. Results in `metrics/exploratory_names.json`.
 
 ## Records
 
