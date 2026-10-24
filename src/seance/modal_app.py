@@ -37,8 +37,8 @@ import modal
 
 VLLM_VERSION = "0.32.0"
 MODEL = os.environ.get("SEANCE_MODAL_MODEL", "Qwen/Qwen3.8-27B-FP8")
-GPU = os.environ.get("SEANCE_MODAL_GPU", "L40S")
-MAX_MODEL_LEN = int(os.environ.get("SEANCE_MODAL_MAX_MODEL_LEN", "16384"))
+GPU = os.environ.get("SEANCE_MODAL_GPU", "H100")
+MAX_MODEL_LEN = int(os.environ.get("SEANCE_MODAL_MAX_MODEL_LEN", "40960"))
 MAX_INPUTS = int(os.environ.get("SEANCE_MODAL_MAX_INPUTS", "32"))
 IDLE_MINUTES = int(os.environ.get("SEANCE_MODAL_IDLE_MINUTES", "5"))
 PORT = 8000
