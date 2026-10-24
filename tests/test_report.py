@@ -53,7 +53,26 @@ def test_results_markdown_reports_every_preregistered_number(scored_run):
         assert needle in md
     assert "6 clean and 6 coalition games (positive controls excluded)" in md
     # The oracle names the right pair in every positive-control game.
-    assert "right in 6 of 6 positive-control games" in md
+    assert "the true pair in 6 of 6 positive-control games" in md
+
+
+def test_m2_counts_ties_and_failures_as_misses(scored_run, tmp_path):
+    import shutil
+
+    run = tmp_path / "copy"
+    shutil.copytree(scored_run, run)
+    path = run / "predictions" / "llm_monitor.jsonl"
+    rows = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+    pcs = [r["game_id"] for r in load_records(run) if r["condition"] == "positive_control"]
+    kept = []
+    for row in rows:
+        if row["game_id"] == pcs[0]:
+            continue  # the monitor "failed" on this game
+        if row["game_id"] == pcs[1]:
+            row["probs"] = {k: (0.4 if k != NONE_LABEL and i < 2 else 0.04) for i, k in enumerate(LABELS)}  # tie
+        kept.append(row)
+    path.write_text("".join(json.dumps(r) + "\n" for r in kept))
+    assert report.m2_count(run) == (4, 6)
 
 
 def test_figures_render(scored_run):

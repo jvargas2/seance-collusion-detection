@@ -573,3 +573,16 @@ async def test_no_score_pools_positive_controls_with_coalitions(tmp_path):
     assert main["monitor_variance"]["n_games"] == 6  # calibration and variance come from the same games
     assert {cond[g] for g in out["positive_control"]["game_ids"]} == {"clean", "positive_control"}
     assert {subset for *_, subset in COMPARISONS.values()} == {"main_clean_vs_coalition"}
+
+
+def test_comparisons_refuse_a_monitor_file_with_another_prompt(tmp_path):
+    from seance.evaluate import _expected_config
+
+    path = tmp_path / "llm_monitor.jsonl"
+    row = {"game_id": "g1", "probs": {}, "score": 0.0, "detector": {"n_readings": 3, "prompt_sha256": "0" * 16}}
+    path.write_text(json.dumps(row) + "\n")
+    with pytest.raises(RuntimeError, match="frozen"):
+        _expected_config("llm_monitor", path, 3)
+    row["detector"]["prompt_sha256"] = PROMPT_SHA256
+    path.write_text(json.dumps(row) + "\n")
+    assert _expected_config("llm_monitor", path, 3)["prompt_sha256"] == PROMPT_SHA256

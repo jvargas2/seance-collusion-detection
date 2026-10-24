@@ -41,6 +41,7 @@ from typing import Any
 from . import metrics
 from .conditions import CLEAN, COALITION, POSITIVE_CONTROL
 from .detectors import ChanceDetector, Detector, LLMMonitor, TopScorerDetector, check_probs
+from .detectors.llm_monitor import PROMPT_SHA256
 from .public_view import public_view
 from .run import GAMES_DIR
 
@@ -135,10 +136,13 @@ def _expected_config(detector: str, path: Path, n_readings: int) -> dict[str, An
         return TopScorerDetector().describe()
     # The monitor's model and settings are whatever the file holds, as long as
     # every row agrees (checked by _read_predictions) and it has the readings.
+    # The prompt is pinned too: a file scored with any other prompt is refused.
     first = next(iter(_read_predictions(path).values()), {})
     config = first.get("detector") or {}
     if config.get("n_readings") != n_readings:
         raise RuntimeError(f"{path} has {config.get('n_readings')} readings per game, not {n_readings}")
+    if config.get("prompt_sha256") != PROMPT_SHA256:
+        raise RuntimeError(f"{path} was scored with monitor prompt {config.get('prompt_sha256')}, not the frozen {PROMPT_SHA256}")
     return config
 
 

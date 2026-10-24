@@ -45,7 +45,7 @@ class InferenceSettings:
     api_key: str
     model: str
     temperature: float = 0.7
-    max_tokens: int = 1024
+    max_tokens: int = 2048
     json_mode: str = "json_schema"
     extra_body: dict[str, Any] = field(default_factory=dict)
     timeout_s: float = 120.0
@@ -108,7 +108,7 @@ def load_settings(
         api_key=get("API_KEY"),
         model=get("MODEL"),
         temperature=float(get("TEMPERATURE", "0.7")),
-        max_tokens=int(get("MAX_TOKENS", "1024")),
+        max_tokens=int(get("MAX_TOKENS", "2048")),
         json_mode=json_mode,
         extra_body=json.loads(get("EXTRA_BODY", "{}")),
         timeout_s=float(get("TIMEOUT_S", "120")),
