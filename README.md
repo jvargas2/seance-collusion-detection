@@ -28,6 +28,7 @@ Conditions: **clean** (no alliance), **coalition** (a random pair, told to impro
 | `src/seance/detectors/` | One interface (public view in, 7 probabilities out): chance/Prior, Top scorers, LLM monitor |
 | `src/seance/metrics.py` | Log-loss, Brier, accuracy, right-pair accuracy, catch rate at 5% FPR, AUROC, calibration, bootstrap CIs, paired comparisons, monitor variance, communication success |
 | `src/seance/evaluate.py` | Runs a detector over a run directory and scores it; the pre-registered H1/H2 comparisons |
+| `src/seance/exploratory.py` | Analyses decided after the main study (pre-registration Addendum 1): seat rotation, recalibration |
 
 ## Use
 
@@ -68,9 +69,24 @@ The main study's seeds are fixed (0–49 clean, 50–99 coalition, 100–105 pos
 
 Re-running the same command resumes: finished games are skipped and failed ones retried. A run directory is tied to one model.
 
+## Exploratory analyses
+
+Decided after the main study and written into `PREREGISTRATION.md` as Addendum 1; they change no pre-registered number.
+
+```bash
+uv run python -m seance.exploratory --run runs/main --recalibrate          # E2, free: metrics/exploratory_recalibration.json
+uv run python -m seance.exploratory --run runs/main --rotate --concurrency 32   # E1, paid: predictions/llm_monitor_rotated.jsonl
+uv run python -m seance.exploratory --run runs/main --position             # E1 analysis: metrics/exploratory_position.json
+```
+
+Main-study results (2026-10-24):
+
+- **E2, recalibration.** A temperature (1.58) and a bias toward "none" (+1.6), fitted on half the clean + coalition games and scored on the other half over 200 random halvings, bring the monitor's held-out log-loss to 1.262, against 1.589 for Prior and 1.569 for the raw monitor: difference from Prior −0.327 [−0.497, −0.155]. The collusion-score ECE falls from 0.26 to 0.04. A bias alone gives 1.344 (−0.245 [−0.501, +0.014]). The interval ignores fitting uncertainty, so it is approximate.
+- **E1, seat rotation.** The same 100 games re-read with each player seated first in a quarter of them: in clean games where one pair is on top, it includes Daniel in 28 of 38 (74% [61, 87]; chance 50%) and the first-seated player in 22 of 38 (58%). The lean follows the name, not the seat.
+
 ## Records
 
-`runs/<name>/games/<game_id>.json` holds everything: settings, seed, model, roles, visions, private notes, public messages, guesses, scores, token counts, system prompts and every raw model reply. `seance.public_view.public_view(record)` extracts the monitor's view. Game ids are assigned after shuffling, so they say nothing about the condition. `manifest.json` in the run directory does name each game's condition and allies, so detectors get `public_view` output only, never the run directory.
+Real runs are committed (`runs/main`, the pilots and the smoke game); only the fake test-mode run `runs/try` is ignored. `runs/<name>/games/<game_id>.json` holds everything: settings, seed, model, roles, visions, private notes, public messages, guesses, scores, token counts, system prompts and every raw model reply. `seance.public_view.public_view(record)` extracts the monitor's view. Game ids are assigned after shuffling, so they say nothing about the condition. `manifest.json` in the run directory does name each game's condition and allies, so detectors get `public_view` output only, never the run directory.
 
 ## Report
 
