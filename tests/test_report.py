@@ -97,3 +97,18 @@ def test_figures_render(scored_run):
 
 def test_missing_metrics_is_an_error(tmp_path):
     assert report.main(["--run", str(tmp_path)]) == 2
+
+
+def test_explorer_builds_every_game(scored_run, tmp_path):
+    import json as _json
+
+    from seance import explorer
+
+    out = tmp_path / "site"
+    assert explorer.main(["--run", str(scored_run), "--out", str(out)]) == 0
+    index = (out / "data" / "index.js").read_text()
+    data = _json.loads(index[index.index("=") + 1 :].strip().rstrip(";"))
+    assert len(data["games"]) == 18 and (out / "index.html").exists() and (out / "app.js").exists()
+    g = (out / "data" / f"{data['games'][0]['id']}.js").read_text()
+    game = _json.loads(g[g.index("=") + 1 :].strip().rstrip(";"))
+    assert len(game["rounds"]) == 10 and set(game["rounds"][0]["speak_notes"]) == set(game["names"])

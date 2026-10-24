@@ -28,6 +28,7 @@ Conditions: **clean** (no alliance), **coalition** (a random pair, told to impro
 | `src/seance/detectors/` | One interface (public view in, 7 probabilities out): chance/Prior, Top scorers, LLM monitor |
 | `src/seance/metrics.py` | Log-loss, Brier, accuracy, right-pair accuracy, catch rate at 5% FPR, AUROC, calibration, bootstrap CIs, paired comparisons, monitor variance, communication success |
 | `src/seance/evaluate.py` | Runs a detector over a run directory and scores it; the pre-registered H1/H2 comparisons |
+| `src/seance/explorer.py` | Builds the static explorer site in `docs/explorer` |
 | `src/seance/exploratory.py` | Analyses decided after the main study (pre-registration Addendum 1): seat rotation, recalibration |
 
 ## Use
@@ -85,6 +86,14 @@ Main-study results (2026-10-24):
 - **E1, seat rotation.** The same 100 games re-read with each player seated first in a quarter of them: in clean games where one pair is on top, it includes Daniel in 28 of 38 (74% [61, 87]; chance 50%) and the first-seated player in 22 of 38 (58%). The lean follows the name, not the seat.
 - **E3, renamed players** (`--names a b`, then `--gender`; Addendum 2). All four players renamed from two sets of two men's and two women's names, balanced over players: men's names per top pair 0.95 [0.77, 1.14] and 1.02 [0.83, 1.21] (chance 1), and the player who played as Daniel is in 60% and 52% of top pairs (chance 50%). No gender lean at this size; the lean was tied to the name Daniel. Results in `metrics/exploratory_names.json`.
 - **E4, neutral wording** (`seance.run --out runs/neutral --replicate 10 --skin neutral`, then `--theme runs/neutral`; Addendum 3). The first 10 clean and 10 coalition deals replayed in plain wording: ally partner weight 0.38 vs 0.37, pooled points 32.5 vs 32.3, right pair 6 of 10 in both; allies write numbers as digits more often (88% vs 76%). Results in `metrics/exploratory_theme.json`.
+
+## Explorer
+
+```bash
+uv run python -m seance.explorer --run runs/main --out docs/explorer
+```
+
+A static two-page site (every game; one game with the auditor's verdict, its three readings and reasons, the re-readings, and each round's messages next to every player's private notes). It reads only the committed records, predictions and metrics. Open `docs/explorer/index.html` directly, or serve `docs/` with GitHub Pages.
 
 ## Records
 
