@@ -40,7 +40,7 @@ def _paths(obj, prefix=""):
     """Every leaf path, with dict keys of medium names collapsed to <name>."""
     if isinstance(obj, dict):
         for k, v in obj.items():
-            key = "<name>" if k in ("Ada", "Bram", "Cora", "Dov") else k
+            key = "<name>" if k in ("Daniel", "Eileen", "Gladys", "Leonora") else k
             yield from _paths(v, f"{prefix}.{key}")
     elif isinstance(obj, list):
         for v in obj:
@@ -158,4 +158,4 @@ async def test_poisoned_hidden_fields_never_reach_the_view():
 
 def test_view_requires_public_fields_rather_than_guessing():
     with pytest.raises((KeyError, TypeError)):
-        public_view({"game_id": "g1", "names": ["Ada"], "rounds": [{"round": 1}]})
+        public_view({"game_id": "g1", "names": ["Daniel"], "rounds": [{"round": 1}]})

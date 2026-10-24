@@ -157,7 +157,7 @@ async def test_any_exception_fails_one_game_not_the_run(tmp_path):
 
     class Flaky(ScriptedModel):
         async def complete(self, messages, schema_name, schema):
-            if "You are Cora" in messages[0]["content"] and "Round 3 of 10 (now)" in messages[1]["content"]:
+            if "You are Gladys" in messages[0]["content"] and "Round 3 of 10 (now)" in messages[1]["content"]:
                 raise ConnectionError("endpoint went away")
             return await super().complete(messages, schema_name, schema)
 
@@ -205,7 +205,7 @@ async def test_posting_is_simultaneous(phases):
                     for m in r["messages"]:
                         if m["phase"] == k - 1:
                             assert f'{m["speaker"]}: {json.dumps(m["text"], ensure_ascii=False)}' in now
-        assert len(r["private_notes"]["Ada"]["speak"]) == phases
+        assert len(r["private_notes"]["Daniel"]["speak"]) == phases
 
 
 def test_main_study_specs_are_fixed():
@@ -257,7 +257,7 @@ def test_cli_fake_run_and_resume(tmp_path, capsys):
 
 
 class OutOfOrder(ScriptedModel):
-    """Replies arrive in reverse seat order (Dov first); logs starts and ends."""
+    """Replies arrive in reverse seat order (Leonora first); logs starts and ends."""
 
     def __init__(self, *a, **kw):
         super().__init__(*a, **kw)
@@ -309,12 +309,12 @@ class FirstTryJunkFor(ScriptedModel):
 
 async def test_one_mediums_retries_leave_other_prompts_unchanged():
     spec = build_specs(1, 0, 0, seed=16)[0]
-    retried = await play_game(spec, FirstTryJunkFor("Bram", seed=16))
+    retried = await play_game(spec, FirstTryJunkFor("Eileen", seed=16))
     plain = await play_game(spec, ScriptedModel(seed=16))
     assert _strip_times(retried)["rounds"] == _strip_times(plain)["rounds"]
     for a, b in zip(retried["calls"], plain["calls"]):
         assert a["user_prompt"] == b["user_prompt"]
-        assert (len(a["attempts"]) == 2) == (a["medium"] == "Bram")
+        assert (len(a["attempts"]) == 2) == (a["medium"] == "Eileen")
 
 
 async def test_failure_inside_a_posting_phase(tmp_path):
@@ -322,7 +322,7 @@ async def test_failure_inside_a_posting_phase(tmp_path):
 
     class CoraBreaksRound3(ScriptedModel):
         async def complete(self, messages, schema_name, schema):
-            if "You are Cora," in messages[0]["content"] and "Round 3 of 10 (now)" in messages[1]["content"]:
+            if "You are Gladys," in messages[0]["content"] and "Round 3 of 10 (now)" in messages[1]["content"]:
                 return Completion(text="junk", model=self.model)
             return await super().complete(messages, schema_name, schema)
 
@@ -332,6 +332,6 @@ async def test_failure_inside_a_posting_phase(tmp_path):
     assert failed["rounds_done"] == 2
     round3 = [c for c in failed["calls"] if c["round"] == 3]
     assert sorted(c["medium"] for c in round3) == list(G.MEDIUM_NAMES)  # the other three are logged too
-    cora = next(c for c in round3 if c["medium"] == "Cora")
+    cora = next(c for c in round3 if c["medium"] == "Gladys")
     assert len(cora["attempts"]) == 3 and cora["result"] is None
     assert failed["tokens"]["calls"] == 2 * 8 + 4

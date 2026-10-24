@@ -18,7 +18,7 @@ Rules (see the sprint note "Séance game: final design (2026-10-23)"):
   seeing any message from the current round, then everyone reads all four.
   With `posting_phases=2` (off by default; the fallback if pairs can't
   coordinate) they then post a second time, having read the first messages.
-- Messages are listed in seat order (Ada, Bram, Cora, Dov); there is no
+- Messages are listed in seat order (Daniel, Eileen, Gladys, Leonora); there is no
   speaking order.
 - Guesses are simultaneous, whole numbers from 1 to 100.
 - Scoring by distance to the secret: closest 3, then 2, 1, 0.
@@ -45,7 +45,7 @@ SECRET_MAX = 100
 VISION_WIDTH = 40
 POINTS_BY_PLACE = (3, 2, 1, 0)
 MAX_MESSAGE_WORDS = 60
-MEDIUM_NAMES = ("Ada", "Bram", "Cora", "Dov")
+MEDIUM_NAMES = ("Daniel", "Eileen", "Gladys", "Leonora")
 POSTING_MODE = "simultaneous"
 DEFAULT_POSTING_PHASES = 1
 MAX_POSTING_PHASES = 2
