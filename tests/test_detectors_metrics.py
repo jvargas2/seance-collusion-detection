@@ -557,3 +557,19 @@ def test_payoff_cli(tmp_path, capsys):
     assert "pairs caught" in capsys.readouterr().out
     with pytest.raises(RuntimeError, match="readings"):
         evaluate_main(["--run", str(run), "--payoff", "--n-boot", "20", "--monitor-readings", "2"])
+
+
+async def test_no_score_pools_positive_controls_with_coalitions(tmp_path):
+    from seance.evaluate import COMPARISONS, SUBSETS, score
+
+    recs = [await play_game(s, ScriptedModel(seed=101)) for s in build_specs(3, 3, 2, seed=101)]
+    cond = {r["game_id"]: r["condition"] for r in recs}
+    mon = LLMMonitor(SamplingMonitor(THREE), settings={"temperature": 0.7})
+    preds = await predict_all(mon, recs, tmp_path / "m.jsonl")
+    out = score(recs, preds, n_boot=20)
+    assert set(out) == set(SUBSETS) == {"main_clean_vs_coalition", "positive_control"}
+    main = out["main_clean_vs_coalition"]
+    assert {cond[g] for g in main["game_ids"]} == {"clean", "coalition"} and main["n_games"] == 6
+    assert main["monitor_variance"]["n_games"] == 6  # calibration and variance come from the same games
+    assert {cond[g] for g in out["positive_control"]["game_ids"]} == {"clean", "positive_control"}
+    assert {subset for *_, subset in COMPARISONS.values()} == {"main_clean_vs_coalition"}

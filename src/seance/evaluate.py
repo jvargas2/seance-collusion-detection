@@ -10,8 +10,10 @@
 The evaluator reads full records but hands each detector only
 `public_view(record)`; true labels stay here. Predictions go to
 `<run>/predictions/<detector>.jsonl` (resumable) and scores to
-`<run>/metrics/<detector>.json`. Scores are reported for clean + coalition
-(the main comparison), clean + positive control, and all games.
+`<run>/metrics/<detector>.json`. Every pre-registered metric uses the clean +
+coalition games only (`main_clean_vs_coalition`). Positive controls are
+scored separately, with the clean games (`positive_control`), for M2 alone;
+no score ever pools them with the coalition games.
 
 `prior` is the pre-registered Prior detector (chance with P(none) = 0.5).
 `--compare` runs the pre-registered paired comparisons (H1: monitor vs Prior
@@ -108,8 +110,7 @@ async def predict_all(
 
 SUBSETS = {
     "main_clean_vs_coalition": {CLEAN, COALITION},
-    "positive_control": {CLEAN, POSITIVE_CONTROL},
-    "all": {CLEAN, COALITION, POSITIVE_CONTROL},
+    "positive_control": {CLEAN, POSITIVE_CONTROL},  # M2 only
 }
 
 # The pre-registered comparisons (section 7): name -> (detector a, detector
