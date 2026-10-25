@@ -1,0 +1,39 @@
+claude_haiku_plain.jsonl: 0 of 2 games done
+claude_haiku_plus_factors.jsonl: 0 of 2 games done
+claude_sonnet_plain.jsonl: 0 of 2 games done
+claude_sonnet_plus_factors.jsonl: 0 of 2 games done
+claude_opus_plain.jsonl: 0 of 2 games done
+claude_opus_plus_factors.jsonl: 0 of 2 games done
+claude_opus_plain_noschema.jsonl: 0 of 2 games done
+claude_opus_plus_factors_noschema.jsonl: 0 of 2 games done
+batch msgbatch_012yzMvYykbQw2ytrXnu7ry5: 48 requests submitted
+batch msgbatch_012yzMvYykbQw2ytrXnu7ry5: in_progress processing 48 succeeded 0 errored 0 after 21s
+batch msgbatch_012yzMvYykbQw2ytrXnu7ry5: in_progress processing 48 succeeded 0 errored 0 after 41s
+batch msgbatch_012yzMvYykbQw2ytrXnu7ry5: in_progress processing 48 succeeded 0 errored 0 after 61s
+batch msgbatch_012yzMvYykbQw2ytrXnu7ry5: in_progress processing 48 succeeded 0 errored 0 after 81s
+batch msgbatch_012yzMvYykbQw2ytrXnu7ry5: in_progress processing 48 succeeded 0 errored 0 after 101s
+batch msgbatch_012yzMvYykbQw2ytrXnu7ry5: in_progress processing 48 succeeded 0 errored 0 after 122s
+batch msgbatch_012yzMvYykbQw2ytrXnu7ry5: in_progress processing 48 succeeded 0 errored 0 after 142s
+batch msgbatch_012yzMvYykbQw2ytrXnu7ry5: in_progress processing 48 succeeded 0 errored 0 after 162s
+batch msgbatch_012yzMvYykbQw2ytrXnu7ry5: in_progress processing 48 succeeded 0 errored 0 after 182s
+batch msgbatch_012yzMvYykbQw2ytrXnu7ry5: in_progress processing 48 succeeded 0 errored 0 after 202s
+batch msgbatch_012yzMvYykbQw2ytrXnu7ry5: in_progress processing 48 succeeded 0 errored 0 after 223s
+batch msgbatch_012yzMvYykbQw2ytrXnu7ry5: in_progress processing 48 succeeded 0 errored 0 after 243s
+batch msgbatch_012yzMvYykbQw2ytrXnu7ry5: in_progress processing 48 succeeded 0 errored 0 after 263s
+batch msgbatch_012yzMvYykbQw2ytrXnu7ry5: in_progress processing 48 succeeded 0 errored 0 after 283s
+batch msgbatch_012yzMvYykbQw2ytrXnu7ry5: in_progress processing 48 succeeded 0 errored 0 after 304s
+batch msgbatch_012yzMvYykbQw2ytrXnu7ry5: in_progress processing 48 succeeded 0 errored 0 after 324s
+batch msgbatch_012yzMvYykbQw2ytrXnu7ry5: in_progress processing 48 succeeded 0 errored 0 after 344s
+batch msgbatch_012yzMvYykbQw2ytrXnu7ry5: in_progress processing 48 succeeded 0 errored 0 after 364s
+batch msgbatch_012yzMvYykbQw2ytrXnu7ry5: ended processing 0 succeeded 48 errored 0 after 384s
+batch msgbatch_012yzMvYykbQw2ytrXnu7ry5: ended after 384s
+
+all batches done in 385s
+claude_haiku_plain.jsonl: 6/6 readings parsed, 2/2 games written; attempts 6 (refusals 0, parse errors 0, api errors 0); mean in 6322 out 378 tokens per attempt; $0.0025 (batch price), $0.00041 per reading
+claude_haiku_plus_factors.jsonl: 6/6 readings parsed, 2/2 games written; attempts 6 (refusals 0, parse errors 0, api errors 0); mean in 6502 out 374 tokens per attempt; $0.0025 (batch price), $0.00042 per reading
+claude_sonnet_plain.jsonl: 6/6 readings parsed, 2/2 games written; attempts 6 (refusals 0, parse errors 0, api errors 0); mean in 6322 out 486 tokens per attempt; $0.0525 (batch price), $0.00876 per reading
+claude_sonnet_plus_factors.jsonl: 6/6 readings parsed, 2/2 games written; attempts 6 (refusals 0, parse errors 0, api errors 0); mean in 6502 out 480 tokens per attempt; $0.0534 (batch price), $0.00890 per reading
+claude_opus_plain.jsonl: 6/6 readings parsed, 2/2 games written; attempts 6 (refusals 0, parse errors 0, api errors 0); mean in 6324 out 378 tokens per attempt; $0.0985 (batch price), $0.01642 per reading
+claude_opus_plus_factors.jsonl: 6/6 readings parsed, 2/2 games written; attempts 6 (refusals 0, parse errors 0, api errors 0); mean in 6502 out 370 tokens per attempt; $0.1003 (batch price), $0.01671 per reading
+claude_opus_plain_noschema.jsonl: 6/6 readings parsed, 2/2 games written; attempts 6 (refusals 0, parse errors 0, api errors 0); mean in 5836 out 569 tokens per attempt; $0.1042 (batch price), $0.01737 per reading
+claude_opus_plus_factors_noschema.jsonl: 6/6 readings parsed, 2/2 games written; attempts 6 (refusals 0, parse errors 0, api errors 0); mean in 6016 out 552 tokens per attempt; $0.1053 (batch price), $0.01755 per reading
