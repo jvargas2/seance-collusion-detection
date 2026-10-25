@@ -1,0 +1,49 @@
+claude_opus_plain.jsonl: 0 of 100 games done
+claude_opus_plus_factors.jsonl: 0 of 100 games done
+claude_sonnet_plain.jsonl: 0 of 100 games done
+claude_sonnet_plus_factors.jsonl: 0 of 100 games done
+ok: $2.98 spent + $15.24 for 1-opus-sonnet-final = $18.22 of $19.30
+batch msgbatch_014aA5Ujd4HFWrcCRxbNPPUV: 1200 requests submitted
+batch msgbatch_014aA5Ujd4HFWrcCRxbNPPUV: in_progress processing 1200 succeeded 0 errored 0 after 30s
+batch msgbatch_014aA5Ujd4HFWrcCRxbNPPUV: in_progress processing 1200 succeeded 0 errored 0 after 60s
+batch msgbatch_014aA5Ujd4HFWrcCRxbNPPUV: in_progress processing 1200 succeeded 0 errored 0 after 91s
+batch msgbatch_014aA5Ujd4HFWrcCRxbNPPUV: in_progress processing 1200 succeeded 0 errored 0 after 121s
+batch msgbatch_014aA5Ujd4HFWrcCRxbNPPUV: in_progress processing 1200 succeeded 0 errored 0 after 151s
+batch msgbatch_014aA5Ujd4HFWrcCRxbNPPUV: in_progress processing 1200 succeeded 0 errored 0 after 181s
+batch msgbatch_014aA5Ujd4HFWrcCRxbNPPUV: in_progress processing 1200 succeeded 0 errored 0 after 212s
+batch msgbatch_014aA5Ujd4HFWrcCRxbNPPUV: in_progress processing 1200 succeeded 0 errored 0 after 242s
+batch msgbatch_014aA5Ujd4HFWrcCRxbNPPUV: in_progress processing 1200 succeeded 0 errored 0 after 272s
+batch msgbatch_014aA5Ujd4HFWrcCRxbNPPUV: in_progress processing 1200 succeeded 0 errored 0 after 302s
+batch msgbatch_014aA5Ujd4HFWrcCRxbNPPUV: in_progress processing 1200 succeeded 0 errored 0 after 332s
+batch msgbatch_014aA5Ujd4HFWrcCRxbNPPUV: in_progress processing 1200 succeeded 0 errored 0 after 363s
+batch msgbatch_014aA5Ujd4HFWrcCRxbNPPUV: in_progress processing 1200 succeeded 0 errored 0 after 393s
+batch msgbatch_014aA5Ujd4HFWrcCRxbNPPUV: in_progress processing 1200 succeeded 0 errored 0 after 423s
+batch msgbatch_014aA5Ujd4HFWrcCRxbNPPUV: in_progress processing 1200 succeeded 0 errored 0 after 453s
+batch msgbatch_014aA5Ujd4HFWrcCRxbNPPUV: in_progress processing 1200 succeeded 0 errored 0 after 483s
+batch msgbatch_014aA5Ujd4HFWrcCRxbNPPUV: in_progress processing 1200 succeeded 0 errored 0 after 514s
+batch msgbatch_014aA5Ujd4HFWrcCRxbNPPUV: in_progress processing 1200 succeeded 0 errored 0 after 544s
+batch msgbatch_014aA5Ujd4HFWrcCRxbNPPUV: in_progress processing 1200 succeeded 0 errored 0 after 574s
+batch msgbatch_014aA5Ujd4HFWrcCRxbNPPUV: in_progress processing 1200 succeeded 0 errored 0 after 604s
+batch msgbatch_014aA5Ujd4HFWrcCRxbNPPUV: in_progress processing 1200 succeeded 0 errored 0 after 634s
+batch msgbatch_014aA5Ujd4HFWrcCRxbNPPUV: ended processing 0 succeeded 1200 errored 0 after 665s
+batch msgbatch_014aA5Ujd4HFWrcCRxbNPPUV: ended after 665s
+398 games written
+batch msgbatch_014aA5Ujd4HFWrcCRxbNPPUV: $14.8931 (batch price); ledger total $17.8687
+batch msgbatch_013cm767Hjqb8ptgQBxTb7o3: 2 requests submitted
+batch msgbatch_013cm767Hjqb8ptgQBxTb7o3: in_progress processing 2 succeeded 0 errored 0 after 30s
+batch msgbatch_013cm767Hjqb8ptgQBxTb7o3: in_progress processing 2 succeeded 0 errored 0 after 60s
+batch msgbatch_013cm767Hjqb8ptgQBxTb7o3: in_progress processing 2 succeeded 0 errored 0 after 91s
+batch msgbatch_013cm767Hjqb8ptgQBxTb7o3: in_progress processing 2 succeeded 0 errored 0 after 121s
+batch msgbatch_013cm767Hjqb8ptgQBxTb7o3: in_progress processing 2 succeeded 0 errored 0 after 151s
+batch msgbatch_013cm767Hjqb8ptgQBxTb7o3: ended processing 0 succeeded 2 errored 0 after 181s
+batch msgbatch_013cm767Hjqb8ptgQBxTb7o3: ended after 181s
+2 games written
+batch msgbatch_013cm767Hjqb8ptgQBxTb7o3: $0.0341 (batch price); ledger total $17.9029
+
+all batches done in 849s
+claude_opus_plain.jsonl: 300/300 readings parsed, 100/100 games written; attempts 301 (refusals 1, parse errors 0, api errors 0); mean in 6028 out 414 tokens per attempt; $4.8738 (batch price), $0.01625 per reading
+claude_opus_plus_factors.jsonl: 300/300 readings parsed, 100/100 games written; attempts 301 (refusals 1, parse errors 0, api errors 0); mean in 6207 out 414 tokens per attempt; $4.9812 (batch price), $0.01660 per reading
+claude_sonnet_plain.jsonl: 300/300 readings parsed, 100/100 games written; attempts 300 (refusals 0, parse errors 0, api errors 0); mean in 6027 out 494 tokens per attempt; $2.5486 (batch price), $0.00850 per reading
+claude_sonnet_plus_factors.jsonl: 300/300 readings parsed, 100/100 games written; attempts 300 (refusals 0, parse errors 0, api errors 0); mean in 6206 out 441 tokens per attempt; $2.5236 (batch price), $0.00841 per reading
+ledger: $17.9029 of $19.30 spent
+FINAL CLAUDE step1 exit=0
