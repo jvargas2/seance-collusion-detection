@@ -2,25 +2,25 @@ E7 standard: 40 of 40 games scored
 E7 plus_factors: 40 of 40 games scored
 E7 standard: 20 of 20 games scored
 Task exception was never retrieved
-future: <Task finished name='Task-165' coro=<AsyncClient.aclose() done, defined at /home/jvarg/.t3/worktrees/seance-collusion-detection/run-plus-factor/.venv/lib/python3.12/site-packages/httpx2/_client.py:2197> exception=RuntimeError('Event loop is closed')>
+future: <Task finished name='Task-165' coro=<AsyncClient.aclose() done, defined at <repo>/.venv/lib/python3.12/site-packages/httpx2/_client.py:2197> exception=RuntimeError('Event loop is closed')>
 Traceback (most recent call last):
-  File "/home/jvarg/.t3/worktrees/seance-collusion-detection/run-plus-factor/.venv/lib/python3.12/site-packages/httpx2/_client.py", line 2204, in aclose
+  File "<repo>/.venv/lib/python3.12/site-packages/httpx2/_client.py", line 2204, in aclose
     await self._transport.aclose()
-  File "/home/jvarg/.t3/worktrees/seance-collusion-detection/run-plus-factor/.venv/lib/python3.12/site-packages/httpx2/_transports/default.py", line 400, in aclose
+  File "<repo>/.venv/lib/python3.12/site-packages/httpx2/_transports/default.py", line 400, in aclose
     await self._pool.aclose()
-  File "/home/jvarg/.t3/worktrees/seance-collusion-detection/run-plus-factor/.venv/lib/python3.12/site-packages/httpcore2/_async/connection_pool.py", line 382, in aclose
+  File "<repo>/.venv/lib/python3.12/site-packages/httpcore2/_async/connection_pool.py", line 382, in aclose
     await self._close_connections(closing_connections)
-  File "/home/jvarg/.t3/worktrees/seance-collusion-detection/run-plus-factor/.venv/lib/python3.12/site-packages/httpcore2/_async/connection_pool.py", line 374, in _close_connections
+  File "<repo>/.venv/lib/python3.12/site-packages/httpcore2/_async/connection_pool.py", line 374, in _close_connections
     await connection.aclose()
-  File "/home/jvarg/.t3/worktrees/seance-collusion-detection/run-plus-factor/.venv/lib/python3.12/site-packages/httpcore2/_async/connection.py", line 157, in aclose
+  File "<repo>/.venv/lib/python3.12/site-packages/httpcore2/_async/connection.py", line 157, in aclose
     await self._connection.aclose()
-  File "/home/jvarg/.t3/worktrees/seance-collusion-detection/run-plus-factor/.venv/lib/python3.12/site-packages/httpcore2/_async/http11.py", line 236, in aclose
+  File "<repo>/.venv/lib/python3.12/site-packages/httpcore2/_async/http11.py", line 236, in aclose
     await self._network_stream.aclose()
-  File "/home/jvarg/.t3/worktrees/seance-collusion-detection/run-plus-factor/.venv/lib/python3.12/site-packages/httpcore2/_backends/anyio.py", line 56, in aclose
+  File "<repo>/.venv/lib/python3.12/site-packages/httpcore2/_backends/anyio.py", line 56, in aclose
     await self._stream.aclose()
-  File "/home/jvarg/.t3/worktrees/seance-collusion-detection/run-plus-factor/.venv/lib/python3.12/site-packages/anyio/streams/tls.py", line 248, in aclose
+  File "<repo>/.venv/lib/python3.12/site-packages/anyio/streams/tls.py", line 248, in aclose
     await self.transport_stream.aclose()
-  File "/home/jvarg/.t3/worktrees/seance-collusion-detection/run-plus-factor/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 1467, in aclose
+  File "<repo>/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py", line 1467, in aclose
     self._transport.close()
   File "/usr/lib/python3.12/asyncio/selector_events.py", line 1211, in close
     super().close()

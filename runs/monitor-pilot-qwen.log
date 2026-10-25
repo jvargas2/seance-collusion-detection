@@ -1,22 +1,22 @@
 Traceback (most recent call last):
   File "<frozen runpy>", line 198, in _run_module_as_main
   File "<frozen runpy>", line 88, in _run_code
-  File "/home/jvarg/personal/repos/seance-collusion-detection/src/seance/evaluate.py", line 321, in <module>
+  File "<repo>/src/seance/evaluate.py", line 321, in <module>
     raise SystemExit(main())
                      ^^^^^^
-  File "/home/jvarg/personal/repos/seance-collusion-detection/src/seance/evaluate.py", line 266, in main
+  File "<repo>/src/seance/evaluate.py", line 266, in main
     scores = score(records, preds, args.n_boot, args.seed)
              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jvarg/personal/repos/seance-collusion-detection/src/seance/evaluate.py", line 159, in score
+  File "<repo>/src/seance/evaluate.py", line 159, in score
     out[name] = metrics.summarize(
                 ^^^^^^^^^^^^^^^^^^
-  File "/home/jvarg/personal/repos/seance-collusion-detection/src/seance/metrics.py", line 260, in summarize
+  File "<repo>/src/seance/metrics.py", line 260, in summarize
     out[name] = bootstrap_ci(fn, labels, preds, scores, n_boot=n_boot, seed=seed)
                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jvarg/personal/repos/seance-collusion-detection/src/seance/metrics.py", line 220, in bootstrap_ci
+  File "<repo>/src/seance/metrics.py", line 220, in bootstrap_ci
     y, p, s = _arrays(labels, preds, scores)
               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/home/jvarg/personal/repos/seance-collusion-detection/src/seance/metrics.py", line 62, in _arrays
+  File "<repo>/src/seance/metrics.py", line 62, in _arrays
     y = np.array([_IDX[label] for label in labels], dtype=int)
                   ~~~~^^^^^^^
 KeyError: 'Ada+Dov'
