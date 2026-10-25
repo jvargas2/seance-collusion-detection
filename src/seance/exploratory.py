@@ -584,9 +584,11 @@ PF_VARIANTS = ("pf_permission", "pf_evidence", "pf_extended")
 PF_BASELINES = ("standard", "plus_factors")
 
 
-def pf_predictions_path(pred_dir: Path, which: str) -> Path:
-    """llm_monitor_pf_standard / _plus_factors (E8), _permission / _evidence / _extended (E10)."""
-    return pred_dir / f"llm_monitor_pf_{which.removeprefix('pf_')}.jsonl"
+def pf_predictions_path(pred_dir: Path, which: str, monitor_tag: str | None = None) -> Path:
+    """llm_monitor_pf_standard / _plus_factors (E8), _permission / _evidence / _extended (E10);
+    with a monitor tag (E15, another model), llm_monitor_<tag>_pf_standard etc."""
+    tag = f"{monitor_tag}_" if monitor_tag else ""
+    return pred_dir / f"llm_monitor_{tag}pf_{which.removeprefix('pf_')}.jsonl"
 
 
 def random_names(rec: dict[str, Any], seed: int = PF_NAME_SEED) -> dict[str, str]:
@@ -928,6 +930,9 @@ def main(argv: list[str] | None = None) -> int:
                     help="E12: with --plus-factors, read with thinking on (SEANCE_MONITOR_ENABLE_THINKING=true and a larger "
                          "SEANCE_MONITOR_MAX_TOKENS); with --think-compare, the analysis")
     ap.add_argument("--think-compare", action="store_true", help="E12 analysis: thinking on against off, for each prompt")
+    ap.add_argument("--monitor-tag", metavar="TAG",
+                    help="E15: with --plus-factors, read with another monitor model (SEANCE_MONITOR_MODEL and _BASE_URL from "
+                         "the environment; only the model and server may differ) into llm_monitor_<TAG>_pf_<which>.jsonl")
     ap.add_argument("--settings-from", type=Path,
                     help="the main study's monitor predictions, to check settings against (default <run>/predictions/llm_monitor.jsonl)")
     ap.add_argument("--theme", type=Path, help="E4: a neutral-wording run made with --replicate, compared with the same main-study deals")
@@ -1103,15 +1108,19 @@ def main(argv: list[str] | None = None) -> int:
         # E12 (--think): the same, with thinking on and room for it (only
         # enable_thinking, max_tokens and the matching extra_body flag differ).
         variant = None if which == "standard" else which
+        # E15 (--monitor-tag): the same with another model; only the model may also differ.
         may_differ = ("base_url",) + (("prompt_sha256", "prompt_variant") if variant else ()) + (THINK_SETTINGS if args.think else ())
+        if args.monitor_tag:
+            may_differ += ("model",)
         det = monitor(may_differ=may_differ, prompt_variant=variant)
         if det is None:
             return 2
-        path = pf_predictions_path(pred_dir, which)
+        path = pf_predictions_path(pred_dir, which, args.monitor_tag)
         if args.think:
             path = path.with_name(path.stem + "_think.jsonl")
         done = asyncio.run(predict_all(det, records, path, args.concurrency, view_fn=random_names_view_fn()))
-        print(f"{'E12' if args.think else 'E10' if which in PF_VARIANTS else 'E8'} {which}: {len(done)} of {len(records)} games scored")
+        label = "E15" if args.monitor_tag else "E12" if args.think else "E10" if which in PF_VARIANTS else "E8"
+        print(f"{label} {which}: {len(done)} of {len(records)} games scored", flush=True)
 
     if args.think_compare:
         out = {"name_seed": PF_NAME_SEED}

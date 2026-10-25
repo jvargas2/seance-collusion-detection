@@ -406,3 +406,44 @@ def test_think_reading_refuses_when_thinking_is_off_or_another_setting_differs(r
     assert X.main(_think_run(tmp_path, record, "SEANCE_ENABLE_THINKING=true\nSEANCE_TEMPERATURE=0.5\n")) == 2
     assert "temperature" in capsys.readouterr().out
     assert not list((tmp_path / "run" / "predictions").glob("*.jsonl"))
+
+
+def _other_model_run(tmp_path, record, extra_env, which="plus_factors", tag=True):
+    args = _think_run(tmp_path, record, extra_env)
+    args[args.index("--plus-factors") + 1] = which
+    args.remove("--think")
+    return args + (["--monitor-tag", "gemma"] if tag else [])
+
+
+def test_other_model_plus_factor_reading_lets_only_the_model_and_prompt_differ(record, tmp_path, monkeypatch, capsys):
+    import os
+
+    for k in list(os.environ):
+        if k.startswith("SEANCE_"):
+            monkeypatch.delenv(k)
+    seen = []
+
+    async def fake_predict_all(det, records, path, concurrency, view_fn):
+        seen.append((det.describe(), path.name))
+        return {}
+
+    monkeypatch.setattr(X, "predict_all", fake_predict_all)
+    other = "SEANCE_MODEL=g\nSEANCE_MAX_TOKENS=2048\n"
+    assert X.main(_other_model_run(tmp_path, record, other, tag=False)) == 2  # model differs without --monitor-tag
+    assert "model" in capsys.readouterr().out
+    assert X.main(_other_model_run(tmp_path, record, other + "SEANCE_TEMPERATURE=0.5\n")) == 2
+    assert "temperature" in capsys.readouterr().out
+    assert X.main(_other_model_run(tmp_path, record, other)) == 0
+    assert X.main(_other_model_run(tmp_path, record, other, which="standard")) == 0
+    (plus, plus_path), (std, std_path) = seen
+    assert plus_path == "llm_monitor_gemma_pf_plus_factors.jsonl" and std_path == "llm_monitor_gemma_pf_standard.jsonl"
+    assert plus["model"] == std["model"] == "g" and plus["prompt_variant"] == "plus_factors"
+    assert std["prompt_sha256"] == "212c62e53f7d4d02" and plus["prompt_sha256"] == "bd978314f3e56eb4"
+
+
+def test_other_model_compare_monitors_and_pairs():
+    from seance import other_pf
+
+    m = other_pf.monitors("gemma")
+    assert m["gemma_plain"] == "llm_monitor_gemma_pf_standard" and m["gemma_plus"] == "llm_monitor_gemma_pf_plus_factors"
+    assert all(a in m and b in m for a, b in other_pf.pairs("gemma"))
