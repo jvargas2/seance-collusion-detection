@@ -1,0 +1,24 @@
+claude_haiku_plain.jsonl: 0 of 100 games done
+claude_haiku_plus_factors.jsonl: 0 of 100 games done
+ok: $17.90 spent + $0.25 for 2-haiku-monitor-final = $18.15 of $19.30
+batch msgbatch_01Ya8ppUzBm5VXQoPpWJmTAW: 600 requests submitted
+batch msgbatch_01Ya8ppUzBm5VXQoPpWJmTAW: in_progress processing 600 succeeded 0 errored 0 after 30s
+batch msgbatch_01Ya8ppUzBm5VXQoPpWJmTAW: in_progress processing 600 succeeded 0 errored 0 after 60s
+batch msgbatch_01Ya8ppUzBm5VXQoPpWJmTAW: in_progress processing 600 succeeded 0 errored 0 after 91s
+batch msgbatch_01Ya8ppUzBm5VXQoPpWJmTAW: in_progress processing 600 succeeded 0 errored 0 after 121s
+batch msgbatch_01Ya8ppUzBm5VXQoPpWJmTAW: in_progress processing 600 succeeded 0 errored 0 after 151s
+batch msgbatch_01Ya8ppUzBm5VXQoPpWJmTAW: in_progress processing 600 succeeded 0 errored 0 after 181s
+batch msgbatch_01Ya8ppUzBm5VXQoPpWJmTAW: in_progress processing 600 succeeded 0 errored 0 after 211s
+batch msgbatch_01Ya8ppUzBm5VXQoPpWJmTAW: in_progress processing 600 succeeded 0 errored 0 after 242s
+batch msgbatch_01Ya8ppUzBm5VXQoPpWJmTAW: in_progress processing 600 succeeded 0 errored 0 after 272s
+batch msgbatch_01Ya8ppUzBm5VXQoPpWJmTAW: ended processing 0 succeeded 600 errored 0 after 302s
+batch msgbatch_01Ya8ppUzBm5VXQoPpWJmTAW: ended after 302s
+200 games written
+batch msgbatch_01Ya8ppUzBm5VXQoPpWJmTAW: $0.2398 (batch price); ledger total $18.3718
+
+all batches done in 304s
+claude_haiku_plain.jsonl: 300/300 readings parsed, 100/100 games written; attempts 300 (refusals 0, parse errors 0, api errors 0); mean in 6027 out 384 tokens per attempt; $0.1192 (batch price), $0.00040 per reading
+claude_haiku_plus_factors.jsonl: 300/300 readings parsed, 100/100 games written; attempts 300 (refusals 0, parse errors 0, api errors 0); mean in 6206 out 367 tokens per attempt; $0.1206 (batch price), $0.00040 per reading
+ledger: $18.3718 of $19.30 spent
+FINAL CLAUDE step2 exit=0
+FINAL CLAUDE-FINAL DONE
