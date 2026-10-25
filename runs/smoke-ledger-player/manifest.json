@@ -1,0 +1,41 @@
+{
+ "created_at": "2026-10-25T16:49:36+00:00",
+ "build_args": {
+  "specs_from": "runs/pilot-haiku",
+  "specs_from_created_at": "2026-10-25T16:13:15+00:00",
+  "specs_from_build_args": {
+   "main_study": false,
+   "replicate": 3,
+   "clean": 0,
+   "coalition": 0,
+   "positive": 0,
+   "seed": 0,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  "games": "n000"
+ },
+ "inference": {
+  "provider": "anthropic",
+  "model": "claude-haiku-5-5",
+  "temperature": null,
+  "max_tokens": 2048,
+  "json_mode": "output_config.format",
+  "enable_thinking": false,
+  "thinking": {
+   "type": "disabled"
+  },
+  "effort": null,
+  "prompt_caching": true
+ },
+ "games": [
+  {
+   "game_id": "n000",
+   "seed": 0,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  }
+ ]
+}

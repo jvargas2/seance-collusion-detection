@@ -1,8 +1,8 @@
 """Claude 5.5 models as the LLM monitor, through the Message Batches API.
 
     uv run python -m seance.claude_monitor --run runs/final \\
-        --model claude-haiku-5-5 --model claude-sonnet-5-5 --model claude-opus-5-5 \\
-        --prompt plain --prompt plus_factors
+        --model claude-opus-5-5 --model claude-sonnet-5-5 \\
+        --prompt plain --prompt plus_factors --step 1-opus-sonnet-final
 
 Every reading gets the same prompt the Qwen monitor (`LLMMonitor`) gets:
 `build_prompt` on the E8 random-names view (`random_names_view_fn()`, seed
@@ -14,7 +14,16 @@ up to `--max-attempts` attempts per reading as for the Qwen monitor.
 
 Writes `predictions/claude_<model>_<prompt>.jsonl` in the run (or under
 `--out DIR` for a smoke test), one row per game whose readings all parsed,
-in the `predict_all` format. Games already in the file are skipped.
+in the `predict_all` format, as soon as a batch brings its last reading.
+Games already in the file are skipped, so a rerun reads only missing games
+(a game with some of its readings done redoes them all).
+
+Spending goes through the ledger (`seance.budget`): `--step` names the
+final test plan's step (or smoke-* for a smoke test), every batch is checked
+against the cap and reserved before it is sent and settled at its actual
+cost, and a batch left open by a stopped process is collected on the rerun
+rather than paid again. A budget stop exits with code 3 and lists what is
+missing.
 """
 
 from __future__ import annotations
@@ -28,6 +37,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from .agents import ReplyError
+from .budget import LEDGER, BudgetExceeded, Ledger, batch_estimate
 from .claude import SHORT, THINKING, api_key, cost, request_params, text_of, usage_dict
 from .conditions import CLEAN, COALITION, LABELS
 from .detectors.base import check_probs, normalize
@@ -205,9 +215,76 @@ def _config_of(row: dict[str, Any]) -> dict[str, Any]:
     return {k: v for k, v in row["detector"].items() if k not in ("batch_ids", "usage")}
 
 
-def run_batches(client: Any, readings: list[Reading], max_attempts: int, poll_s: float = 30.0, log=print) -> list[str]:
+def _model_of(cid: str) -> str:
+    return next(m for m, short in SHORT.items() if f"-{short}-" in cid)
+
+
+def _result_cost(cid: str, result: Any) -> float:
+    if result.type != "succeeded":
+        return 0.0  # errored, expired and canceled requests are not billed
+    return cost(_model_of(cid), usage_dict(result.message.usage), batch=True)
+
+
+def _wait(client: Any, batch: Any, poll_s: float, log) -> Any:
+    t0 = time.monotonic()
+    while batch.processing_status != "ended":
+        time.sleep(poll_s)
+        batch = client.messages.batches.retrieve(batch.id)
+        c = batch.request_counts
+        log(f"batch {batch.id}: {batch.processing_status} processing {c.processing} succeeded {c.succeeded} "
+            f"errored {c.errored} after {time.monotonic() - t0:.0f}s")
+    log(f"batch {batch.id}: ended after {time.monotonic() - t0:.0f}s")
+    return batch
+
+
+def _collect(client: Any, batch_id: str, by_id: dict[str, Reading], sent: list[str]) -> tuple[float, int]:
+    """Apply a finished batch's results to the readings it holds; a request
+    missing from the results counts as a failed attempt. Returns the batch's
+    cost (every result, matched or not) and the number of results."""
+    usd, n, seen = 0.0, 0, set()
+    for res in client.messages.batches.results(batch_id):
+        n += 1
+        usd += _result_cost(res.custom_id, res.result)
+        if res.custom_id in by_id:
+            apply_result(by_id[res.custom_id], res.result, batch_id)
+            seen.add(res.custom_id)
+    for cid in sent:
+        if cid in by_id and cid not in seen:
+            by_id[cid].attempts.append({"batch_id": batch_id, "result_type": "missing", "error": "no result returned"})
+    return usd, n
+
+
+def recover_open_batches(
+    client: Any, ledger: Ledger, step: str, readings: list[Reading], poll_s: float = 30.0, log=print,
+    after_batch: Callable[[], None] | None = None,
+) -> list[str]:
+    """Batches this step submitted but never settled (the process stopped while
+    waiting): wait for each, apply its results to the readings still to do,
+    write what is finished and settle its cost, so nothing is paid twice."""
+    by_id = {r.custom_id: r for r in readings}
+    ids = []
+    for entry in ledger.open_batches(step):
+        log(f"batch {entry['batch_id']}: submitted earlier and not settled; collecting its results")
+        batch = _wait(client, client.messages.batches.retrieve(entry["batch_id"]), poll_s, log)
+        usd, n = _collect(client, batch.id, by_id, entry["custom_ids"])
+        if after_batch:
+            after_batch()
+        ledger.settle(batch.id, usd, n)
+        ids.append(batch.id)
+    return ids
+
+
+def run_batches(
+    client: Any, readings: list[Reading], max_attempts: int, poll_s: float = 30.0, log=print,
+    ledger: Ledger | None = None, step: str | None = None, after_batch: Callable[[], None] | None = None,
+) -> list[str]:
     """Submit every unfinished reading, wait, apply the results; repeat until
-    each reading parsed or used `max_attempts` attempts. Returns the batch ids."""
+    each reading parsed or used `max_attempts` attempts. Returns the batch ids.
+
+    With a ledger, each batch is checked against the cap and reserved at its
+    estimate before it is sent (BudgetExceeded if it doesn't fit), and settled
+    at its actual cost once its results are in; `after_batch` runs before
+    settling (write the finished games first, so a stop never pays twice)."""
     from anthropic.types.message_create_params import MessageCreateParamsNonStreaming
     from anthropic.types.messages.batch_create_params import Request
 
@@ -219,26 +296,64 @@ def run_batches(client: Any, readings: list[Reading], max_attempts: int, poll_s:
         todo = [r for r in readings if r.result is None and len(r.attempts) < max_attempts]
         if not todo:
             return batch_ids
-        batch = client.messages.batches.create(
-            requests=[Request(custom_id=r.custom_id, params=MessageCreateParamsNonStreaming(**r.params())) for r in todo]
-        )
+        requests = [Request(custom_id=r.custom_id, params=MessageCreateParamsNonStreaming(**r.params())) for r in todo]
+        sent = [r.custom_id for r in todo]
+        if ledger is not None:
+            estimate = batch_estimate([r.config.model for r in todo])
+            with ledger.locked():
+                ok, msg = ledger.check(step, estimate)
+                if not ok:
+                    raise BudgetExceeded(msg)
+                batch = client.messages.batches.create(requests=requests)
+                ledger.reserve(step, batch.id, estimate, sent)
+        else:
+            batch = client.messages.batches.create(requests=requests)
         batch_ids.append(batch.id)
-        t0 = time.monotonic()
         log(f"batch {batch.id}: {len(todo)} requests submitted")
-        while batch.processing_status != "ended":
-            time.sleep(poll_s)
-            batch = client.messages.batches.retrieve(batch.id)
-            c = batch.request_counts
-            log(f"batch {batch.id}: {batch.processing_status} processing {c.processing} succeeded {c.succeeded} "
-                f"errored {c.errored} after {time.monotonic() - t0:.0f}s")
-        log(f"batch {batch.id}: ended after {time.monotonic() - t0:.0f}s")
-        seen = set()
-        for res in client.messages.batches.results(batch.id):
-            apply_result(by_id[res.custom_id], res.result, batch.id)
-            seen.add(res.custom_id)
-        for r in todo:  # a request missing from the results counts as a failed attempt
-            if r.custom_id not in seen:
-                r.attempts.append({"batch_id": batch.id, "result_type": "missing", "error": "no result returned"})
+        batch = _wait(client, batch, poll_s, log)
+        usd, n = _collect(client, batch.id, by_id, sent)
+        if after_batch:
+            after_batch()
+        if ledger is not None:
+            ledger.settle(batch.id, usd, n)
+            log(f"batch {batch.id}: ${usd:.4f} (batch price); ledger total ${ledger.spent():.4f}")
+
+
+def check_step(ledger: Ledger, name: str, run: Path, models: list[str], prompts: list[str], scratch: bool) -> str | None:
+    """Why this invocation doesn't match its ledger step, or None. A plan step
+    must read exactly its run with exactly its models and both prompts, into
+    the run itself; anything else (a smoke test) uses a step named smoke-*."""
+    step = ledger.step(name)
+    if step is None:
+        return None if name.startswith("smoke") else f"--step {name!r} is neither a plan step nor smoke-*"
+    if step.kind != "monitor":
+        return f"step {name} plays games; it is not a monitor step"
+    if run.resolve() != (ledger.root / step.run).resolve():
+        return f"step {name} reads {step.run}, not {run}"
+    if sorted(models) != sorted(step.models) or sorted(prompts) != sorted(PROMPTS):
+        return f"step {name} is {', '.join(step.models)} with both prompts, not {', '.join(models)} with {', '.join(prompts)}"
+    if scratch:
+        return f"step {name} reads every game into the run; --games, --out and --no-schema are for smoke-* steps"
+    return None
+
+
+def write_finished(
+    readings: list[Reading], n_readings: int, out_dir: Path, seat_order: dict[str, list[str]],
+    written: set[tuple[Config, str]],
+) -> int:
+    """Append a row for every game whose readings all parsed and that isn't
+    written yet; returns how many were added."""
+    added = 0
+    rows = game_rows(readings, n_readings)
+    for (config, game_id), row in sorted(rows.items(), key=lambda kv: (kv[0][0].file_name(), kv[0][1])):
+        if (config, game_id) in written:
+            continue
+        row = {"game_id": game_id, "seat_order": seat_order[game_id], **{k: v for k, v in row.items() if k != "game_id"}}
+        with (out_dir / config.file_name()).open("a") as f:
+            f.write(json.dumps(row, ensure_ascii=False) + "\n")
+        written.add((config, game_id))
+        added += 1
+    return added
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -246,6 +361,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--run", required=True, type=Path)
     ap.add_argument("--model", action="append", required=True, choices=sorted(THINKING))
     ap.add_argument("--prompt", action="append", required=True, choices=sorted(PROMPTS))
+    ap.add_argument("--step", required=True,
+                    help="the spend-ledger step (seance.budget.PLAN), or smoke-<anything> for a smoke test")
+    ap.add_argument("--ledger", type=Path, default=LEDGER)
     ap.add_argument("--no-schema", action="append", default=[], choices=sorted(THINKING),
                     help="also read with this model without output_config.format (prompt-only JSON)")
     ap.add_argument("--games", help="comma-separated game ids (smoke test)")
@@ -254,6 +372,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--max-attempts", type=int, default=3)
     ap.add_argument("--poll-s", type=float, default=30.0)
     args = ap.parse_args(argv)
+
+    ledger = Ledger(args.ledger)
+    why = check_step(ledger, args.step, args.run, args.model, args.prompt, bool(args.games or args.out or args.no_schema))
+    if why:
+        ap.error(why)
 
     import anthropic
 
@@ -283,20 +406,33 @@ def main(argv: list[str] | None = None) -> int:
     readings = [
         rd for config, recs in todo_records.items() for rd in make_readings(args.run.name, recs, [config], args.n_readings, view_fn)
     ]
-    if not readings:
+    if not readings and not ledger.open_batches(args.step):
         print("nothing to do")
         return 0
+    seat_order = {r["game_id"]: view_fn(r)["names"] for r in records}
+    written: set[tuple[Config, str]] = set()
+
+    def flush() -> None:
+        n = write_finished(readings, args.n_readings, out_dir, seat_order, written)
+        if n:
+            print(f"{n} games written")
+
     client = anthropic.Anthropic(api_key=api_key(), max_retries=6)
     t0 = time.monotonic()
-    run_batches(client, readings, args.max_attempts, args.poll_s)
+    recover_open_batches(client, ledger, args.step, readings, args.poll_s, after_batch=flush)
+    estimate = batch_estimate([r.config.model for r in readings if r.result is None])
+    ok, msg = ledger.check(args.step, estimate)
+    print(msg)
+    stopped = None
+    if not ok:
+        stopped = msg
+    else:
+        try:
+            run_batches(client, readings, args.max_attempts, args.poll_s, ledger=ledger, step=args.step, after_batch=flush)
+        except BudgetExceeded as e:
+            stopped = str(e)
+    flush()
     elapsed = time.monotonic() - t0
-
-    rows = game_rows(readings, args.n_readings)
-    seat_order = {r["game_id"]: view_fn(r)["names"] for r in records}
-    for (config, game_id), row in sorted(rows.items(), key=lambda kv: (kv[0][0].file_name(), kv[0][1])):
-        row = {"game_id": game_id, "seat_order": seat_order[game_id], **{k: v for k, v in row.items() if k != "game_id"}}
-        with (out_dir / config.file_name()).open("a") as f:
-            f.write(json.dumps(row, ensure_ascii=False) + "\n")
 
     # Summary: parsing, attempts, tokens and cost (no monitor conclusions).
     print(f"\nall batches done in {elapsed:.0f}s")
@@ -305,19 +441,25 @@ def main(argv: list[str] | None = None) -> int:
         if not rs:
             continue
         atts = [a for r in rs for a in r.attempts]
-        ok = [a for a in atts if "usage" in a]
-        dollars = sum(cost(config.model, a["usage"], batch=True) for a in ok)
+        ok_atts = [a for a in atts if "usage" in a]
+        dollars = sum(cost(config.model, a["usage"], batch=True) for a in ok_atts)
         n_games = len({r.game_id for r in rs})
         print(
             f"{config.file_name()}: {sum(r.result is not None for r in rs)}/{len(rs)} readings parsed, "
-            f"{sum(1 for (c, _) in rows if c == config)}/{n_games} games written; attempts {len(atts)} "
+            f"{sum(1 for (c, _) in written if c == config)}/{n_games} games written; attempts {len(atts)} "
             f"(refusals {sum(1 for a in atts if (a.get('error') or '').startswith('refusal'))}, "
-            f"parse errors {sum(1 for a in ok if a['error'] and not a['error'].startswith('refusal'))}, "
+            f"parse errors {sum(1 for a in ok_atts if a['error'] and not a['error'].startswith('refusal'))}, "
             f"api errors {sum(1 for a in atts if 'usage' not in a)}); "
-            f"mean in {sum(a['prompt_tokens'] for a in ok) / max(len(ok), 1):.0f} "
-            f"out {sum(a['completion_tokens'] for a in ok) / max(len(ok), 1):.0f} tokens per attempt; "
+            f"mean in {sum(a['prompt_tokens'] for a in ok_atts) / max(len(ok_atts), 1):.0f} "
+            f"out {sum(a['completion_tokens'] for a in ok_atts) / max(len(ok_atts), 1):.0f} tokens per attempt; "
             f"${dollars:.4f} (batch price), ${dollars / max(len(rs), 1):.5f} per reading"
         )
+    print(f"ledger: ${ledger.spent():.4f} of ${ledger.cap:.2f} spent")
+    if stopped:
+        missing = {c.file_name(): len({r.game_id for r in readings if r.config == c and (c, r.game_id) not in written}) for c in configs}
+        print(f"STOPPED (budget): {stopped}")
+        print("games still to read: " + ", ".join(f"{k} {v}" for k, v in missing.items() if v))
+        return 3
     failed = [r.custom_id for r in readings if r.result is None]
     if failed:
         print(f"{len(failed)} readings failed: {failed}")

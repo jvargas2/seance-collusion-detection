@@ -8,3 +8,4 @@ __pycache__/
 # The fake test-mode run; real runs are committed.
 runs/try/
 dist/
+runs/*.lock

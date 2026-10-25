@@ -1,0 +1,20 @@
+claude_haiku_plain.jsonl: 0 of 1 games done
+batch msgbatch_012T1v2A7ApEq6WQ4KzkKq6m: submitted earlier and not settled; collecting its results
+batch msgbatch_012T1v2A7ApEq6WQ4KzkKq6m: in_progress processing 3 succeeded 0 errored 0 after 10s
+batch msgbatch_012T1v2A7ApEq6WQ4KzkKq6m: in_progress processing 3 succeeded 0 errored 0 after 20s
+batch msgbatch_012T1v2A7ApEq6WQ4KzkKq6m: in_progress processing 3 succeeded 0 errored 0 after 31s
+batch msgbatch_012T1v2A7ApEq6WQ4KzkKq6m: in_progress processing 3 succeeded 0 errored 0 after 41s
+batch msgbatch_012T1v2A7ApEq6WQ4KzkKq6m: in_progress processing 3 succeeded 0 errored 0 after 51s
+batch msgbatch_012T1v2A7ApEq6WQ4KzkKq6m: in_progress processing 3 succeeded 0 errored 0 after 61s
+batch msgbatch_012T1v2A7ApEq6WQ4KzkKq6m: in_progress processing 3 succeeded 0 errored 0 after 71s
+batch msgbatch_012T1v2A7ApEq6WQ4KzkKq6m: in_progress processing 3 succeeded 0 errored 0 after 82s
+batch msgbatch_012T1v2A7ApEq6WQ4KzkKq6m: in_progress processing 3 succeeded 0 errored 0 after 92s
+batch msgbatch_012T1v2A7ApEq6WQ4KzkKq6m: ended processing 0 succeeded 3 errored 0 after 102s
+batch msgbatch_012T1v2A7ApEq6WQ4KzkKq6m: ended after 102s
+1 games written
+ok: $0.68 spent + $0.00 for smoke-ledger + $15.24 held for 1-opus-sonnet-final + $0.25 held for 2-haiku-monitor-final + $2.26 held for 3-haiku-players + $0.25 held for 4-haiku-monitor-final-haiku = $18.68 of $19.30
+
+all batches done in 103s
+claude_haiku_plain.jsonl: 3/3 readings parsed, 1/1 games written; attempts 3 (refusals 0, parse errors 0, api errors 0); mean in 6438 out 365 tokens per attempt; $0.0012 (batch price), $0.00041 per reading
+ledger: $0.6806 of $19.30 spent
+EXIT 0

@@ -93,6 +93,10 @@ Main-study results (2026-10-24):
 - **E11, computed plus-factor detector** (`seance.computed --fit runs/main`, then `--score runs/fresh runs/neutral` and `--compare runs/main runs/fresh runs/neutral`; a follow-up, free). No language model: per pair, closeness of guesses that singles the pair out from the other two players, closeness at a value nobody stated in public, and being the round's closest pair; a conditional logit fitted on runs/main (main predictions cross-fitted) and frozen (`seance.detectors.computed.FROZEN`) before the held-out runs were scored. Declared combination: the plain average with the plus-factor monitor. Held-out (fresh + neutral, 30 + 30): clean games accused 6 of 30 (plus-factor monitor 7, standard 25), AUROC 0.69 (0.92, 0.71), right pair 50% (55%, 40%), log-loss 1.26 (1.08, 2.07); the average with the plus-factor monitor: 6 of 30, AUROC 0.90, right pair 57%, log-loss 1.09. Results in `metrics/exploratory_computed.json` of each run.
 - **E13–E15, other monitors** (follow-ups; `seance.clef`, `seance.jev`, and `seance.exploratory --plus-factors standard plus_factors --monitor-tag gemma` then `seance.other_pf --compare runs --tag gemma`). The E8 question, plain and with the plus-factor paragraph, E8's names. Held-out (fresh + neutral, 30 + 30), clean games accused, plain → plus-factor: Qwen LLM monitor 25 → 7, Gemma 4 31B 22 → 5, Clef 30 → 21, Jev (TypeSafe, `jev-1.14.0`) 20 → 16; AUROC 0.71 → 0.92, 0.70 → 0.76, 0.64 → 0.72, 0.68 → 0.69. Results in `runs/main/metrics/exploratory_{clef,jev,gemma_pf}.json`.
 
+## Final test set
+
+`FINAL_TEST.md` is the frozen analysis plan and runbook (tag `final-freeze`): two new sets on the same 106 deals (seed 2026102502), `runs/final` played by Qwen3.8-27B and `runs/final-haiku` by Haiku 5.5 (`seance.run --specs-from runs/final`), every detector on both. Anthropic API spending goes through the ledger `runs/api_spend.jsonl` (`seance.budget`: actual cost per response, a $19.30 cap, steps in priority order); `seance.final --run <set>` writes the whole table, one figure and the game-level checks.
+
 ## Explorer
 
 ```bash

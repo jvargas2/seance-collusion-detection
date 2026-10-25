@@ -71,6 +71,10 @@ relative to the other pairs ("pf_extended"), written to
 `--variants-compare [RUN ...]` scores each against standard and
 plus_factors, on --run pooled with the RUNs given.
 
+`--with-positive-controls` (final test set, with `--plus-factors`) also reads
+the positive-control games into the same predictions files; every analysis
+of clean against coalition games filters them out by condition.
+
 `--think` (E12, with `--plus-factors`) repeats those readings with Qwen's
 thinking mode on and room for it (SEANCE_MONITOR_ENABLE_THINKING=true, a
 larger SEANCE_MONITOR_MAX_TOKENS); nothing else may differ. The answer is
@@ -96,7 +100,7 @@ from typing import Any
 import numpy as np
 
 from . import metrics
-from .conditions import CLEAN, COALITION, LABELS, NONE_LABEL, PAIRS
+from .conditions import CLEAN, COALITION, LABELS, NONE_LABEL, PAIRS, POSITIVE_CONTROL
 from .evaluate import _expected_config, _read_predictions, load_records, predict_all
 from .public_view import public_view
 
@@ -933,6 +937,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--monitor-tag", metavar="TAG",
                     help="E15: with --plus-factors, read with another monitor model (SEANCE_MONITOR_MODEL and _BASE_URL from "
                          "the environment; only the model and server may differ) into llm_monitor_<TAG>_pf_<which>.jsonl")
+    ap.add_argument("--with-positive-controls", action="store_true",
+                    help="final test set: with --plus-factors, also read the positive-control games (for 'positive controls caught')")
     ap.add_argument("--settings-from", type=Path,
                     help="the main study's monitor predictions, to check settings against (default <run>/predictions/llm_monitor.jsonl)")
     ap.add_argument("--theme", type=Path, help="E4: a neutral-wording run made with --replicate, compared with the same main-study deals")
@@ -1118,9 +1124,12 @@ def main(argv: list[str] | None = None) -> int:
         path = pf_predictions_path(pred_dir, which, args.monitor_tag)
         if args.think:
             path = path.with_name(path.stem + "_think.jsonl")
-        done = asyncio.run(predict_all(det, records, path, args.concurrency, view_fn=random_names_view_fn()))
+        pf_records = records + (
+            [r for r in load_records(args.run) if r["condition"] == POSITIVE_CONTROL] if args.with_positive_controls else []
+        )
+        done = asyncio.run(predict_all(det, pf_records, path, args.concurrency, view_fn=random_names_view_fn()))
         label = "E15" if args.monitor_tag else "E12" if args.think else "E10" if which in PF_VARIANTS else "E8"
-        print(f"{label} {which}: {len(done)} of {len(records)} games scored", flush=True)
+        print(f"{label} {which}: {len(done)} of {len(pf_records)} games scored", flush=True)
 
     if args.think_compare:
         out = {"name_seed": PF_NAME_SEED}

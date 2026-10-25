@@ -8,6 +8,18 @@ failed attempt. Re-running the same command skips finished games and retries
 failed ones. The manifest names each game's condition and allies, so never
 hand this directory to a detector; detectors get `public_view` output only.
 
+`--specs-from RUN` plays exactly RUN's games (the same ids, seeds, pairs and
+roles, read from its manifest), so two sets played by different models pair
+deal by deal: the Haiku 5.5 final set is `--specs-from runs/final`.
+
+Anthropic players spend through the ledger (`seance.budget`): `--spend-step`
+names the final test plan's step (or smoke-* for a smoke test); the run
+starts only if the step's estimate fits under the cap with every
+higher-priority step held, each game and each call is checked again, and
+each call's actual cost is recorded. A budget stop plays no further games,
+writes no failed record for the game it interrupts (that game restarts on
+the rerun) and exits with code 3.
+
 Concurrency: `--concurrency` caps in-flight model calls across all games
 (the number that matters for a single Modal GPU container). Within a game,
 all four posts of a posting phase go out together, then all four guesses.
@@ -27,7 +39,7 @@ import traceback
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from . import game as G
 from .agents import GUESS, SPEAK, AgentCallFailed, CallLog, call_medium, system_prompt
@@ -274,22 +286,40 @@ async def run_games(
     max_games_in_flight: int = 8,
     inference_settings: dict[str, Any] | None = None,
     log=print,
+    admit: Callable[[GameSpec], str | None] | None = None,
 ) -> dict[str, int]:
+    """`admit(spec)` returns None to start the game, or why not (a budget stop):
+    the game and every later one are left unplayed, counted as "stopped"."""
+    from .budget import BudgetExceeded
+
     (out_dir / GAMES_DIR).mkdir(parents=True, exist_ok=True)
     (out_dir / FAILED_DIR).mkdir(parents=True, exist_ok=True)
     todo = pending(out_dir, specs)
     log(f"{len(specs) - len(todo)} of {len(specs)} games already done; playing {len(todo)}")
     gate = asyncio.Semaphore(max_games_in_flight)
-    counts = {"complete": 0, "failed": 0}
+    counts = {"complete": 0, "failed": 0, "stopped": 0}
+    stop: list[str] = []
     failed_by: Counter[str] = Counter()
 
     async def one(spec: GameSpec) -> None:
         async with gate:
+            if not stop and admit is not None and (why := admit(spec)) is not None:
+                stop.append(why)
+                log(f"STOPPED (budget): {why}")
+            if stop:
+                counts["stopped"] += 1
+                return
             t0 = time.monotonic()
             fpath = failed_path(out_dir, spec.game_id)
             try:
                 record = await play_game(spec, client, max_attempts, inference_settings)
             except GameFailed as e:
+                if isinstance(e.cause, BudgetExceeded):
+                    if not stop:
+                        stop.append(str(e.cause))
+                        log(f"STOPPED (budget): {e.cause}")
+                    counts["stopped"] += 1
+                    return
                 counts["failed"] += 1
                 failed_by[f"{spec.condition} {spec.label}"] += 1
                 _write_json(
@@ -317,6 +347,8 @@ async def run_games(
             log(f"{spec.game_id}: done in {time.monotonic() - t0:.1f}s")
 
     await asyncio.gather(*(one(s) for s in todo))
+    if not counts["stopped"]:
+        del counts["stopped"]  # only budget-stopped runs report it
     if failed_by:
         log("failed games by condition and pair: " + ", ".join(f"{k}: {v}" for k, v in sorted(failed_by.items())))
     return counts
@@ -339,6 +371,11 @@ def main(argv: list[str] | None = None) -> int:
                     help="exploratory: replace every number in public messages with [redacted]; players are told")
     ap.add_argument("--scoring", default=G.DEFAULT_SCORING, choices=G.SCORING_RULES,
                     help='scoring rule; "winner" (exploratory): only the closest guess scores 3, ties split it')
+    ap.add_argument("--specs-from", type=Path, metavar="RUN",
+                    help="play exactly RUN's games (same ids, seeds, pairs, roles) from its manifest")
+    ap.add_argument("--games", help="with --specs-from: only these comma-separated game ids (smoke test)")
+    ap.add_argument("--spend-step", help="Anthropic players: the spend-ledger step (seance.budget.PLAN) or smoke-*")
+    ap.add_argument("--ledger", type=Path, default=Path("runs/api_spend.jsonl"))
     ap.add_argument("--fake", action="store_true", help="use the scripted fake model (offline)")
     ap.add_argument("--concurrency", type=int, default=8, help="max in-flight model calls")
     ap.add_argument("--games-in-flight", type=int, default=8)
@@ -367,10 +404,26 @@ def main(argv: list[str] | None = None) -> int:
             inner = OpenAICompatClient(settings)
             inf = settings.describe()
 
-    if args.redact and not args.replicate:
+    if args.specs_from:
+        if args.main_study or args.replicate or args.clean or args.coalition or args.positive or args.redact \
+                or args.scoring != G.DEFAULT_SCORING:
+            print("--specs-from fixes the game list; drop the other game-list options", file=sys.stderr)
+            return 2
+        source = json.loads((args.specs_from / MANIFEST).read_text())
+        specs = [GameSpec.from_dict(d) for d in source["games"]]
+        if args.games:
+            keep = set(args.games.split(","))
+            if keep - {s.game_id for s in specs}:
+                print(f"games not in {args.specs_from}: {sorted(keep - {s.game_id for s in specs})}", file=sys.stderr)
+                return 2
+            specs = [s for s in specs if s.game_id in keep]
+    elif args.games:
+        print("--games goes with --specs-from", file=sys.stderr)
+        return 2
+    elif args.redact and not args.replicate:
         print("--redact is only offered with --replicate", file=sys.stderr)
         return 2
-    if args.main_study:
+    elif args.main_study:
         if args.clean or args.coalition or args.positive:
             print("--main-study fixes the game list; drop --clean/--coalition/--positive", file=sys.stderr)
             return 2
@@ -394,7 +447,11 @@ def main(argv: list[str] | None = None) -> int:
         build_keys += ("scoring",)
     if args.redact:  # only on redacted runs, so other manifests are unchanged
         build_keys += ("redact",)
-    meta = {"build_args": {k: getattr(args, k) for k in build_keys}, "inference": inf}
+    build = {k: getattr(args, k) for k in build_keys}
+    if args.specs_from:  # only on copied runs, so other manifests are unchanged
+        build = {"specs_from": str(args.specs_from), "specs_from_created_at": source.get("created_at"),
+                 "specs_from_build_args": source.get("build_args"), "games": args.games}
+    meta = {"build_args": build, "inference": inf}
     if (args.out / MANIFEST).exists():
         prior = json.loads((args.out / MANIFEST).read_text()).get("inference", {})
         if prior != inf:
@@ -407,12 +464,45 @@ def main(argv: list[str] | None = None) -> int:
     elif not specs:
         print("no games: pass --clean/--coalition/--positive", file=sys.stderr)
         return 2
+    admit = None
+    if inf.get("provider") == "anthropic":
+        from .budget import PLAYER_GAME_COST, Ledger, LedgerClient
+
+        if not args.spend_step:
+            print("Anthropic players need --spend-step (seance.budget.PLAN, or smoke-* for a smoke test)", file=sys.stderr)
+            return 2
+        ledger = Ledger(args.ledger)
+        step = ledger.step(args.spend_step)
+        if step is None and not args.spend_step.startswith("smoke"):
+            print(f"--spend-step {args.spend_step!r} is neither a plan step nor smoke-*", file=sys.stderr)
+            return 2
+        if step is not None and (step.kind != "players" or args.out.resolve() != (ledger.root / step.run).resolve()
+                                 or inner.model not in step.models or args.games):
+            print(f"step {step.name} plays {step.run} with {', '.join(step.models)}, every game", file=sys.stderr)
+            return 2
+        manifest = args.out / MANIFEST
+        planned = [GameSpec.from_dict(d) for d in json.loads(manifest.read_text())["games"]] if manifest.exists() else specs
+        todo = len(pending(args.out, planned))
+        ok, msg = ledger.check(args.spend_step, todo * PLAYER_GAME_COST)
+        print(msg)
+        if not ok:
+            print(f"STOPPED (budget): {todo} games not played")
+            return 3
+        inner = LedgerClient(inner, ledger, args.spend_step, str(args.out))
+
+        def admit(spec: GameSpec) -> str | None:
+            ok, msg = ledger.check(args.spend_step, PLAYER_GAME_COST)
+            return None if ok else msg
+
     specs = load_or_create_manifest(args.out, specs, meta)
     client = LimitedClient(inner, args.concurrency)
     counts = asyncio.run(
-        run_games(specs, client, args.out, args.max_attempts, args.games_in_flight, inf)
+        run_games(specs, client, args.out, args.max_attempts, args.games_in_flight, inf, admit=admit)
     )
-    print(f"complete {counts['complete']}, failed {counts['failed']}, peak in-flight calls {client.peak_in_flight}")
+    print(f"complete {counts['complete']}, failed {counts['failed']}, stopped {counts.get('stopped', 0)}, "
+          f"peak in-flight calls {client.peak_in_flight}")
+    if counts.get("stopped"):
+        return 3
     return 1 if counts["failed"] else 0
 
 
