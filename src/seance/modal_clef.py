@@ -24,7 +24,7 @@ GPU = os.environ.get("SEANCE_MODAL_GPU", "H100")
 CACHE = "/cache"
 
 image = modal.Image.debian_slim(python_version="3.12").uv_pip_install(
-    "torch==2.11.0", "transformers==5.10.2", "huggingface_hub", "safetensors", "accelerate", "pillow"
+    "torch==2.11.0", "torchvision==0.26.0", "transformers==5.10.2", "huggingface_hub", "safetensors", "accelerate", "pillow"
 )
 cache = modal.Volume.from_name("seance-clef-cache", create_if_missing=True)
 app = modal.App(APP_NAME)
