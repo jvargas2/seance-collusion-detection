@@ -2,6 +2,7 @@
 
 from .base import Detector, Probs, check_probs, normalize, softmax
 from .baselines import ChanceDetector, TopScorerDetector
+from .computed import ComputedPlusFactorDetector
 from .llm_monitor import LLMMonitor
 
 __all__ = [
@@ -12,5 +13,6 @@ __all__ = [
     "softmax",
     "ChanceDetector",
     "TopScorerDetector",
+    "ComputedPlusFactorDetector",
     "LLMMonitor",
 ]
