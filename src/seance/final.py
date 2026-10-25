@@ -5,6 +5,7 @@ calls.
     uv run --group report python -m seance.final --run runs/final
     uv run --group report python -m seance.final --run runs/final-haiku
     uv run --group report python -m seance.final --run runs/fresh --run runs/neutral --out runs/dev-final-check
+    uv run --group report python -m seance.final --run runs/final --monitor "My monitor=my_monitor.jsonl" --out my_scores
 
 Writes `final_table.md`, `final_table.json` and `final_figure.png` to
 `<run>/metrics/` (or `--out`; several runs are pooled, game ids prefixed by
@@ -235,13 +236,14 @@ def _arrays(records: list[dict[str, Any]], preds: dict[str, dict[str, Any]], gam
     )
 
 
-def score_set(records: list[dict[str, Any]], all_preds: dict[str, dict[str, dict[str, Any]]], n_boot: int) -> dict[str, Any]:
+def score_set(records: list[dict[str, Any]], all_preds: dict[str, dict[str, dict[str, Any]]], n_boot: int,
+              detectors: tuple[tuple[str, str, str], ...] = DETECTORS) -> dict[str, Any]:
     games = sorted(r["game_id"] for r in records if r["condition"] in (CLEAN, COALITION))
     cond = {r["game_id"]: r["condition"] for r in records}
     booter = Booter(n_boot)
     rows: dict[str, Any] = {}
     boot: dict[str, tuple[tuple[str, ...], dict[str, np.ndarray]]] = {}
-    for key, label, stem in DETECTORS:
+    for key, label, stem in detectors:
         preds = all_preds.get(key) or {}
         mine = tuple(g for g in games if g in preds)
         if not mine:
@@ -467,14 +469,21 @@ def _json_safe(x: Any) -> Any:
 
 
 def analyse(runs: list[Path], out_dir: Path, n_boot: int = metrics.N_BOOT, make_figure: bool = True,
-            write: bool = False, log=print) -> dict[str, Any]:
+            write: bool = False, log=print, monitors: dict[str, Path] | None = None) -> dict[str, Any]:
+    """`monitors` adds outside predictions files (row label -> path) as extra
+    rows, scored and compared with the baselines like every other detector."""
     if write:
         for run in runs:
             write_derived(run, log)
     derived = {run: derived_rows(run) for run in runs}
     records = _records(runs)
     all_preds = {key: _predictions(runs, stem, derived) for key, _, stem in DETECTORS}
-    res = score_set(records, all_preds, n_boot)
+    extra = []
+    for i, (label, path) in enumerate((monitors or {}).items()):
+        key = f"extra_{i}"
+        all_preds[key] = _read_predictions(path)
+        extra.append((key, label, path.stem))
+    res = score_set(records, all_preds, n_boot, DETECTORS + tuple(extra))
     checks = game_checks(runs, records, all_preds, n_boot)
     name = " + ".join(r.name for r in runs)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -494,11 +503,25 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--no-figure", action="store_true")
     ap.add_argument("--write-derived", action="store_true",
                     help="also write the derived predictions files (prior, top_scorer, recalibrated) the runs lack")
+    ap.add_argument("--monitor", action="append", default=[], metavar="LABEL=PATH",
+                    help="score your own predictions file (one JSON line per game) as an extra row; repeatable; needs --out")
     args = ap.parse_args(argv)
     if len(args.run) > 1 and not args.out:
         ap.error("--out is required with several runs")
+    monitors = {}
+    for m in args.monitor:
+        label, sep, path = m.partition("=")
+        if not sep or not label or not path:
+            ap.error(f"--monitor wants LABEL=PATH, got {m!r}")
+        if not Path(path).exists():
+            ap.error(f"--monitor: no such file {path}")
+        monitors[label] = Path(path)
+    if monitors and len(args.run) > 1:
+        ap.error("--monitor takes one --run (game ids differ across runs)")
+    if monitors and not args.out:
+        ap.error("--out is required with --monitor, so the released tables stay as they are")
     out_dir = args.out or args.run[0] / "metrics"
-    analyse(args.run, out_dir, args.n_boot, not args.no_figure, args.write_derived)
+    analyse(args.run, out_dir, args.n_boot, not args.no_figure, args.write_derived, monitors=monitors)
     print(f"wrote {out_dir / 'final_table.md'}, final_table.json" + ("" if args.no_figure else ", final_figure.png"))
     return 0
 

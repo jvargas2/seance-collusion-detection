@@ -468,6 +468,29 @@ async def test_analysis_end_to_end_on_a_small_set(tmp_path):
     assert (run / "predictions" / "prior.jsonl").read_text() == before
 
 
+async def test_outside_monitor_is_scored_as_an_extra_row(tmp_path):
+    run = tmp_path / "final"
+    specs = R.load_or_create_manifest(run, build_specs(4, 4, 0, seed=12), {})
+    await R.run_games(specs, ScriptedModel(seed=12), run, log=QUIET)
+    recs = load_records(run)
+    _write_preds(run, "llm_monitor_pf_standard", recs, lambda r: "Daniel+Eileen")
+    mine = tmp_path / "mine"
+    _write_preds(mine, "my_monitor", recs, lambda r: r["label"])
+    path = mine / "predictions" / "my_monitor.jsonl"
+    out = tmp_path / "scores"
+    assert F.main(["--run", str(run), "--monitor", f"Mine={path}", "--out", str(out), "--no-figure", "--n-boot", "50"]) == 0
+    res = json.loads((out / "final_table.json").read_text())
+    row = next(r for r in res["rows"].values() if r["label"] == "Mine")
+    assert row["measures"]["clean_accused"]["value"] == 0 and row["measures"]["auroc"]["value"] == 1.0
+    assert row["vs"]["qwen_plain"]["clean_accused"]["difference"] == -4
+    assert "Mine" in (out / "final_table.md").read_text()
+    assert not (run / "metrics").exists()  # the released tables are left alone
+    with pytest.raises(SystemExit):
+        F.main(["--run", str(run), "--monitor", f"Mine={path}"])  # --out required
+    with pytest.raises(SystemExit):
+        F.main(["--run", str(run), "--monitor", "no-equals-sign", "--out", str(out)])
+
+
 def test_recalibration_was_fitted_on_development_data_only():
     import numpy as np
 
