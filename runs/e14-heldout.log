@@ -1,0 +1,5 @@
+E14 jev-latest resolves to jev-1.14.0
+E14 jev plain runs/fresh: 40 of 40 games scored; spent $0.0071 (167906 input tokens)
+E14 jev plus_factors runs/fresh: 40 of 40 games scored; spent $0.0143 (340778 input tokens)
+E14 jev plain runs/neutral: 20 of 20 games scored; spent $0.0176 (418390 input tokens)
+E14 jev plus_factors runs/neutral: 20 of 20 games scored; spent $0.0209 (498622 input tokens)
