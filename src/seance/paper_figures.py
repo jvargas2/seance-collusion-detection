@@ -48,13 +48,16 @@ def draw(tables: list[dict], labels: list[str], out: Path) -> None:
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    models = [m for m in MODELS if any(_measure(t, k, "auroc") for t in tables for k in m[1:])]
+    per_set = [[m for m in MODELS if any(_measure(t, k, "auroc") for k in m[1:])] for t in tables]
+    n_rows = sum(len(m) for m in per_set)
     n_sets = len(tables)
     fig, axes = plt.subplots(
-        n_sets, len(PANELS), figsize=(9.5, 0.42 * len(models) * n_sets + 1.6), squeeze=False, sharey="row",
+        n_sets, len(PANELS), figsize=(9.5, 0.42 * n_rows + 1.2 * n_sets + 0.6), squeeze=False, sharey="row",
+        gridspec_kw={"height_ratios": [len(m) for m in per_set]},
         facecolor=SURFACE,
     )
     for si, (table, label) in enumerate(zip(tables, labels)):
+        models = per_set[si]
         for pi, (measure, title) in enumerate(PANELS):
             ax = axes[si][pi]
             ax.set_facecolor(SURFACE)
@@ -70,12 +73,12 @@ def draw(tables: list[dict], labels: list[str], out: Path) -> None:
             ax.set_yticks(range(len(models)), [m[0] for m in models], color=INK, fontsize=9)
             if pi == 0:  # the row's axes share y, so invert once
                 ax.invert_yaxis()
-            ax.set_xlim(-0.03, 1.03) if measure == "clean_accused" else ax.set_xlim(0.4, 1.01)
+            ax.set_xlim(-0.03, 1.03) if measure == "clean_accused" else ax.set_xlim(0.3, 1.01)
             if measure == "clean_accused":
                 ax.xaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(1.0, decimals=0))
             else:
                 ax.axvline(0.5, color=MUTED, lw=1, ls=":", zorder=0)
-                ax.text(0.505, len(models) - 0.55, "chance", color=MUTED, fontsize=8, va="top")
+                ax.text(0.505, -0.45, "chance", color=MUTED, fontsize=8, va="bottom")
             ax.grid(axis="x", color=GRID, lw=1)
             ax.set_axisbelow(True)
             ax.tick_params(colors=MUTED, labelsize=9, length=0)
