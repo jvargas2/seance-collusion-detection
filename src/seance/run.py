@@ -215,12 +215,22 @@ async def play_game(
             "attempts_with_reasoning": sum(
                 1 for c in calls for a in c.attempts if a.get("reasoning_chars", 0) > 0
             ),
+            **_usage_totals(calls),
         },
         "calls": [c.to_dict() for c in calls],
         "started_at": started,
         "finished_at": _now(),
         "code_version": code_version(),
     }
+
+
+def _usage_totals(calls: list[CallLog]) -> dict[str, Any]:
+    """Provider token counts summed over attempts (Anthropic players only, so
+    OpenAI-path records are unchanged)."""
+    usages = [a["usage"] for c in calls for a in c.attempts if "usage" in a]
+    if not usages:
+        return {}
+    return {"usage": {k: sum(u.get(k, 0) for u in usages) for k in usages[0]}}
 
 
 def _write_json(path: Path, obj: Any) -> None:
@@ -342,11 +352,20 @@ def main(argv: list[str] | None = None) -> int:
         inner: ChatClient = ScriptedModel(seed=args.seed)
         inf = {"model": inner.model}
     else:
-        from .inference import OpenAICompatClient, load_settings
+        from .claude import provider
 
-        settings = load_settings(args.env_file)
-        inner = OpenAICompatClient(settings)
-        inf = settings.describe()
+        if provider(args.env_file) == "anthropic":
+            from .claude import AnthropicClient, load_anthropic_settings
+
+            claude_settings = load_anthropic_settings(args.env_file)
+            inner = AnthropicClient(claude_settings)
+            inf = claude_settings.describe()
+        else:
+            from .inference import OpenAICompatClient, load_settings
+
+            settings = load_settings(args.env_file)
+            inner = OpenAICompatClient(settings)
+            inf = settings.describe()
 
     if args.redact and not args.replicate:
         print("--redact is only offered with --replicate", file=sys.stderr)

@@ -371,6 +371,8 @@ async def call_medium(
             "reasoning_chars": comp.reasoning_chars,
             "error": None,
         }
+        if comp.usage is not None:  # Anthropic only, so OpenAI-path records are unchanged
+            entry["usage"] = comp.usage
         log.attempts.append(entry)
         try:
             log.result = parse(comp.text)

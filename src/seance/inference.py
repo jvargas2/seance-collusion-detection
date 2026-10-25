@@ -30,6 +30,7 @@ class Completion:
     finish_reason: str | None = None
     reasoning_chars: int = 0  # thinking text returned (separately or as <think> in the content)
     reasoning: str = ""  # that thinking text itself
+    usage: dict[str, int] | None = None  # provider token counts (Anthropic: with cache reads/writes)
 
 
 class ChatClient(Protocol):

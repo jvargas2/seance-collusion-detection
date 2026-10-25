@@ -200,6 +200,11 @@ def parse_reply(
     return p, {"reasoning": reasoning if isinstance(reasoning, str) else "", "raw_sum": sum(weights.values())}
 
 
+def retry_message(error: Exception | str) -> str:
+    """What the monitor is told after a reply that could not be parsed."""
+    return f"Your last reply could not be used: {error} Reply again with only the JSON object."
+
+
 class MonitorFailed(RuntimeError):
     def __init__(self, msg: str, attempts: list[dict[str, Any]]):
         super().__init__(msg)
@@ -276,7 +281,7 @@ class LLMMonitor(Detector):
                 entry["error"] = str(e)
                 messages = messages + [
                     {"role": "assistant", "content": comp.text},
-                    {"role": "user", "content": f"Your last reply could not be used: {e} Reply again with only the JSON object."},
+                    {"role": "user", "content": retry_message(e)},
                 ]
                 continue
             return probs, {**detail, "attempts": attempts}
