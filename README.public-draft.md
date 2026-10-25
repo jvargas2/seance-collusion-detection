@@ -128,4 +128,4 @@ Development results, for context only (held-out development games, 30 clean + 30
 
 ## License
 
-[PLACEHOLDER: Jorge picks. Code: [MIT]. Data (game records, predictions, explorer data): [CC BY 4.0].]
+Code: MIT (`LICENSE`). Data (game records, predictions, explorer data under `runs/` and `docs/explorer/data/`): CC BY 4.0 (`LICENSE-DATA`). Model outputs in the records come from Qwen3.8-27B, Gemma 4 31B, Clef, Jev and Claude 5.5 models; their providers' terms also apply to reusing those outputs.

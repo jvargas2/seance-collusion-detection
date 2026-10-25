@@ -67,4 +67,4 @@ None. All players are language models using fictional names; the game contains n
 
 ## License
 
-[Jorge picks: data under CC BY 4.0, code under MIT.]
+Code: MIT (`LICENSE`). Data (game records, predictions, explorer data under `runs/` and `docs/explorer/data/`): CC BY 4.0 (`LICENSE-DATA`). Model outputs in the records come from Qwen3.8-27B, Gemma 4 31B, Clef, Jev and Claude 5.5 models; their providers' terms also apply to reusing those outputs.
