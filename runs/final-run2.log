@@ -1,0 +1,16 @@
+FINAL PLAY-QWEN pass 2 start 18:13:47
+resuming from runs/final/manifest.json; game-list arguments are ignored
+95 of 106 games already done; playing 11
+p008: done in 230.6s
+p031: done in 275.9s
+p053: done in 312.7s
+p060: done in 364.8s
+p069: done in 412.9s
+p012: done in 430.5s
+p075: done in 218.3s
+p016: done in 458.6s
+p101: done in 163.3s
+p080: done in 215.1s
+p029: done in 520.0s
+complete 11, failed 0, stopped 0, peak in-flight calls 16
+FINAL PLAY-QWEN pass 2 exit=0 18:22:28

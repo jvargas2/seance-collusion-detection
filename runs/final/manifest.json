@@ -1,0 +1,1044 @@
+{
+ "created_at": "2026-10-25T16:56:33+00:00",
+ "build_args": {
+  "main_study": false,
+  "replicate": 0,
+  "clean": 50,
+  "coalition": 50,
+  "positive": 6,
+  "seed": 2026102502,
+  "skin": "seance",
+  "posting_phases": 1
+ },
+ "inference": {
+  "base_url": "https://jorgevargas--seance-vllm-serve.us-east.modal.run/v1",
+  "model": "Qwen/Qwen3.8-27B-FP8",
+  "temperature": 0.7,
+  "max_tokens": 2048,
+  "json_mode": "json_schema",
+  "enable_thinking": false,
+  "extra_body": {
+   "chat_template_kwargs": {
+    "enable_thinking": false
+   }
+  }
+ },
+ "games": [
+  {
+   "game_id": "p000",
+   "seed": 1353290911,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p001",
+   "seed": 9908613,
+   "condition": "coalition",
+   "allies": [
+    2,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p002",
+   "seed": 1140431068,
+   "condition": "coalition",
+   "allies": [
+    2,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p003",
+   "seed": 150894647,
+   "condition": "coalition",
+   "allies": [
+    0,
+    1
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p004",
+   "seed": 621556961,
+   "condition": "coalition",
+   "allies": [
+    0,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p005",
+   "seed": 1070162245,
+   "condition": "coalition",
+   "allies": [
+    2,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p006",
+   "seed": 2051871525,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p007",
+   "seed": 1395284650,
+   "condition": "coalition",
+   "allies": [
+    0,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p008",
+   "seed": 1574415810,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p009",
+   "seed": 1995578873,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p010",
+   "seed": 748389393,
+   "condition": "coalition",
+   "allies": [
+    0,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p011",
+   "seed": 728728141,
+   "condition": "coalition",
+   "allies": [
+    0,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p012",
+   "seed": 1197560521,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p013",
+   "seed": 1687504462,
+   "condition": "coalition",
+   "allies": [
+    0,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p014",
+   "seed": 1708004481,
+   "condition": "coalition",
+   "allies": [
+    1,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p015",
+   "seed": 1865035138,
+   "condition": "coalition",
+   "allies": [
+    0,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p016",
+   "seed": 1011492315,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p017",
+   "seed": 200161149,
+   "condition": "coalition",
+   "allies": [
+    1,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p018",
+   "seed": 1205818914,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p019",
+   "seed": 599027613,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p020",
+   "seed": 1749981177,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p021",
+   "seed": 1388738400,
+   "condition": "positive_control",
+   "allies": [
+    0,
+    1
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p022",
+   "seed": 382145714,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p023",
+   "seed": 422904105,
+   "condition": "coalition",
+   "allies": [
+    0,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p024",
+   "seed": 80019888,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p025",
+   "seed": 2133378284,
+   "condition": "coalition",
+   "allies": [
+    0,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p026",
+   "seed": 25546557,
+   "condition": "coalition",
+   "allies": [
+    0,
+    1
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p027",
+   "seed": 1865181261,
+   "condition": "coalition",
+   "allies": [
+    2,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p028",
+   "seed": 1110977011,
+   "condition": "coalition",
+   "allies": [
+    1,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p029",
+   "seed": 1139977846,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p030",
+   "seed": 647723787,
+   "condition": "coalition",
+   "allies": [
+    0,
+    1
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p031",
+   "seed": 1170873499,
+   "condition": "coalition",
+   "allies": [
+    0,
+    1
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p032",
+   "seed": 1976655971,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p033",
+   "seed": 1128534340,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p034",
+   "seed": 898851877,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p035",
+   "seed": 840443892,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p036",
+   "seed": 2035455982,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p037",
+   "seed": 2025454238,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p038",
+   "seed": 1747731992,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p039",
+   "seed": 1385239417,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p040",
+   "seed": 1470094403,
+   "condition": "coalition",
+   "allies": [
+    0,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p041",
+   "seed": 270344635,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p042",
+   "seed": 117409078,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p043",
+   "seed": 994568255,
+   "condition": "coalition",
+   "allies": [
+    0,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p044",
+   "seed": 1694246247,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p045",
+   "seed": 282125038,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p046",
+   "seed": 1001817466,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p047",
+   "seed": 415753201,
+   "condition": "coalition",
+   "allies": [
+    0,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p048",
+   "seed": 842877277,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p049",
+   "seed": 439236769,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p050",
+   "seed": 342938792,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p051",
+   "seed": 304926538,
+   "condition": "coalition",
+   "allies": [
+    0,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p052",
+   "seed": 2058686371,
+   "condition": "coalition",
+   "allies": [
+    0,
+    1
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p053",
+   "seed": 128522751,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p054",
+   "seed": 912548377,
+   "condition": "coalition",
+   "allies": [
+    0,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p055",
+   "seed": 1070235307,
+   "condition": "positive_control",
+   "allies": [
+    2,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p056",
+   "seed": 2051547389,
+   "condition": "coalition",
+   "allies": [
+    1,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p057",
+   "seed": 240078855,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p058",
+   "seed": 1617505809,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p059",
+   "seed": 194186049,
+   "condition": "coalition",
+   "allies": [
+    1,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p060",
+   "seed": 874179248,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p061",
+   "seed": 225952780,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p062",
+   "seed": 54122017,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p063",
+   "seed": 497862130,
+   "condition": "coalition",
+   "allies": [
+    1,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p064",
+   "seed": 641731377,
+   "condition": "coalition",
+   "allies": [
+    0,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p065",
+   "seed": 431928567,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p066",
+   "seed": 1904001275,
+   "condition": "coalition",
+   "allies": [
+    1,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p067",
+   "seed": 695465830,
+   "condition": "positive_control",
+   "allies": [
+    1,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p068",
+   "seed": 1544899096,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p069",
+   "seed": 920587771,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p070",
+   "seed": 1976226623,
+   "condition": "positive_control",
+   "allies": [
+    0,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p071",
+   "seed": 624339830,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p072",
+   "seed": 1070460698,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p073",
+   "seed": 90412721,
+   "condition": "coalition",
+   "allies": [
+    0,
+    1
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p074",
+   "seed": 1732538766,
+   "condition": "coalition",
+   "allies": [
+    2,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p075",
+   "seed": 2154369,
+   "condition": "coalition",
+   "allies": [
+    0,
+    1
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p076",
+   "seed": 885243105,
+   "condition": "coalition",
+   "allies": [
+    1,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p077",
+   "seed": 1719219818,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p078",
+   "seed": 1161304219,
+   "condition": "coalition",
+   "allies": [
+    0,
+    1
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p079",
+   "seed": 2033299706,
+   "condition": "coalition",
+   "allies": [
+    1,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p080",
+   "seed": 969393337,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p081",
+   "seed": 1998406978,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p082",
+   "seed": 448681796,
+   "condition": "coalition",
+   "allies": [
+    0,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p083",
+   "seed": 1960854907,
+   "condition": "coalition",
+   "allies": [
+    1,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p084",
+   "seed": 1121515695,
+   "condition": "coalition",
+   "allies": [
+    1,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p085",
+   "seed": 92957114,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p086",
+   "seed": 2125465693,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p087",
+   "seed": 1683872866,
+   "condition": "coalition",
+   "allies": [
+    1,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p088",
+   "seed": 487563080,
+   "condition": "coalition",
+   "allies": [
+    2,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p089",
+   "seed": 1648179793,
+   "condition": "coalition",
+   "allies": [
+    0,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p090",
+   "seed": 324141164,
+   "condition": "coalition",
+   "allies": [
+    1,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p091",
+   "seed": 1240571356,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p092",
+   "seed": 1752131082,
+   "condition": "coalition",
+   "allies": [
+    2,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p093",
+   "seed": 1179126735,
+   "condition": "coalition",
+   "allies": [
+    1,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p094",
+   "seed": 168574928,
+   "condition": "coalition",
+   "allies": [
+    1,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p095",
+   "seed": 1446775467,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p096",
+   "seed": 1113250998,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p097",
+   "seed": 1195482188,
+   "condition": "coalition",
+   "allies": [
+    1,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p098",
+   "seed": 1094191592,
+   "condition": "positive_control",
+   "allies": [
+    1,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p099",
+   "seed": 2053242868,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p100",
+   "seed": 561327737,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p101",
+   "seed": 1410753524,
+   "condition": "coalition",
+   "allies": [
+    0,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p102",
+   "seed": 1063938701,
+   "condition": "coalition",
+   "allies": [
+    0,
+    1
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p103",
+   "seed": 512783695,
+   "condition": "clean",
+   "allies": null,
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p104",
+   "seed": 1048523858,
+   "condition": "positive_control",
+   "allies": [
+    0,
+    2
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  },
+  {
+   "game_id": "p105",
+   "seed": 1839136556,
+   "condition": "coalition",
+   "allies": [
+    2,
+    3
+   ],
+   "skin": "seance",
+   "posting_phases": 1
+  }
+ ]
+}

@@ -1,0 +1,112 @@
+FINAL PLAY-QWEN pass 1 start 16:56:32
+0 of 106 games already done; playing 106
+p002: done in 487.6s
+p007: done in 520.4s
+p006: done in 532.6s
+p005: done in 546.3s
+p001: done in 561.9s
+p004: done in 586.3s
+p003: done in 634.8s
+p000: done in 680.9s
+p008: FAILED after 3 rounds (AgentCallFailed: Eileen gave no usable guess reply in 3 attempts)
+p014: done in 183.8s
+p010: done in 330.9s
+p013: done in 297.4s
+p009: done in 417.1s
+p015: done in 265.2s
+p011: done in 424.8s
+p012: FAILED after 7 rounds (AgentCallFailed: Eileen gave no usable guess reply in 3 attempts)
+p018: done in 248.1s
+p021: done in 220.7s
+p019: done in 308.9s
+p017: done in 389.5s
+p023: done in 271.6s
+p020: done in 368.0s
+p026: done in 223.4s
+p025: done in 269.7s
+p027: done in 238.5s
+p024: done in 356.5s
+p016: FAILED after 9 rounds (AgentCallFailed: Daniel gave no usable guess reply in 3 attempts)
+p022: done in 537.0s
+p028: done in 267.1s
+p033: done in 198.3s
+p030: done in 307.7s
+p034: done in 255.5s
+p032: done in 324.1s
+p029: FAILED after 8 rounds (AgentCallFailed: Gladys gave no usable guess reply in 3 attempts)
+p031: FAILED after 5 rounds (AgentCallFailed: Daniel gave no usable guess reply in 3 attempts)
+p036: done in 240.9s
+p035: done in 313.6s
+p041: done in 256.4s
+p038: done in 326.7s
+p037: done in 386.2s
+p040: done in 291.4s
+p039: done in 345.1s
+p043: done in 302.4s
+p042: done in 420.4s
+p046: done in 265.4s
+p048: done in 254.8s
+p049: done in 282.1s
+p047: done in 336.0s
+p050: done in 346.0s
+p044: done in 644.8s
+p045: done in 454.4s
+p051: done in 291.1s
+p052: done in 268.6s
+p055: done in 198.5s
+p054: done in 255.5s
+p056: done in 273.1s
+p058: done in 261.2s
+p059: done in 322.0s
+p057: done in 383.1s
+p064: done in 191.0s
+p053: FAILED after 9 rounds (AgentCallFailed: Daniel gave no usable guess reply in 3 attempts)
+p061: done in 352.2s
+p063: done in 229.9s
+p060: FAILED after 6 rounds (AgentCallFailed: Daniel gave no usable guess reply in 3 attempts)
+p065: done in 208.4s
+p062: done in 401.1s
+p068: done in 227.6s
+p066: done in 423.8s
+p067: done in 339.2s
+p070: done in 377.1s
+p069: FAILED after 6 rounds (AgentCallFailed: Leonora gave no usable guess reply in 3 attempts)
+p072: done in 337.0s
+p073: done in 335.1s
+p071: done in 409.5s
+p075: FAILED after 4 rounds (AgentCallFailed: Eileen gave no usable guess reply in 3 attempts)
+p079: done in 236.4s
+p078: done in 281.9s
+p077: done in 302.5s
+p080: FAILED after 6 rounds (AgentCallFailed: Daniel gave no usable guess reply in 3 attempts)
+p081: done in 270.2s
+p074: done in 517.7s
+p076: done in 436.9s
+p084: done in 216.7s
+p085: done in 253.0s
+p082: done in 294.5s
+p087: done in 250.2s
+p083: done in 334.5s
+p088: done in 275.0s
+p086: done in 374.3s
+p092: done in 254.4s
+p091: done in 287.3s
+p094: done in 258.7s
+p090: done in 361.7s
+p093: done in 279.3s
+p089: done in 557.1s
+p101: FAILED after 1 rounds (AgentCallFailed: Daniel gave no usable speak reply in 3 attempts)
+p096: done in 355.9s
+p098: done in 224.7s
+p097: done in 278.7s
+p100: done in 321.5s
+p102: done in 258.5s
+p099: done in 361.4s
+p095: done in 604.3s
+p104: done in 190.9s
+p103: done in 217.8s
+p105: done in 246.1s
+failed games by condition and pair: clean none: 8, coalition Daniel+Eileen: 2, coalition Daniel+Gladys: 1
+complete 95, failed 11, stopped 0, peak in-flight calls 16
+FINAL PLAY-QWEN pass 1 exit=1 18:13:47
+FINAL PLAY-QWEN DONE
