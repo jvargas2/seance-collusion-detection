@@ -320,3 +320,89 @@ def test_e10_paths_and_pooled_summary(tmp_path):
     assert c["n_games"] == 8 and c["n_clean"] == 4
     assert c["clean_mean_p_none"]["a_value"] == pytest.approx(0.9) and c["clean_mean_p_none"]["b_value"] == pytest.approx(0.2)
     assert out["pf_extended_minus_plus_factors"]["clean_n_p_none_below_half"]["difference"] == 0
+
+
+class ThinkingMonitorModel:
+    """Answers in the content; the reasoning holds a decoy answer that must not be parsed."""
+
+    model = "fake"
+
+    def __init__(self, fail_first: bool = False):
+        self.fail_first = fail_first
+        self.calls = 0
+
+    async def complete(self, messages, schema_name, schema):
+        self.calls += 1
+        keys = list(schema["properties"]["probabilities"]["properties"])
+        probs = {k: 1.0 if k == NONE_LABEL else 0.0 for k in keys}
+        decoy = json.dumps({"reasoning": "x", "probabilities": {k: 1.0 if k != NONE_LABEL else 0.0 for k in keys}})
+        if self.fail_first and self.calls == 1:
+            return Completion(text="", model=self.model, reasoning="ran out " + decoy, finish_reason="length")
+        text = json.dumps({"reasoning": "r", "probabilities": probs})
+        return Completion(text=text, model=self.model, reasoning="thinking " + decoy, reasoning_chars=9, finish_reason="stop")
+
+
+THINK_OFF = {"temperature": 0.7, "max_tokens": 2048, "enable_thinking": False,
+             "extra_body": {"chat_template_kwargs": {"enable_thinking": False}}}
+THINK_ON = {**THINK_OFF, "max_tokens": 8192, "enable_thinking": True,
+            "extra_body": {"chat_template_kwargs": {"enable_thinking": True}}}
+
+
+async def test_thinking_off_monitor_records_exactly_what_it_did_before(record, tmp_path):
+    mon = LLMMonitor(ThinkingMonitorModel(), settings=THINK_OFF, n_readings=3)
+    done = await predict_all(mon, [record], tmp_path / "p.jsonl", view_fn=X.random_names_view_fn())
+    row = done[record["game_id"]]
+    for r in row["detail"]["readings"]:
+        assert [set(a) for a in r["attempts"]] == [{"raw", "prompt_tokens", "completion_tokens", "error"}]
+    assert row["detector"] == {"name": "llm_monitor", "model": "fake", "prompt_sha256": "212c62e53f7d4d02", "n_readings": 3, **THINK_OFF}
+
+
+async def test_thinking_on_monitor_parses_the_content_and_keeps_the_thinking(record, tmp_path):
+    client = ThinkingMonitorModel(fail_first=True)
+    mon = LLMMonitor(client, settings=THINK_ON, n_readings=3)
+    done = await predict_all(mon, [record], tmp_path / "p.jsonl", view_fn=X.random_names_view_fn())
+    row = done[record["game_id"]]
+    assert row["probs"][NONE_LABEL] == pytest.approx(1.0)  # the content's answer, not the reasoning's decoy
+    d = row["detector"]
+    assert d["enable_thinking"] is True and d["max_tokens"] == 8192 and d["prompt_sha256"] == "212c62e53f7d4d02"
+    attempts = [a for r in row["detail"]["readings"] for a in r["attempts"]]
+    assert all(a["thinking"].startswith(("thinking", "ran out")) for a in attempts)
+    stats = X.thinking_stats(done)
+    assert stats["n_readings"] == 3 and stats["n_attempts"] == 4
+    assert stats["parse_failures"] == 1 and stats["hit_max_tokens"] == 1
+    assert stats["thinking_chars_mean"] == len(attempts[-1]["thinking"])
+
+
+def test_thinking_settings_check_allows_only_the_thinking_switch():
+    main = {"name": "llm_monitor", "prompt_sha256": "212c62e53f7d4d02", **THINK_OFF}
+    assert X.thinking_diff(main, {**main, **THINK_ON}) == []
+    assert X.thinking_diff(main, main)  # thinking still off
+    extra = {**main, **THINK_ON, "extra_body": {"chat_template_kwargs": {"enable_thinking": True}, "top_k": 5}}
+    assert X.thinking_diff(main, extra)
+
+
+def _think_run(tmp_path, record, extra_env):
+    run = tmp_path / "run"
+    (run / "games").mkdir(parents=True, exist_ok=True)
+    (run / "games" / "g.json").write_text(json.dumps(record))
+    main_row = {"game_id": record["game_id"], "probs": {}, "detector": {
+        "name": "llm_monitor", "model": "m", "prompt_sha256": "212c62e53f7d4d02", "n_readings": 3,
+        "base_url": "http://old/v1", "json_mode": "json_schema", **THINK_OFF}}
+    (tmp_path / "main.jsonl").write_text(json.dumps(main_row) + "\n")
+    env = tmp_path / ".env"
+    env.write_text("SEANCE_BASE_URL=http://x/v1\nSEANCE_API_KEY=k\nSEANCE_MODEL=m\nSEANCE_TEMPERATURE=0.7\n" + extra_env)
+    return ["--run", str(run), "--plus-factors", "standard", "--think", "--settings-from", str(tmp_path / "main.jsonl"),
+            "--env-file", str(env)]
+
+
+def test_think_reading_refuses_when_thinking_is_off_or_another_setting_differs(record, tmp_path, monkeypatch, capsys):
+    import os
+
+    for k in list(os.environ):
+        if k.startswith("SEANCE_"):
+            monkeypatch.delenv(k)
+    assert X.main(_think_run(tmp_path, record, "SEANCE_MAX_TOKENS=8192\n")) == 2
+    assert "enable_thinking" in capsys.readouterr().out
+    assert X.main(_think_run(tmp_path, record, "SEANCE_ENABLE_THINKING=true\nSEANCE_TEMPERATURE=0.5\n")) == 2
+    assert "temperature" in capsys.readouterr().out
+    assert not list((tmp_path / "run" / "predictions").glob("*.jsonl"))

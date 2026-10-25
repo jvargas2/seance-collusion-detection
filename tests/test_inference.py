@@ -84,3 +84,23 @@ async def test_game_record_logs_thinking_setting_and_reasoning_seen():
     assert rec["tokens"]["attempts_with_reasoning"] == rec["tokens"]["attempts"]
     quiet = await play_game(spec, ScriptedModel(seed=3))
     assert quiet["tokens"]["attempts_with_reasoning"] == 0
+
+
+async def test_client_keeps_separate_reasoning_text_out_of_the_answer(tmp_path):
+    client = OpenAICompatClient(_settings(tmp_path, "SEANCE_ENABLE_THINKING=true\n"))
+    sent = {}
+
+    async def create(**kwargs):
+        sent.update(kwargs)
+        msg = SimpleNamespace(content='{"a": 1}', reasoning_content='I think {"a": 2}')
+        return SimpleNamespace(
+            choices=[SimpleNamespace(message=msg, finish_reason="stop")],
+            usage=SimpleNamespace(prompt_tokens=3, completion_tokens=40),
+            model="Qwen/Qwen3-8B",
+        )
+
+    client._client = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create)))
+    comp = await client.complete([{"role": "user", "content": "hi"}], "s", {"type": "object"})
+    assert sent["extra_body"] == {"chat_template_kwargs": {"enable_thinking": True}}
+    assert comp.text == '{"a": 1}' and comp.reasoning == 'I think {"a": 2}'
+    assert comp.reasoning_chars == len(comp.reasoning)

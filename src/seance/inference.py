@@ -29,6 +29,7 @@ class Completion:
     latency_s: float = 0.0
     finish_reason: str | None = None
     reasoning_chars: int = 0  # thinking text returned (separately or as <think> in the content)
+    reasoning: str = ""  # that thinking text itself
 
 
 class ChatClient(Protocol):
@@ -165,12 +166,13 @@ class OpenAICompatClient:
         usage = resp.usage
         text = choice.message.content or ""
         reasoning = getattr(choice.message, "reasoning_content", None) or getattr(choice.message, "reasoning", None)
-        reasoning_chars = len(reasoning) if isinstance(reasoning, str) else 0
+        thinking = reasoning if isinstance(reasoning, str) else ""
         if "<think>" in text or "</think>" in text:
-            reasoning_chars += len(text.split("</think>", 1)[0])
+            thinking += text.split("</think>", 1)[0]
         return Completion(
             text=text,
-            reasoning_chars=reasoning_chars,
+            reasoning_chars=len(thinking),
+            reasoning=thinking,
             model=resp.model or self.model,
             prompt_tokens=getattr(usage, "prompt_tokens", 0) or 0,
             completion_tokens=getattr(usage, "completion_tokens", 0) or 0,

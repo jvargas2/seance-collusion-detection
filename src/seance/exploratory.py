@@ -9,6 +9,10 @@ Addendum 1). None of them changes a pre-registered number.
     uv run python -m seance.exploratory --run runs/fresh --plus-factors standard plus_factors \
         --settings-from runs/main/predictions/llm_monitor.jsonl --concurrency 32
     uv run python -m seance.exploratory --run runs/fresh --plus-compare
+    SEANCE_MONITOR_ENABLE_THINKING=true SEANCE_MONITOR_MAX_TOKENS=8192 \
+        uv run python -m seance.exploratory --run runs/fresh --plus-factors standard --think \
+        --settings-from runs/main/predictions/llm_monitor.jsonl --concurrency 32
+    uv run python -m seance.exploratory --run runs/fresh --think-compare
 
 `--recalibrate` (free, no model calls): how much of H1's failure is
 miscalibration. Two numbers, a "temperature" T and a "none" bias b, reshape
@@ -66,6 +70,13 @@ relative to the other pairs ("pf_extended"), written to
 `predictions/llm_monitor_pf_{permission,evidence,extended}.jsonl`.
 `--variants-compare [RUN ...]` scores each against standard and
 plus_factors, on --run pooled with the RUNs given.
+
+`--think` (E12, with `--plus-factors`) repeats those readings with Qwen's
+thinking mode on and room for it (SEANCE_MONITOR_ENABLE_THINKING=true, a
+larger SEANCE_MONITOR_MAX_TOKENS); nothing else may differ. The answer is
+parsed from the reply's content, never the thinking, which is kept in each
+attempt. Predictions go to `predictions/llm_monitor_pf_<prompt>_think.jsonl`;
+`--think-compare` scores thinking on minus off for each prompt.
 """
 
 from __future__ import annotations
@@ -644,6 +655,42 @@ def pf_variants_summary(runs: list[Path], n_boot: int = metrics.N_BOOT) -> dict[
     }
 
 
+# --- thinking on (E12) --------------------------------------------------------------
+
+THINK_SETTINGS = ("enable_thinking", "max_tokens", "extra_body")
+
+
+def thinking_diff(main_cfg: dict[str, Any], new_cfg: dict[str, Any]) -> list[str]:
+    """What is wrong with a thinking-on monitor's settings, besides the keys
+    allowed to differ: thinking must be on, and extra_body may differ from the
+    main study's only in that flag."""
+    if new_cfg.get("enable_thinking") is not True:
+        return [f"enable_thinking ({new_cfg.get('enable_thinking')!r}, want True)"]
+    flipped = json.loads(json.dumps(main_cfg.get("extra_body", {})))
+    flipped.setdefault("chat_template_kwargs", {})["enable_thinking"] = True
+    if new_cfg.get("extra_body") != flipped:
+        return [f"extra_body ({new_cfg.get('extra_body')!r} vs {flipped!r})"]
+    return []
+
+
+def thinking_stats(preds: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    """Thinking length per reading (the last attempt's, in characters),
+    parse failures (attempts that had to be retried) and attempts that ran out
+    of tokens."""
+    attempts = [a for p in preds.values() for r in p["detail"]["readings"] for a in r["attempts"]]
+    final = [r["attempts"][-1] for p in preds.values() for r in p["detail"]["readings"]]
+    chars = [len(a.get("thinking", "")) for a in final]
+    return {
+        "n_readings": len(final),
+        "n_attempts": len(attempts),
+        "parse_failures": sum(a["error"] is not None for a in attempts),
+        "hit_max_tokens": sum(a.get("finish_reason") == "length" for a in attempts),
+        "thinking_chars_mean": float(np.mean(chars)) if chars else math.nan,
+        "thinking_chars_median": float(np.median(chars)) if chars else math.nan,
+        "completion_tokens_mean": float(np.mean([a["completion_tokens"] for a in final])) if final else math.nan,
+    }
+
+
 # --- theme (E4) ---------------------------------------------------------------------
 
 _NUMBER_WORDS = re.compile(
@@ -875,6 +922,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--plus-compare", action="store_true", help="E8 analysis: plus-factor against standard monitor")
     ap.add_argument("--variants-compare", nargs="*", type=Path, metavar="RUN",
                     help="E10 analysis: each variant against standard and plus_factors, on --run pooled with any RUNs given")
+    ap.add_argument("--think", action="store_true",
+                    help="E12: with --plus-factors, read with thinking on (SEANCE_MONITOR_ENABLE_THINKING=true and a larger "
+                         "SEANCE_MONITOR_MAX_TOKENS); with --think-compare, the analysis")
+    ap.add_argument("--think-compare", action="store_true", help="E12 analysis: thinking on against off, for each prompt")
     ap.add_argument("--settings-from", type=Path,
                     help="the main study's monitor predictions, to check settings against (default <run>/predictions/llm_monitor.jsonl)")
     ap.add_argument("--theme", type=Path, help="E4: a neutral-wording run made with --replicate, compared with the same main-study deals")
@@ -888,7 +939,7 @@ def main(argv: list[str] | None = None) -> int:
     if not (args.recalibrate or args.rotate or args.position or args.names or args.gender or args.theme
             or args.other_monitor or args.compare_monitor or args.views or args.scoring_run or args.scoring_compare
             or args.redaction_read or args.redaction or args.plus_factors or args.plus_compare
-            or args.variants_compare is not None):
+            or args.variants_compare is not None or args.think_compare):
         ap.error("pass --recalibrate, --rotate, --position, --names and/or --gender")
     records = [r for r in load_records(args.run) if r["condition"] in (CLEAN, COALITION)]
     pred_dir, out_dir = args.run / "predictions", args.run / "metrics"
@@ -926,6 +977,8 @@ def main(argv: list[str] | None = None) -> int:
         main_cfg = dict(next(iter(_read_predictions(args.settings_from or main_path).values()))["detector"])
         new_cfg = det.describe()
         diff = sorted(k for k in set(main_cfg) | set(new_cfg) if k not in may_differ and main_cfg.get(k) != new_cfg.get(k))
+        if "enable_thinking" in may_differ and not diff:
+            diff = thinking_diff(main_cfg, new_cfg)
         if diff:
             print("refusing: monitor settings differ from the main study in " + ", ".join(f"{k} ({main_cfg.get(k)!r} vs {new_cfg.get(k)!r})" for k in diff))
             return None
@@ -1045,13 +1098,37 @@ def main(argv: list[str] | None = None) -> int:
     for which in args.plus_factors or []:
         # E8: the frozen monitor, or the same with the plus-factor paragraph,
         # every game read with random medium names (the same names for both).
+        # E12 (--think): the same, with thinking on and room for it (only
+        # enable_thinking, max_tokens and the matching extra_body flag differ).
         variant = None if which == "standard" else which
-        det = monitor(may_differ=("base_url",) + (("prompt_sha256", "prompt_variant") if variant else ()), prompt_variant=variant)
+        may_differ = ("base_url",) + (("prompt_sha256", "prompt_variant") if variant else ()) + (THINK_SETTINGS if args.think else ())
+        det = monitor(may_differ=may_differ, prompt_variant=variant)
         if det is None:
             return 2
         path = pf_predictions_path(pred_dir, which)
+        if args.think:
+            path = path.with_name(path.stem + "_think.jsonl")
         done = asyncio.run(predict_all(det, records, path, args.concurrency, view_fn=random_names_view_fn()))
-        print(f"{'E10' if which in PF_VARIANTS else 'E8'} {which}: {len(done)} of {len(records)} games scored")
+        print(f"{'E12' if args.think else 'E10' if which in PF_VARIANTS else 'E8'} {which}: {len(done)} of {len(records)} games scored")
+
+    if args.think_compare:
+        out = {"name_seed": PF_NAME_SEED}
+        for which in PF_MONITORS:
+            on_path = pred_dir / f"llm_monitor_pf_{which}_think.jsonl"
+            if not on_path.exists():
+                continue
+            on, off = _read_predictions(on_path), _read_predictions(pred_dir / f"llm_monitor_pf_{which}.jsonl")
+            out[which] = {"think_minus_no_think": compare_monitors(records, on, off, args.n_boot), "thinking": thinking_stats(on)}
+        (out_dir / "exploratory_thinking.json").write_text(json.dumps(out, indent=1))
+        for which in PF_MONITORS:
+            if which not in out:
+                continue
+            c, t = out[which]["think_minus_no_think"], out[which]["thinking"]
+            print(f"\n{args.run} {which}, thinking on minus off: {c['n_games']} games ({c['n_clean']} clean, {c['n_excluded']} excluded)")
+            print(f"  thinking: {t}")
+            for m in PF_MEASURES:
+                d = c[m]
+                print(f"  {m:26s} {d['a_value']:7.3f} vs {d['b_value']:7.3f}: {d['difference']:+.3f} [{d['lo']:+.3f}, {d['hi']:+.3f}]")
 
     if args.plus_compare:
         std = _read_predictions(pred_dir / "llm_monitor_pf_standard.jsonl")

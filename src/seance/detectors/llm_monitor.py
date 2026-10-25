@@ -264,6 +264,11 @@ class LLMMonitor(Detector):
                 "completion_tokens": comp.completion_tokens,
                 "error": None,
             }
+            if self.settings.get("enable_thinking") is True:
+                # Exploratory thinking-on readings: keep the thinking (the
+                # answer is parsed from the content only) and why it stopped.
+                entry["thinking"] = comp.reasoning
+                entry["finish_reason"] = comp.finish_reason
             attempts.append(entry)
             try:
                 probs, detail = parse_reply(comp.text, keys, view.get("aliases"))
