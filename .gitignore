@@ -9,3 +9,5 @@ __pycache__/
 runs/try/
 dist/
 runs/*.lock
+# Local agent instructions; kept out of the repo.
+CLAUDE.md
