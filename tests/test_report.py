@@ -107,8 +107,14 @@ def test_explorer_builds_every_game(scored_run, tmp_path):
     out = tmp_path / "site"
     assert explorer.main(["--run", str(scored_run), "--run", str(tmp_path / "not-played-yet"), "--out", str(out)]) == 0
     index = (out / "data" / "index.js").read_text()
-    data = _json.loads(index[index.index("=") + 1 :].strip().rstrip(";"))
+    build_line, index_line = index.splitlines()
+    data = _json.loads(index_line[index_line.index("=") + 1 :].strip().rstrip(";"))
+    build = _json.loads(build_line[build_line.index("=") + 1 :].strip().rstrip(";"))
+    assert f'"data/index.js?v={build}"' in (out / "index.html").read_text()  # stale data never served
     (run,) = data["runs"]  # the missing run is skipped
+    (summary,) = run["monitors"]
+    assert summary["n_clean"] + summary["n_allied"] == 12  # 6 + 6; the 6 positive controls left out
+    assert 0 <= summary["right"] <= 1
     assert len(run["games"]) == 18 and (out / "index.html").exists() and (out / "app.js").exists()
     assert [m["key"] for m in run["monitors"]] == ["llm_monitor"]  # prior and top_scorer aren't shown
     g = (out / "data" / run["key"] / f"{run['games'][0]['id']}.js").read_text()

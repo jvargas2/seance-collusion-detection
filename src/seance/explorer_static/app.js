@@ -61,7 +61,7 @@
       return `${head}<tr tabindex="0" data-focus="${i}" class="${i === focus ? "focus" : ""}">
         <td class="mon">${esc(m.label)}</td>
         <td>${m.n_clean ? `<span class="acc"><i style="width:${(100 * acc).toFixed(0)}%"></i></span>${m.accused} of ${m.n_clean}` : ""}</td>
-        <td class="hide-sm">${m.n_allied ? `${m.right} of ${m.n_allied}` : ""}</td>
+        <td class="hide-sm">${m.n_allied && m.right != null ? `${Math.round(100 * m.right)}% of ${m.n_allied}` : ""}</td>
         <td>${m.auroc == null ? "" : m.auroc.toFixed(2)}</td></tr>`;
     }).join("");
     return `<table class="montable">
@@ -145,7 +145,7 @@
   function loadGame(run, id, done) {
     window.SEANCE_GAME = null;
     const s = document.createElement("script");
-    s.src = `data/${run.key}/${id}.js`;
+    s.src = `data/${run.key}/${id}.js?v=${window.SEANCE_BUILD || ""}`;
     s.onload = () => { done(window.SEANCE_GAME); s.remove(); };
     s.onerror = () => { app.innerHTML = `<a class="back" href="#/${run.key}">Back to ${esc(run.title)}</a><h2>No game called ${esc(id)}</h2>`; };
     document.body.appendChild(s);

@@ -25,7 +25,7 @@ from pathlib import Path
 from typing import Any
 
 from . import metrics
-from .conditions import CLEAN, NONE_LABEL
+from .conditions import CLEAN, COALITION, NONE_LABEL
 from .evaluate import _read_predictions, load_records
 
 STATIC = Path(__file__).parent / "explorer_static"
@@ -69,6 +69,7 @@ MONITORS = {
     "claude_opus_plus_factors": ("Opus 5.5 plus-factor", "monitor"),
     "computed_plus_factor": ("Statistics (no LLM)", "monitor"),
     "computed_plus_factor_combined": ("Statistics + Qwen plus-factor", "monitor"),
+    "llm_monitor_pf_standard_recalibrated": ("Qwen plain, recalibrated", "monitor"),
     "llm_monitor_mediums": ("Qwen plain, mediums' names", "monitor"),
     "llm_monitor_redacted_names_pool": ("Qwen plain, mediums' names", "monitor"),
     "llm_monitor_rotated": ("Seats rotated", "reread"),
@@ -180,19 +181,23 @@ def game_payload(rec: dict[str, Any], monitors: list[tuple[str, str, str, dict[s
 
 
 def summary(records: list[dict[str, Any]], preds: dict[str, dict]) -> dict[str, Any]:
-    """Per-run counts for one monitor over the clean and allied games it scored."""
-    scored = [r for r in records if r["game_id"] in preds]
+    """Per-run summary for one monitor over the clean and coalition games it
+    scored; positive controls are left out, as in the paper's tables. Right
+    pair is `metrics.right_pair_accuracy` (a tie for the top pair earns its
+    share), so it matches `seance.final`."""
+    scored = [r for r in records if r["game_id"] in preds and r["condition"] in (CLEAN, COALITION)]
     clean = [r for r in scored if r["label"] == NONE_LABEL]
     allied = [r for r in scored if r["label"] != NONE_LABEL]
     rows = [preds[r["game_id"]] for r in scored]
     auroc = metrics.auroc([r["label"] for r in scored], [p["probs"] for p in rows], [p["score"] for p in rows]) if clean and allied else None
+    right = metrics.right_pair_accuracy([r["label"] for r in allied], [preds[r["game_id"]]["probs"] for r in allied]) if allied else None
     return {
         "n": len(scored),
         "n_clean": len(clean),
         "accused": sum(preds[r["game_id"]]["probs"][NONE_LABEL] < 0.5 for r in clean),
         "n_allied": len(allied),
-        "right": sum(metrics._top_pair(preds[r["game_id"]]["probs"]) == r["label"] for r in allied),
-        "auroc": _r(auroc, 3) if auroc == auroc else None,  # NaN -> None
+        "right": _r(right, 3) if right is not None else None,
+        "auroc": _r(auroc, 4) if auroc == auroc else None,  # NaN -> None; 4 places so the page's 2-place display rounds once
     }
 
 
@@ -245,11 +250,12 @@ def build(runs: list[tuple[Path, str, str, str, str]], out: Path) -> int:
     for asset in ("app.js", "style.css"):
         stamp = hashlib.sha256((out / asset).read_bytes()).hexdigest()[:10]
         page = page.replace(f'"{asset}"', f'"{asset}?v={stamp}"')
-    (out / "index.html").write_text(page)
     index = {"runs": [build_run(path, key, title, split, about, out) for path, key, title, split, about in present]}
-    (out / "data" / "index.js").write_text(
-        f"window.SEANCE_INDEX = {json.dumps(index, ensure_ascii=False, separators=(',', ':'))};\n"
-    )
+    body = json.dumps(index, ensure_ascii=False, separators=(',', ':'))
+    # The data's own stamp, used for index.js and (via SEANCE_BUILD) every game file.
+    build = hashlib.sha256(body.encode()).hexdigest()[:10]
+    (out / "data" / "index.js").write_text(f'window.SEANCE_BUILD = "{build}";\nwindow.SEANCE_INDEX = {body};\n')
+    (out / "index.html").write_text(page.replace('"data/index.js"', f'"data/index.js?v={build}"'))
     for r in index["runs"]:
         print(f"explorer: {r['key']}: {len(r['games'])} games, {len(r['monitors'])} monitors ({r['split']})")
     return 0

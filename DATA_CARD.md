@@ -1,7 +1,5 @@
 # Data card: Séance Collusion Detection games and monitor predictions
 
-**DRAFT for Jorge's approval.**
-
 ## What this is
 
 Recorded games of Séance, a four-player guessing game played by LLMs, with and without a secret colluding pair, and the predictions of every collusion monitor we tested on them. It is the first game of a proposed benchmark of hard negatives for collusion monitors: honest games where open, table-wide cooperation looks like collusion.
@@ -67,4 +65,4 @@ None. All players are language models using fictional names; the game contains n
 
 ## License
 
-Code: MIT (`LICENSE`). Data (game records, predictions, explorer data under `runs/` and `docs/explorer/data/`): CC BY 4.0 (`LICENSE-DATA`). Model outputs in the records come from Qwen3.8-27B, Gemma 4 31B, Clef, Jev and Claude 5.5 models; their providers' terms also apply to reusing those outputs.
+Code: MIT (`LICENSE`). Data (game records, predictions, explorer data under `runs/` and `docs/explorer/data/`): CC BY 4.0 (`LICENSE-DATA`). Model outputs in the records come from Qwen3.8-27B, Gemma 4 31B, Clef, Jev and Claude 5.5 models; their providers' terms also apply to reusing those outputs. In particular, TypeSafe's terms forbid using Jev's outputs to train a model that imitates Jev.
