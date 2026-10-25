@@ -100,10 +100,10 @@ Main-study results (2026-10-24):
 ## Explorer
 
 ```bash
-uv run python -m seance.explorer --run runs/main --out docs/explorer
+uv run python -m seance.explorer        # every run listed in seance.explorer.RUNS that exists
 ```
 
-A static two-page site (every game; one game with the auditor's verdict, its three readings and reasons, the re-readings, and each round's messages next to every player's private notes). It reads only the committed records, predictions and metrics. Open `docs/explorer/index.html` directly, or serve `docs/` with GitHub Pages.
+A static site over every run (test split: `runs/final`, `runs/final-haiku`, once they exist; development: main, fresh, neutral, winner, redact, pilot-haiku) and every monitor's prediction file. Per run: each monitor's honest tables accused, right pairs and AUROC, and every game with each monitor's verdict. Per game: each monitor's P(none), top pair and probabilities, the reasons from each reading (real names put back where the monitor read renamed players), and each round's messages next to every player's private notes. It reads only the committed records and predictions; a run not on disk yet is skipped, so rerunning the command adds the final runs. Open `docs/explorer/index.html` directly, or serve `docs/` with GitHub Pages.
 
 ## Records
 

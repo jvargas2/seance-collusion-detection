@@ -105,10 +105,23 @@ def test_explorer_builds_every_game(scored_run, tmp_path):
     from seance import explorer
 
     out = tmp_path / "site"
-    assert explorer.main(["--run", str(scored_run), "--out", str(out)]) == 0
+    assert explorer.main(["--run", str(scored_run), "--run", str(tmp_path / "not-played-yet"), "--out", str(out)]) == 0
     index = (out / "data" / "index.js").read_text()
     data = _json.loads(index[index.index("=") + 1 :].strip().rstrip(";"))
-    assert len(data["games"]) == 18 and (out / "index.html").exists() and (out / "app.js").exists()
-    g = (out / "data" / f"{data['games'][0]['id']}.js").read_text()
+    (run,) = data["runs"]  # the missing run is skipped
+    assert len(run["games"]) == 18 and (out / "index.html").exists() and (out / "app.js").exists()
+    assert [m["key"] for m in run["monitors"]] == ["llm_monitor"]  # prior and top_scorer aren't shown
+    g = (out / "data" / run["key"] / f"{run['games'][0]['id']}.js").read_text()
     game = _json.loads(g[g.index("=") + 1 :].strip().rstrip(";"))
     assert len(game["rounds"]) == 10 and set(game["rounds"][0]["speak_notes"]) == set(game["names"])
+    assert len(game["monitors"]["llm_monitor"]["readings"]) == 3
+
+
+def test_explorer_puts_real_names_back():
+    from seance import explorer
+
+    rec = {"names": ["Daniel", "Eileen", "Gladys", "Leonora"]}
+    row = {"seat_order": ["Emma", "Daniel", "Mina", "Florence"]}
+    mapping = explorer.aliases(rec, row)
+    assert explorer.unalias("Emma and Daniel's guesses track", mapping) == "Daniel and Eileen's guesses track"
+    assert explorer.aliases(rec, {"seat_order": ["Gladys", "Daniel", "Eileen", "Leonora"]}) == {}  # rotated, not renamed
