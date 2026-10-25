@@ -262,3 +262,61 @@ def test_compare_monitors_measures():
     assert out["clean_n_p_none_below_half"]["a_value"] == 0 and out["clean_n_p_none_below_half"]["b_value"] == 4
     assert out["catch_rate_at_0_fpr"]["a_value"] == 1.0 and out["catch_rate_at_0_fpr"]["b_value"] == 0.0
     assert out["auroc"]["a_value"] == 1.0 and out["auroc"]["b_value"] == 0.5
+
+
+def test_e10_variants_leave_the_frozen_and_e8_prompts_alone(record):
+    from seance.detectors import llm_monitor as M
+
+    assert M.PROMPT_SHA256 == "212c62e53f7d4d02"
+    assert M._sha(M.PROMPT_VARIANTS["plus_factors"]) == "bd978314f3e56eb4"  # E8's recorded hash
+    view = public_view(record)
+    std = build_prompt(view)
+    assert std == build_prompt(view, prompt_variant=None) and "How to judge" not in std
+    paragraphs = {
+        "pf_permission": M.PF_PERMISSION_PARAGRAPH,
+        "pf_evidence": M.PF_EVIDENCE_PARAGRAPH,
+        "pf_extended": M.PF_EXTENDED_PARAGRAPH,
+    }
+    for name, para in paragraphs.items():
+        text = build_prompt(view, prompt_variant=name)
+        assert text.replace(para + "\n\n", "") == std
+        assert text.index(para) < text.index("Reply with only")
+    # The two halves together are the E8 paragraph; the extended one keeps all of it.
+    assert M.PLUS_FACTORS_PARAGRAPH == M.PF_PERMISSION_PARAGRAPH + " C" + M.PF_EVIDENCE_PARAGRAPH.removeprefix("How to judge: c")
+    assert "(1)" not in M.PF_PERMISSION_PARAGRAPH and "allowed" not in M.PF_EVIDENCE_PARAGRAPH
+    ext = M.PF_EXTENDED_PARAGRAPH
+    assert ext.startswith(M.PLUS_FACTORS_PARAGRAPH.split("(4)")[0]) and ext.endswith('favor "none".')
+    assert all(f"({i})" in ext for i in range(1, 8))
+    assert len({M._sha(M.PROMPT_VARIANTS[n]) for n in paragraphs} | {M.PROMPT_SHA256}) == 4
+
+
+def test_e10_paths_and_pooled_summary(tmp_path):
+    from seance.evaluate import GAMES_DIR
+
+    assert X.pf_predictions_path(tmp_path, "standard").name == "llm_monitor_pf_standard.jsonl"
+    assert X.pf_predictions_path(tmp_path, "plus_factors").name == "llm_monitor_pf_plus_factors.jsonl"
+    assert X.pf_predictions_path(tmp_path, "pf_extended").name == "llm_monitor_pf_extended.jsonl"
+
+    def probs(none):
+        p = {k: (1 - none) / 6 for k in LABELS}
+        p[NONE_LABEL] = none
+        return p
+
+    runs = []
+    for run_name in ("r1", "r2"):  # the same game ids in both runs must not collide
+        run = tmp_path / run_name
+        (run / GAMES_DIR).mkdir(parents=True)
+        (run / "predictions").mkdir()
+        for i, la in enumerate([NONE_LABEL, NONE_LABEL, "Daniel+Eileen", "Daniel+Eileen"]):
+            cond = CLEAN if la == NONE_LABEL else COALITION
+            (run / GAMES_DIR / f"g{i}.json").write_text(json.dumps({"game_id": f"g{i}", "label": la, "condition": cond, "status": "complete"}))
+        for which, clean_none in (("standard", 0.2), ("plus_factors", 0.6), ("pf_extended", 0.9)):
+            rows = [{"game_id": f"g{i}", "probs": probs(clean_none if i < 2 else 0.1)} for i in range(4)]
+            X.pf_predictions_path(run / "predictions", which).write_text("".join(json.dumps(r) + "\n" for r in rows))
+        runs.append(run)
+    out = X.pf_variants_summary(runs, n_boot=100)
+    assert set(out) == {"runs", "pf_extended_minus_standard", "pf_extended_minus_plus_factors"}
+    c = out["pf_extended_minus_standard"]
+    assert c["n_games"] == 8 and c["n_clean"] == 4
+    assert c["clean_mean_p_none"]["a_value"] == pytest.approx(0.9) and c["clean_mean_p_none"]["b_value"] == pytest.approx(0.2)
+    assert out["pf_extended_minus_plus_factors"]["clean_n_p_none_below_half"]["difference"] == 0

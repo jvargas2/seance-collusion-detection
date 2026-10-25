@@ -58,6 +58,14 @@ parallel conduct ("plus_factors"). Every game is shown with its players
 renamed from a pool of real mediums' first names, seeded per game, the same
 names for both monitors.
 `--plus-compare` scores plus-factor minus standard, paired on the same games.
+
+E10 adds three more choices to `--plus-factors`: the plus-factor paragraph's
+permission half alone ("pf_permission"), its evidence half alone
+("pf_evidence"), and the paragraph with three more plus factors and a test
+relative to the other pairs ("pf_extended"), written to
+`predictions/llm_monitor_pf_{permission,evidence,extended}.jsonl`.
+`--variants-compare [RUN ...]` scores each against standard and
+plus_factors, on --run pooled with the RUNs given.
 """
 
 from __future__ import annotations
@@ -558,6 +566,14 @@ MEDIUM_POOL = (
 )
 PF_NAME_SEED = 20261027
 PF_MONITORS = ("standard", "plus_factors")
+# E10: the plus-factor paragraph's two halves alone, and an extended checklist.
+PF_VARIANTS = ("pf_permission", "pf_evidence", "pf_extended")
+PF_BASELINES = ("standard", "plus_factors")
+
+
+def pf_predictions_path(pred_dir: Path, which: str) -> Path:
+    """llm_monitor_pf_standard / _plus_factors (E8), _permission / _evidence / _extended (E10)."""
+    return pred_dir / f"llm_monitor_pf_{which.removeprefix('pf_')}.jsonl"
 
 
 def random_names(rec: dict[str, Any], seed: int = PF_NAME_SEED) -> dict[str, str]:
@@ -601,6 +617,30 @@ def compare_monitors(
         "n_clean": sum(r["condition"] == CLEAN for r in both),
         "n_excluded": len(records) - len(both),
         **{m: metrics.paired_difference(fn, labels, pa, pb, n_boot=n_boot) for m, fn in PF_MEASURES.items()},
+    }
+
+
+def pf_variants_summary(runs: list[Path], n_boot: int = metrics.N_BOOT) -> dict[str, Any]:
+    """E10: each variant minus each baseline, paired on the games of all the
+    given runs pooled (game ids prefixed with the run, so runs can't collide)."""
+    records: list[dict[str, Any]] = []
+    preds: dict[str, dict[str, dict[str, Any]]] = {w: {} for w in PF_BASELINES + PF_VARIANTS}
+    for run in runs:
+        for r in load_records(run):
+            if r["condition"] in (CLEAN, COALITION):
+                records.append({**r, "game_id": f"{run.name}/{r['game_id']}"})
+        for w in preds:
+            path = pf_predictions_path(run / "predictions", w)
+            if path.exists():
+                preds[w].update({f"{run.name}/{g}": p for g, p in _read_predictions(path).items()})
+    return {
+        "runs": [str(r) for r in runs],
+        **{
+            f"{v}_minus_{b}": compare_monitors(records, preds[v], preds[b], n_boot)
+            for v in PF_VARIANTS
+            for b in PF_BASELINES
+            if preds[v] and preds[b]
+        },
     }
 
 
@@ -830,9 +870,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--scoring-run", type=Path, metavar="RUN",
                     help="E7: read a --replicate run made under another --scoring, and the same main-study deals, with pooled random names (paid)")
     ap.add_argument("--scoring-compare", type=Path, metavar="RUN", help="E7 analysis of --scoring-run")
-    ap.add_argument("--plus-factors", nargs="+", choices=PF_MONITORS,
+    ap.add_argument("--plus-factors", nargs="+", choices=PF_MONITORS + PF_VARIANTS,
                     help="E8: read every game with random medium names, with the standard and/or plus-factor monitor (paid)")
     ap.add_argument("--plus-compare", action="store_true", help="E8 analysis: plus-factor against standard monitor")
+    ap.add_argument("--variants-compare", nargs="*", type=Path, metavar="RUN",
+                    help="E10 analysis: each variant against standard and plus_factors, on --run pooled with any RUNs given")
     ap.add_argument("--settings-from", type=Path,
                     help="the main study's monitor predictions, to check settings against (default <run>/predictions/llm_monitor.jsonl)")
     ap.add_argument("--theme", type=Path, help="E4: a neutral-wording run made with --replicate, compared with the same main-study deals")
@@ -845,7 +887,8 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     if not (args.recalibrate or args.rotate or args.position or args.names or args.gender or args.theme
             or args.other_monitor or args.compare_monitor or args.views or args.scoring_run or args.scoring_compare
-            or args.redaction_read or args.redaction or args.plus_factors or args.plus_compare):
+            or args.redaction_read or args.redaction or args.plus_factors or args.plus_compare
+            or args.variants_compare is not None):
         ap.error("pass --recalibrate, --rotate, --position, --names and/or --gender")
     records = [r for r in load_records(args.run) if r["condition"] in (CLEAN, COALITION)]
     pred_dir, out_dir = args.run / "predictions", args.run / "metrics"
@@ -1006,9 +1049,9 @@ def main(argv: list[str] | None = None) -> int:
         det = monitor(may_differ=("base_url",) + (("prompt_sha256", "prompt_variant") if variant else ()), prompt_variant=variant)
         if det is None:
             return 2
-        path = pred_dir / f"llm_monitor_pf_{which}.jsonl"
+        path = pf_predictions_path(pred_dir, which)
         done = asyncio.run(predict_all(det, records, path, args.concurrency, view_fn=random_names_view_fn()))
-        print(f"E8 {which}: {len(done)} of {len(records)} games scored")
+        print(f"{'E10' if which in PF_VARIANTS else 'E8'} {which}: {len(done)} of {len(records)} games scored")
 
     if args.plus_compare:
         std = _read_predictions(pred_dir / "llm_monitor_pf_standard.jsonl")
@@ -1028,6 +1071,19 @@ def main(argv: list[str] | None = None) -> int:
                 continue
             c = out[key]
             print(f"\n{args.run} {key}: {c['n_games']} games ({c['n_clean']} clean, {c['n_excluded']} excluded)")
+            for m in PF_MEASURES:
+                d = c[m]
+                print(f"  {m:26s} {d['a_value']:7.3f} vs {d['b_value']:7.3f}: {d['difference']:+.3f} [{d['lo']:+.3f}, {d['hi']:+.3f}]")
+
+    if args.variants_compare is not None:
+        runs = [args.run, *args.variants_compare]
+        out = pf_variants_summary(runs, args.n_boot)
+        name = "exploratory_pf_variants" + "".join(f"_with_{r.name}" for r in args.variants_compare)
+        (out_dir / f"{name}.json").write_text(json.dumps(out, indent=1))
+        for key, c in out.items():
+            if key == "runs":
+                continue
+            print(f"\n{' + '.join(out['runs'])} {key}: {c['n_games']} games ({c['n_clean']} clean, {c['n_excluded']} excluded)")
             for m in PF_MEASURES:
                 d = c[m]
                 print(f"  {m:26s} {d['a_value']:7.3f} vs {d['b_value']:7.3f}: {d['difference']:+.3f} [{d['lo']:+.3f}, {d['hi']:+.3f}]")
