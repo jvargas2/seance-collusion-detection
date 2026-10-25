@@ -1,0 +1,7 @@
+E14 jev-latest resolves to jev-1.14.0
+E14 jev plain runs/final: 100 of 100 games scored; spent $0.0177 (420660 input tokens)
+E14 jev plus_factors runs/final: 100 of 100 games scored; spent $0.0359 (854146 input tokens)
+E14 jev plain runs/final-haiku: 100 of 100 games scored; spent $0.0534 (1270632 input tokens)
+E14 jev plus_factors runs/final-haiku: 100 of 100 games scored; spent $0.0714 (1700218 input tokens)
+FINAL JEV-READ exit=0
+FINAL JEV-READ DONE
