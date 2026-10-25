@@ -30,20 +30,29 @@ PAIRS = [("clef_plain", "llm_standard"), ("clef_plain", "llm_plus"), ("clef_plus
 SAMPLES = {"held_out": ("fresh", "neutral"), "fresh": ("fresh",), "neutral": ("neutral",), "main": ("main",)}
 
 
-def compare(runs_dir: Path, n_boot: int) -> dict:
+def compare(runs_dir: Path, n_boot: int, monitors: dict[str, str] = MONITORS, pairs: list[tuple[str, str]] = PAIRS) -> dict:
     """Paired differences (a minus b) over each sample; game ids get their run as a prefix."""
     out = {}
     for sample, runs in SAMPLES.items():
-        records, preds = [], {m: {} for m in MONITORS}
+        records, preds = [], {m: {} for m in monitors}
         for run in runs:
             for r in load_records(runs_dir / run):
                 if r["condition"] in (CLEAN, COALITION):
                     records.append({**r, "game_id": f"{run}/{r['game_id']}"})
-            for m, tag in MONITORS.items():
+            for m, tag in monitors.items():
                 for g, row in _read_predictions(runs_dir / run / "predictions" / f"{tag}.jsonl").items():
                     preds[m][f"{run}/{g}"] = row
-        out[sample] = {f"{a}_minus_{b}": compare_monitors(records, preds[a], preds[b], n_boot) for a, b in PAIRS}
+        out[sample] = {f"{a}_minus_{b}": compare_monitors(records, preds[a], preds[b], n_boot) for a, b in pairs}
     return out
+
+
+def print_comparison(out: dict) -> None:
+    for sample, pairs in out.items():
+        for key, c in pairs.items():
+            print(f"\n{sample} {key}: {c['n_games']} games ({c['n_clean']} clean, {c['n_excluded']} excluded)")
+            for m in PF_MEASURES:
+                d = c[m]
+                print(f"  {m:26s} {d['a_value']:7.3f} vs {d['b_value']:7.3f}: {d['difference']:+.3f} [{d['lo']:+.3f}, {d['hi']:+.3f}]")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -59,12 +68,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.compare:
         out = compare(args.compare, args.n_boot)
         (args.compare / "main" / "metrics" / "exploratory_clef.json").write_text(json.dumps(out, indent=1))
-        for sample, pairs in out.items():
-            for key, c in pairs.items():
-                print(f"\n{sample} {key}: {c['n_games']} games ({c['n_clean']} clean, {c['n_excluded']} excluded)")
-                for m in PF_MEASURES:
-                    d = c[m]
-                    print(f"  {m:26s} {d['a_value']:7.3f} vs {d['b_value']:7.3f}: {d['difference']:+.3f} [{d['lo']:+.3f}, {d['hi']:+.3f}]")
+        print_comparison(out)
         return 0
     if not (args.run and args.variant):
         ap.error("--run and --variant are required unless --compare")

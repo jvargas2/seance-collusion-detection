@@ -96,7 +96,10 @@ class DecisionModelMonitor(Detector):
         probs = parse_answer(response, view)
         answer = response["answers"][QUESTION_ID]
         raw_sum = sum(float(v) for v in answer["probabilities"].values())
-        return probs, {"answer": answer, "raw_sum": raw_sum, "usage": response.get("usage")}
+        detail = {"answer": answer, "raw_sum": raw_sum, "usage": response.get("usage")}
+        if "model" in response:  # the version that answered (Jev resolves aliases)
+            detail["response_model"] = response["model"]
+        return probs, detail
 
     def describe(self) -> dict[str, Any]:
         return {
