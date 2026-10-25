@@ -9,7 +9,7 @@ Addendum 1). None of them changes a pre-registered number.
     uv run python -m seance.exploratory --run runs/fresh --plus-factors standard plus_factors \
         --settings-from runs/main/predictions/llm_monitor.jsonl --concurrency 32
     uv run python -m seance.exploratory --run runs/fresh --plus-compare
-    SEANCE_MONITOR_ENABLE_THINKING=true SEANCE_MONITOR_MAX_TOKENS=8192 \
+    SEANCE_MONITOR_ENABLE_THINKING=true SEANCE_MONITOR_MAX_TOKENS=32768 \
         uv run python -m seance.exploratory --run runs/fresh --plus-factors standard --think \
         --settings-from runs/main/predictions/llm_monitor.jsonl --concurrency 32
     uv run python -m seance.exploratory --run runs/fresh --think-compare
@@ -76,7 +76,9 @@ thinking mode on and room for it (SEANCE_MONITOR_ENABLE_THINKING=true, a
 larger SEANCE_MONITOR_MAX_TOKENS); nothing else may differ. The answer is
 parsed from the reply's content, never the thinking, which is kept in each
 attempt. Predictions go to `predictions/llm_monitor_pf_<prompt>_think.jsonl`;
-`--think-compare` scores thinking on minus off for each prompt.
+`--think-compare` scores thinking on minus off for each prompt. E12 used
+8,192 tokens and almost every reading ran out; E12b uses 32,768 (the
+longest held-out prompt is 6,236 tokens, so it fits the server's 40,960).
 """
 
 from __future__ import annotations
