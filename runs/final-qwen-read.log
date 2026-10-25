@@ -1,0 +1,16 @@
+E8 standard: 106 of 106 games scored
+E8 plus_factors: 106 of 106 games scored
+FINAL QWEN-READ final main exit=0
+E10 pf_permission: 100 of 100 games scored
+E10 pf_evidence: 100 of 100 games scored
+p054: detector failed: monitor gave no usable reply in 3 attempts
+E10 pf_extended: 99 of 100 games scored
+FINAL QWEN-READ final variants exit=0
+E8 standard: 106 of 106 games scored
+E8 plus_factors: 106 of 106 games scored
+FINAL QWEN-READ final-haiku main exit=0
+E10 pf_permission: 100 of 100 games scored
+E10 pf_evidence: 100 of 100 games scored
+E10 pf_extended: 100 of 100 games scored
+FINAL QWEN-READ final-haiku variants exit=0
+FINAL QWEN-READ DONE
