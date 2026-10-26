@@ -18,7 +18,7 @@ from pathlib import Path
 
 # (row label, plain row key, plus-factor row key), top to bottom
 MODELS = (
-    ("Qwen3.8 27B", "qwen_plain", "qwen_pf"),
+    ("Qwen3.8-27B", "qwen_plain", "qwen_pf"),
     ("Gemma 4 31B", "gemma_plain", "gemma_pf"),
     ("Clef (decision model)", "clef_plain", "clef_pf"),
     ("Jev (decision model)", "jev_plain", "jev_pf"),
@@ -26,7 +26,7 @@ MODELS = (
     ("Claude Sonnet 5.5", "sonnet_plain", "sonnet_pf"),
     ("Claude Opus 5.5", "opus_plain", "opus_pf"),
 )
-PANELS = (("clean_accused", "Honest tables accused"), ("auroc", "AUROC, coalition vs honest"))
+PANELS = (("clean_accused", "Honest tables accused (of 50)"), ("auroc", "AUROC, coalition vs honest"))
 
 # Validated pair (dataviz reference palette, light): plain = orange, plus-factor = blue.
 PLAIN, PF = "#eb6834", "#2a78d6"
@@ -38,8 +38,7 @@ def _measure(table: dict, key: str, measure: str) -> tuple[float, float, float] 
     if not row or not row.get("scored"):
         return None
     m = row["measures"][measure]
-    scale = 1 / table["n_clean"] if measure == "clean_accused" else 1.0  # counts -> share
-    return m["value"] * scale, m["lo"] * scale, m["hi"] * scale
+    return m["value"], m["lo"], m["hi"]  # accused tables stay counts
 
 
 def draw(tables: list[dict], labels: list[str], out: Path) -> None:
@@ -52,7 +51,7 @@ def draw(tables: list[dict], labels: list[str], out: Path) -> None:
     n_rows = sum(len(m) for m in per_set)
     n_sets = len(tables)
     fig, axes = plt.subplots(
-        n_sets, len(PANELS), figsize=(9.5, 0.42 * n_rows + 1.2 * n_sets + 0.6), squeeze=False, sharey="row",
+        n_sets, len(PANELS), figsize=(6.5, 0.30 * n_rows + 0.9 * n_sets + 0.5), squeeze=False, sharey="row",
         gridspec_kw={"height_ratios": [len(m) for m in per_set]},
         facecolor=SURFACE,
     )
@@ -68,17 +67,19 @@ def draw(tables: list[dict], labels: list[str], out: Path) -> None:
                 for v, color, dy, marker, face in ((a, PLAIN, -0.13, "o", SURFACE), (b, PF, 0.13, "o", PF)):
                     if v is None:
                         continue
-                    ax.plot([v[1], v[2]], [y + dy] * 2, color=color, lw=2, zorder=2, solid_capstyle="round")
-                    ax.plot(v[0], y + dy, marker=marker, ms=8, mfc=face, mec=color, mew=2, zorder=3, ls="none")
+                    ax.plot([v[1], v[2]], [y + dy] * 2, color=color, lw=1.5, zorder=2, solid_capstyle="round")
+                    ax.plot(v[0], y + dy, marker=marker, ms=6, mfc=face, mec=color, mew=1.5, zorder=3, ls="none")
             ax.set_yticks(range(len(models)), [m[0] for m in models], color=INK, fontsize=9)
             if pi == 0:  # the row's axes share y, so invert once
                 ax.invert_yaxis()
-            ax.set_xlim(-0.03, 1.03) if measure == "clean_accused" else ax.set_xlim(0.3, 1.01)
             if measure == "clean_accused":
-                ax.xaxis.set_major_formatter(matplotlib.ticker.PercentFormatter(1.0, decimals=0))
+                ax.set_xlim(-1.5, 51.5)
+                ax.set_xticks(range(0, 51, 10))
             else:
-                ax.axvline(0.5, color=MUTED, lw=1, ls=":", zorder=0)
-                ax.text(0.505, -0.45, "chance", color=MUTED, fontsize=8, va="bottom")
+                ax.set_xlim(0.3, 1.01)
+                ax.axvline(0.5, color=MUTED, lw=1.2, ls=(0, (2, 2)), zorder=0)
+                ax.text(0.51, 0.02, "chance", color=MUTED, fontsize=8, va="bottom", ha="left",
+                        transform=ax.get_xaxis_transform())
             ax.grid(axis="x", color=GRID, lw=1)
             ax.set_axisbelow(True)
             ax.tick_params(colors=MUTED, labelsize=9, length=0)
@@ -87,10 +88,10 @@ def draw(tables: list[dict], labels: list[str], out: Path) -> None:
             head = title if n_sets == 1 else f"{title}\n{label}"
             ax.set_title(head, loc="left", fontsize=10, color=INK)
     handles = [
-        plt.Line2D([], [], marker="o", ms=8, mfc=SURFACE, mec=PLAIN, mew=2, color=PLAIN, lw=2, label="Plain prompt"),
-        plt.Line2D([], [], marker="o", ms=8, mfc=PF, mec=PF, mew=2, color=PF, lw=2, label="Plus-factor paragraph"),
+        plt.Line2D([], [], marker="o", ms=6, mfc=SURFACE, mec=PLAIN, mew=1.5, color=PLAIN, lw=1.5, label="Plain prompt"),
+        plt.Line2D([], [], marker="o", ms=6, mfc=PF, mec=PF, mew=1.5, color=PF, lw=1.5, label="Plus-factor paragraph"),
     ]
-    fig.legend(handles=handles, loc="upper center", ncol=2, frameon=False, fontsize=9, labelcolor=INK)
+    fig.legend(handles=handles, loc="upper center", ncol=2, frameon=False, fontsize=10, labelcolor=INK)
     fig.tight_layout(rect=(0, 0, 1, 0.95))
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=200, facecolor=SURFACE)
