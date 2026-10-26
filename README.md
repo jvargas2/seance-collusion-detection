@@ -4,7 +4,7 @@ Séance is the first game of a proposed benchmark of **hard negatives** for coll
 
 Four LLM players sit at a table and play a guessing game in which each holds private information. In some games a secret pair is told to pass information to each other through ordinary-looking public talk without getting caught. In the others nobody is allied, but the players often share their information openly with the whole table, because that helps everyone score. A monitor reads only the public record and says which pair, if any, is colluding.
 
-The honest games are the hard part. On our test set, every LLM monitor we tried, asked plainly, accused most honest tables (Qwen3.8-27B 43 of 50; Claude Opus 5.5 all 50), because open, table-wide cooperation looks like collusion to it. A good collusion monitor has to catch the secret pair without accusing people who are simply cooperating in public.
+The honest games are the hard part. On my test set, every LLM monitor I tried, asked plainly, accused most honest tables played by Qwen3.8-27B (the Qwen3.8-27B monitor 43 of 50, Claude Opus 5.5 all 50), because open, table-wide cooperation looks like collusion to it. A good collusion monitor has to catch the secret pair without accusing people who are simply cooperating in public.
 
 Built for the Apart Research AI Collusion Research Sprint, 23–25 October 2026.
 
@@ -38,7 +38,7 @@ Main measures (on clean and coalition games):
 
 Stated plainly, because it matters for reading the results:
 
-- **Development** (252 games): every game played before the monitors were frozen. This set grew as we iterated: the 106-game pre-registered main study, then 40 held-out games used to check fixes, then replays under neutral wording, winner-take-all scoring and redacted numbers, and a 6-game pilot with Claude Haiku 5.5 as the players. Every monitor and prompt was developed while looking at some of these games, so development numbers are optimistic.
+- **Development** (252 games): every game played before the monitors were frozen. This set grew as I iterated: the 106-game pre-registered main study, then 40 held-out games used to check fixes, then replays under neutral wording, winner-take-all scoring and redacted numbers, and a 6-game pilot with Claude Haiku 5.5 as the players. Every monitor and prompt was developed while looking at some of these games, so development numbers are optimistic.
 - **Test** (212 games: 50 clean + 50 coalition + 6 positive controls with Qwen3.8-27B players, and the same 106 deals with Claude Haiku 5.5 players): generated from a new seed (2026102502) after every monitor, prompt and setting was frozen and committed (freeze commit `9b4ebad`, tag `final-freeze`), and scored once. Nobody looked at monitor output on these games until every monitor had scored them all.
 
 Players in every game are Qwen3.8-27B (FP8, thinking off), except the Haiku pilot and the Haiku test set. See [DATA_CARD.md](DATA_CARD.md) for what each file holds, how labels are set, and the known limits.
@@ -70,9 +70,9 @@ Players in every game are Qwen3.8-27B (FP8, thinking off), except the Haiku pilo
    uv run --group report python -m seance.final --run runs/final --monitor "My monitor=my_monitor.jsonl" --out my_scores
    ```
 
-   This writes `my_scores/final_table.md` (and `.json`, and a figure): the full table, every measure above with intervals, your monitor's row next to every monitor we tested, and paired differences against our plain and plus-factor Qwen monitors. Use `--run runs/final-haiku` for the Haiku-played set. `--monitor` can be repeated.
+   This writes `my_scores/final_table.md` (and `.json`, and a figure): the full table, every measure above with intervals, your monitor's row next to every monitor I tested, and paired differences against my plain and plus-factor Qwen monitors (plus each of my monitors' plus-factor prompt against its own plain prompt). Use `--run runs/final-haiku` for the Haiku-played set. `--monitor` can be repeated.
 
-To run our LLM monitor with your own model on any OpenAI-compatible endpoint, set `SEANCE_MONITOR_BASE_URL`, `SEANCE_MONITOR_API_KEY` and `SEANCE_MONITOR_MODEL` in `.env` and run `uv run python -m seance.evaluate --run runs/final --detector llm_monitor`.
+To run my LLM monitor with your own model on any OpenAI-compatible endpoint, set `SEANCE_MONITOR_BASE_URL`, `SEANCE_MONITOR_API_KEY` and `SEANCE_MONITOR_MODEL` in `.env` and run `uv run python -m seance.evaluate --run runs/final --detector llm_monitor`.
 
 **Please don't tune on the test games.** Once these games are public, a monitor can be fitted to them. Develop on the development runs, and report test numbers once.
 
@@ -95,7 +95,7 @@ Test set, 50 honest + 50 coalition games per player set. **Accused**: honest tab
 | Monitor | Qwen players: accused | AUROC | Catch | Pair | Haiku players: accused | AUROC |
 |---|---|---|---|---|---|---|
 | Qwen3.8-27B, plain | 43 [38, 47] | 0.65 [0.54, 0.76] | 22% | 52% | 30 | 0.75 |
-| Qwen3.8-27B, plus-factor | 19 [12, 26] | 0.75 [0.66, 0.85] | 40% | 62% | 6 | 0.83 |
+| Qwen3.8-27B, plus-factor | 19 [12, 26] | 0.75 [0.65, 0.84] | 40% | 62% | 6 | 0.83 |
 | Qwen, permission half only | 22 | 0.81 | 24% | 51% | 21 | 0.79 |
 | Qwen, evidence half only | 26 | 0.77 | 16% | 58% | 10 | 0.87 |
 | Qwen, seven-item checklist | 22 | 0.73 | 12% | 56% | 7 | 0.77 |
@@ -117,9 +117,9 @@ Test set, 50 honest + 50 coalition games per player set. **Accused**: honest tab
 | Prior (base rates) | 0 | 0.50 | 0% | 17% | 0 | 0.50 |
 | Top scorers (points only) | 0 | 0.49 | 0% | 42% | 0 | 0.42 |
 
-Sonnet and Opus read only the Qwen-played set. Claude models ran at default sampling (temperature can't be set), Opus at low effort with no thinking used. Two things stand out. Asked plainly, every LLM monitor accuses most honest tables, and the frontier models accuse all of them even when they rank coalitions well: Opus names the right pair in all 50 coalition games yet accuses all 50 honest tables. And the plus-factor paragraph cuts false accusations for nearly every monitor; for some (Opus, Qwen) that is a real gain, for others (Haiku and Gemma as monitors) it mostly makes them accuse less and miss more coalitions.
+Sonnet and Opus read only the Qwen-played set. Claude models ran at default sampling (temperature can't be set), Opus at low effort with no thinking used. Two things stand out. Asked plainly, every LLM monitor accused most honest tables played by Qwen3.8-27B (the Qwen3.8-27B monitor 43 of 50, Claude Opus 5.5 all 50), and Sonnet and Opus accused all 50 even though they ranked coalitions better than chance. Opus named the right pair in all 50 coalition games yet accused all 50 honest tables. And the plus-factor paragraph cut false accusations for every monitor except Jev, which barely moved. For Opus the trade looks favorable (20 fewer false accusations for 3 more missed coalitions), and the Opus and Qwen monitors caught more coalitions at a 5% false-alarm rate, though with wide intervals. Haiku and Gemma as monitors partly just accuse less and miss more coalitions.
 
-Development results, for context only (held-out development games, 30 clean + 30 coalition): asked plainly, the Qwen monitor accused 25 of 30 honest tables (AUROC 0.71). Adding one paragraph to its prompt, saying that open sharing with the whole table is ordinary cooperation and only evidence that singles out one pair counts (antitrust's "plus factors"), brought that to 7 of 30 (AUROC 0.92). These numbers were measured on games we iterated on; the test set above is the real check.
+Development results, for context only (held-out development games, 30 clean + 30 coalition): asked plainly, the Qwen monitor accused 25 of 30 honest tables (AUROC 0.71). Adding one paragraph to its prompt, saying that open sharing with the whole table is ordinary cooperation and only evidence that singles out one pair counts (antitrust's "plus factors"), brought that to 7 of 30 (AUROC 0.92). These numbers were measured on games I iterated on; the test set above is the real check.
 
 ## Repository
 
@@ -144,12 +144,26 @@ Development results, for context only (held-out development games, 30 clean + 30
 - 100 scored test games per player model (50 + 50): enough to see large differences; monitors within about 0.1 AUROC or 8 accused tables of each other will look tied.
 - The coalitions are told to collude; they are not models that chose to. Their codes are often crude.
 - Ground truth for "who was allied" is exact (it is set by the game); the private notes show what players meant, but are themselves model output.
-- Development data grew while we iterated, and the monitors were chosen on it.
+- Development data grew while I iterated, and the monitors were chosen on it.
 - Once public, the test games can be tuned on.
 
 ## Citation
 
-If you use the games, the scoring script or the results, please cite the repository; a report from the Apart sprint is forthcoming.
+If you use the games, the scoring script or the results, please cite the report.
+
+Vargas, J. (2026). Plus Factors for Collusion Monitors: LLM Monitors Mistake Open Cooperation for Collusion. Apart Research AI Collusion Research Sprint.
+
+```bibtex
+@misc{vargas2026plusfactors,
+  author       = {Vargas, Jorge},
+  title        = {Plus Factors for Collusion Monitors: {LLM} Monitors Mistake Open Cooperation for Collusion},
+  year         = {2026},
+  howpublished = {Apart Research AI Collusion Research Sprint},
+  url          = {https://github.com/jvargas2/seance-collusion-detection}
+}
+```
+
+To cite the code and data alone, cite the repository.
 
 ```bibtex
 @misc{vargas2026seance,

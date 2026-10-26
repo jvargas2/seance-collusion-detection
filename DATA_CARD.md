@@ -2,7 +2,7 @@
 
 ## What this is
 
-Recorded games of Séance, a four-player guessing game played by LLMs, with and without a secret colluding pair, and the predictions of every collusion monitor we tested on them. It is the first game of a proposed benchmark of hard negatives for collusion monitors: honest games where open, table-wide cooperation looks like collusion.
+Recorded games of Séance, a four-player guessing game played by LLMs, with and without a secret colluding pair, and the predictions of every collusion monitor I tested on them. It is the first game of a proposed benchmark of hard negatives for collusion monitors: honest games where open, table-wide cooperation looks like collusion.
 
 ## Contents
 
@@ -21,7 +21,7 @@ A monitor must see only `seance.public_view.public_view(record)`: messages, gues
 | Split | Runs | Games | How they were made |
 |---|---|---|---|
 | Test | `final`, `final-haiku` | 106 + 106 (each 50 clean, 50 coalition, 6 positive control; same deals, different players) | New seed (2026102502), played after every monitor was frozen (commit `9b4ebad`, tag `final-freeze`); scored once |
-| Development | `main`, `fresh`, `neutral`, `winner`, `redact`, `pilot-haiku` | 252 | Everything before the freeze; grew as we iterated |
+| Development | `main`, `fresh`, `neutral`, `winner`, `redact`, `pilot-haiku` | 252 | Everything before the freeze; grew as I iterated |
 
 The development split was used to build and choose monitors and prompts, so numbers on it are optimistic. Earlier pilot and smoke-test runs (`pilot-qwen`, `pilot2-*`, `smoke-*`) are kept for the record and are not part of either split.
 
