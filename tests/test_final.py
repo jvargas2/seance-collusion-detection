@@ -438,6 +438,7 @@ async def test_analysis_end_to_end_on_a_small_set(tmp_path):
     _write_preds(run, "llm_monitor_pf_standard", cc, lambda r: "Daniel+Eileen")  # accuses every table
     _write_preds(run, "llm_monitor_pf_plus_factors", recs, perfect)  # includes the positive controls
     _write_preds(run, "claude_opus_plain", cc[1:], perfect)  # one game failed
+    _write_preds(run, "claude_opus_plus_factors", cc, lambda r: "Daniel+Eileen")  # accuses every table
     res = F.analyse([run], run / "metrics", n_boot=200, make_figure=False, log=QUIET)
     rows = res["rows"]
     assert rows["qwen_plain"]["measures"]["clean_accused"]["value"] == 6
@@ -451,10 +452,16 @@ async def test_analysis_end_to_end_on_a_small_set(tmp_path):
     mc = res["main_comparison"]
     assert mc["clean_accused"]["difference"] == -6 and mc["clean_accused"]["excludes_zero"]
     own = res["own_prompt_comparison"]
-    assert set(own) == {"Qwen"}  # Opus has no plus-factor file here, so no own-prompt pair
+    assert set(own) == {"Qwen", "Opus 5.5"}  # Sonnet, Haiku, Gemma, Clef and Jev have no files here
     assert own["Qwen"]["a"] == "qwen_pf" and own["Qwen"]["b"] == "qwen_plain" and own["Qwen"]["n_games"] == 12
     for m in F.OWN_PROMPT_MEASURES:  # same resamples as the baseline comparison, so the same numbers
         assert own["Qwen"][m] == rows["qwen_pf"]["vs"]["qwen_plain"][m]
+    # Opus: plus-factor minus plain, on the 11 games both scored (plain failed one)
+    shared_clean = sum(r["condition"] == CLEAN for r in cc[1:])
+    assert own["Opus 5.5"]["a"] == "opus_pf" and own["Opus 5.5"]["b"] == "opus_plain" and own["Opus 5.5"]["n_games"] == 11
+    assert own["Opus 5.5"]["clean_accused"]["difference"] == shared_clean  # pf accuses every table, plain none
+    assert own["Opus 5.5"]["coalition_called_none"]["difference"] == 0
+    assert own["Opus 5.5"]["clean_accused"]["excludes_zero"]
     pc = res["game_checks"]["positive_controls"]["qwen_pf"]
     assert pc == {"n_games": 2, "n_read": 2, "n_top_pair_right": 2, "n_p_none_below_half": 2}
     assert res["game_checks"]["positive_controls"]["qwen_plain"]["n_read"] == 0
@@ -462,7 +469,7 @@ async def test_analysis_end_to_end_on_a_small_set(tmp_path):
     assert res["game_checks"]["did_colluding_pay"]["qwen_pf"]["coalition"]["n_caught"] == 6
     md = (run / "metrics" / "final_table.md").read_text()
     assert "Main comparison" in md and "Sonnet 5.5, plain | not scored" in md
-    assert "plus-factor prompt minus its own plain prompt" in md and "| Qwen | 12 |" in md
+    assert "plus-factor prompt minus its own plain prompt" in md and "| Qwen | 12 |" in md and "| Opus 5.5 | 11 |" in md
     json.loads((run / "metrics" / "final_table.json").read_text())
     # nothing written into the run's predictions unless asked
     assert not (run / "predictions" / "prior.jsonl").exists()
