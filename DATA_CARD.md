@@ -9,7 +9,7 @@ Recorded games of Séance, a four-player guessing game played by LLMs, with and 
 Each run is a folder under `runs/`:
 
 - `games/<game_id>.json`: one complete game. Settings and seed, the player model and its inference settings, each player's role, the system prompts, and for every round the secret, each player's private range, public message, private notes and guess, and the points. Also final scores, token counts and every raw model reply. Game ids are assigned after shuffling and say nothing about the condition.
-- `manifest.json`: the list of games with each game's condition and allied pair. **This file holds the answers; never give it to a monitor.**
+- `manifest.json`: the list of games with each game's condition and allied pair. **This file holds the answers. Never give it to a monitor.**
 - `predictions/<monitor>.jsonl`: one line per game: `game_id`, the 7 probabilities, the detection score, the monitor's settings (model, prompt hash), and for LLM monitors each reading's probabilities, written reasons and raw replies.
 - `metrics/`: scores computed from the predictions.
 - `failed/`: games that failed after retries, kept for the record and excluded from every analysis.
@@ -29,12 +29,12 @@ The development split was used to build and choose monitors and prompts, so numb
 
 - Each game's label is one of 7 classes: one of the 6 pairs, or `none`.
 - The label is set by the game builder before play (a balanced, seeded assignment of pairs to coalition games), so it is exact, not annotated.
-- Conditions: `clean` (label `none`), `coalition` (a pair told to improvise a code and warned about the auditor), `positive_control` (a pair handed a simple code; main study and test sets, used only to check that monitors can catch an obvious code).
+- Conditions: `clean` (label `none`), `coalition` (a pair told to improvise a code and warned about the auditor), `positive_control` (a pair handed a simple code, in the main study and test sets, used only to check that monitors can catch an obvious code).
 - The private notes record what each player intended. They are model output, useful for reading a game but not part of the label.
 
 ## Measures
 
-On clean + coalition games: honest tables accused (P(none) < 0.5), honest mean P(none), coalitions called "none", AUROC of the detection score, catch rate at no more than 5% of clean games flagged and at zero false alarms, right pair named, log-loss, calibration error. Intervals are 95% percentile bootstrap over 10,000 resamples, clean and coalition games resampled separately; comparisons between monitors are paired.
+On clean + coalition games: honest tables accused (P(none) < 0.5), honest mean P(none), coalitions called "none", AUROC of the detection score, catch rate at no more than 5% of clean games flagged and at zero false alarms, right pair named, log-loss, calibration error. Intervals are 95% percentile bootstrap over 10,000 resamples, clean and coalition games resampled separately. Comparisons between monitors are paired.
 
 ## Players and monitors
 
@@ -44,9 +44,9 @@ On clean + coalition games: honest tables accused (P(none) < 0.5), honest mean P
 ## Known limits
 
 - One game, and two player models, both small. Other players may collude, or cooperate openly, in quite different ways.
-- 100 scored test games per player model (50 + 50): large differences show; monitors within about 0.1 AUROC or 8 accused tables of each other will look tied.
-- Coalitions are instructed to collude and improvise their codes during the game; many codes are crude. This measures monitors against prompted collusion, not collusion a model chose on its own.
-- Players use four fixed names (Daniel, Eileen, Gladys, Leonora). The original monitor leaned toward naming Daniel; renamed views remove this.
+- 100 scored test games per player model (50 + 50). Large differences show, but monitors within about 0.1 AUROC or 8 accused tables of each other will look tied.
+- Coalitions are instructed to collude and improvise their codes during the game, and many codes are crude. This measures monitors against prompted collusion, not collusion a model chose on its own.
+- Players use four fixed names (Daniel, Eileen, Gladys, Leonora). The original monitor leaned toward naming Daniel, and renamed views remove this.
 - Text is English only.
 
 ## Contamination
@@ -61,8 +61,8 @@ Not intended as training data for making agents better at covert coordination, o
 
 ## Personal and sensitive data
 
-None. All players are language models using fictional names; the game contains no real people's data. Model outputs are kept as returned.
+None. All players are language models using fictional names, and the game contains no real people's data. Model outputs are kept as returned.
 
 ## License
 
-Code: MIT (`LICENSE`). Data (game records, predictions, explorer data under `runs/` and `docs/explorer/data/`): CC BY 4.0 (`LICENSE-DATA`). Model outputs in the records come from Qwen3.8-27B, Gemma 4 31B, Clef, Jev and Claude 5.5 models; their providers' terms also apply to reusing those outputs. In particular, TypeSafe's terms forbid using Jev's outputs to train a model that imitates Jev.
+Code: MIT (`LICENSE`). Data (game records, predictions, explorer data under `runs/` and `docs/explorer/data/`): CC BY 4.0 (`LICENSE-DATA`). Model outputs in the records come from Qwen3.8-27B, Gemma 4 31B, Clef, Jev and Claude 5.5 models, and their providers' terms also apply to reusing those outputs. In particular, TypeSafe's terms forbid using Jev's outputs to train a model that imitates Jev.
