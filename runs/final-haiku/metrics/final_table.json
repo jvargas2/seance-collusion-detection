@@ -32,6 +32,183 @@
    "excludes_zero": false
   }
  },
+ "own_prompt_comparison": {
+  "Qwen": {
+   "a": "qwen_pf",
+   "b": "qwen_plain",
+   "n_games": 100,
+   "clean_accused": {
+    "difference": -24.0,
+    "lo": -31.0,
+    "hi": -17.0,
+    "excludes_zero": true
+   },
+   "coalition_called_none": {
+    "difference": 7.0,
+    "lo": 0.0,
+    "hi": 14.0,
+    "excludes_zero": false
+   },
+   "auroc": {
+    "difference": 0.08079999999999998,
+    "lo": -0.02059999999999995,
+    "hi": 0.18320000000000003,
+    "excludes_zero": false
+   },
+   "catch_5pct": {
+    "difference": 0.16000000000000003,
+    "lo": -0.26,
+    "hi": 0.49999999999999994,
+    "excludes_zero": false
+   },
+   "right_pair": {
+    "difference": 0.18666666666666665,
+    "lo": 0.09333333333333338,
+    "hi": 0.29000000000000004,
+    "excludes_zero": true
+   }
+  },
+  "Haiku 5.5": {
+   "a": "haiku_pf",
+   "b": "haiku_plain",
+   "n_games": 100,
+   "clean_accused": {
+    "difference": -20.0,
+    "lo": -27.0,
+    "hi": -13.0,
+    "excludes_zero": true
+   },
+   "coalition_called_none": {
+    "difference": 18.0,
+    "lo": 12.0,
+    "hi": 25.0,
+    "excludes_zero": true
+   },
+   "auroc": {
+    "difference": 0.0010000000000000009,
+    "lo": -0.07440000000000002,
+    "hi": 0.0806,
+    "excludes_zero": false
+   },
+   "catch_5pct": {
+    "difference": -0.16000000000000003,
+    "lo": -0.44,
+    "hi": 0.32000000000000006,
+    "excludes_zero": false
+   },
+   "right_pair": {
+    "difference": 0.006666666666666599,
+    "lo": -0.09666666666666657,
+    "hi": 0.10999999999999999,
+    "excludes_zero": false
+   }
+  },
+  "Gemma 4 31B": {
+   "a": "gemma_pf",
+   "b": "gemma_plain",
+   "n_games": 100,
+   "clean_accused": {
+    "difference": -28.0,
+    "lo": -35.0,
+    "hi": -21.0,
+    "excludes_zero": true
+   },
+   "coalition_called_none": {
+    "difference": 21.0,
+    "lo": 14.0,
+    "hi": 28.0,
+    "excludes_zero": true
+   },
+   "auroc": {
+    "difference": 0.02939999999999998,
+    "lo": -0.05579999999999996,
+    "hi": 0.11660000000000004,
+    "excludes_zero": false
+   },
+   "catch_5pct": {
+    "difference": 0.44,
+    "lo": -0.16,
+    "hi": 0.64,
+    "excludes_zero": false
+   },
+   "right_pair": {
+    "difference": 0.013333333333333308,
+    "lo": -0.09000000000000008,
+    "hi": 0.11999999999999994,
+    "excludes_zero": false
+   }
+  },
+  "Clef": {
+   "a": "clef_pf",
+   "b": "clef_plain",
+   "n_games": 100,
+   "clean_accused": {
+    "difference": -18.0,
+    "lo": -25.0,
+    "hi": -11.0,
+    "excludes_zero": true
+   },
+   "coalition_called_none": {
+    "difference": 6.0,
+    "lo": 2.0,
+    "hi": 11.0,
+    "excludes_zero": true
+   },
+   "auroc": {
+    "difference": 0.014000000000000012,
+    "lo": -0.03159999999999996,
+    "hi": 0.059599999999999986,
+    "excludes_zero": false
+   },
+   "catch_5pct": {
+    "difference": -0.019999999999999962,
+    "lo": -0.13999999999999999,
+    "hi": 0.18000000000000005,
+    "excludes_zero": false
+   },
+   "right_pair": {
+    "difference": 0.07999999999999996,
+    "lo": 0.019999999999999962,
+    "hi": 0.16000000000000003,
+    "excludes_zero": true
+   }
+  },
+  "Jev": {
+   "a": "jev_pf",
+   "b": "jev_plain",
+   "n_games": 100,
+   "clean_accused": {
+    "difference": 0.0,
+    "lo": -5.0,
+    "hi": 5.0,
+    "excludes_zero": false
+   },
+   "coalition_called_none": {
+    "difference": 3.0,
+    "lo": -1.0,
+    "hi": 7.0,
+    "excludes_zero": false
+   },
+   "auroc": {
+    "difference": -0.05879999999999996,
+    "lo": -0.11720500000000007,
+    "hi": -0.0050000000000000044,
+    "excludes_zero": true
+   },
+   "catch_5pct": {
+    "difference": -0.06,
+    "lo": -0.18,
+    "hi": 0.12,
+    "excludes_zero": false
+   },
+   "right_pair": {
+    "difference": 0.08999999999999997,
+    "lo": 0.019999999999999907,
+    "hi": 0.17999999999999994,
+    "excludes_zero": true
+   }
+  }
+ },
  "rows": {
   "qwen_plain": {
    "label": "Qwen, plain",
